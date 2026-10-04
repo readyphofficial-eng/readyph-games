@@ -2,101 +2,111 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>READYPH School</title>
+<title>READYPH V2</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
 <style>
- body{margin:0;background:#2d5a27;overflow:hidden;touch-action:none}
- #joystick{position:fixed;left:10px;bottom:10px;width:120px;height:120px;z-index:10}
- #btnA{position:fixed;right:20px;bottom:80px;width:80px;height:80px;background:#4caf50;border-radius:50%;border:4px solid white;color:white;font-weight:bold;font-size:22px;z-index:10}
- #btnB{position:fixed;right:110px;bottom:20px;width:60px;height:60px;background:#ff9800;border-radius:50%;border:3px solid white;color:white;z-index:10}
- #hud{position:fixed;top:10px;left:10px;color:white;font-family:Arial;background:rgba(0,0,0,0.6);padding:8px 12px;border-radius:8px;z-index:10;font-size:14px}
+ body{margin:0;background:#000;overflow:hidden;font-family:Arial}
+ #joy{position:fixed;left:15px;bottom:15px;width:110px;height:110px;z-index:5}
+ #btnA{position:fixed;right:20px;bottom:85px;width:75px;height:75px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:22px;z-index:5}
+ #btnB{position:fixed;right:100px;bottom:20px;width:60px;height:60px;background:#f59e0b;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:bold;z-index:5}
+ #hud{position:fixed;top:0;left:0;right:0;background:linear-gradient(to right,#000000cc,#00000088);color:#fff;padding:10px 15px;display:flex;justify-content:space-between;z-index:5;font-size:13px}
+ #dialog{position:fixed;bottom:0;left:0;right:0;background:#111;border-top:3px solid #22c55e;padding:15px;color:#fff;display:none;z-index:10}
 </style>
 </head>
 <body>
-<div id="hud">Day 1 | 7:00 AM | Energy: 100</div>
-<div id="joystick"></div>
+<div id="hud"><span id="day">Day 1 | 7:00 AM</span><span id="energy">⚡100</span><span id="quest">🎯 Pumunta sa Main Building</span></div>
+<div id="joy"></div>
 <button id="btnA">A</button>
 <button id="btnB">RUN</button>
+<div id="dialog"><b id="dName"></b><p id="dText"></p><small>Tap A to continue</small></div>
 <script>
-let player, buildings=[], npcs=[];
-let joyData={x:0,y:0};
-
-const config = {
-  type: Phaser.AUTO,
-  width: window.innerWidth,
-  height: window.innerHeight,
-  backgroundColor: '#6aa86f',
-  physics:{default:'arcade'},
-  scene:{
-    create: function(){
-      // MAP - simple
-      this.add.rectangle(1250,1250,2500,2500,0x6aa86f);
-      this.add.rectangle(1250,1250,200,2500,0xc2b280);
-      this.add.rectangle(1250,1250,2500,200,0xc2b280);
-
-      let main = this.add.rectangle(1250,800,300,200,0x8d6e63).setStrokeStyle(4,0x000000);
-      this.add.text(1250,800,'MAIN BUILDING',{color:'#fff',fontSize:'16px'}).setOrigin(0.5);
-      main.name='Main'; buildings.push(main);
-
-      let canteen = this.add.rectangle(800,1250,200,200,0xffcc80).setStrokeStyle(4,0x000000);
-      this.add.text(800,1250,'CANTEEN',{color:'#000',fontSize:'14px'}).setOrigin(0.5);
-      canteen.name='Canteen'; buildings.push(canteen);
-
-      let dorm = this.add.rectangle(1250,1700,250,180,0x90caf9).setStrokeStyle(4,0x000000);
-      this.add.text(1250,1700,'DORM',{color:'#000',fontSize:'14px'}).setOrigin(0.5);
-      dorm.name='Dorm'; buildings.push(dorm);
-
-      let garden = this.add.rectangle(1700,1250,200,200,0x81c784).setStrokeStyle(4,0x000000);
-      this.add.text(1700,1250,'GARDEN',{color:'#000',fontSize:'14px'}).setOrigin(0.5);
-      garden.name='Garden'; buildings.push(garden);
-
-      player = this.add.rectangle(1250,1300,24,24,0x1a237e).setStrokeStyle(3,0xffffff);
-      this.physics.add.existing(player);
-      player.body.setCollideWorldBounds(true);
-
-      let guard = this.add.rectangle(1250,2100,22,22,0xff0000);
-      this.add.text(1250,2140,'Manong Guard',{fontSize:'12px',color:'#fff'}).setOrigin(0.5);
-      guard.dialog='Welcome sa READYPH!'; npcs.push(guard);
-
-      this.cameras.main.startFollow(player,true,0.1,0.1);
-      this.cameras.main.setBounds(0,0,2500,2500);
-      this.physics.world.setBounds(0,0,2500,2500);
-
-      this.input.keyboard.on('keydown-E',()=>{ interact() });
-
-      let joy = nipplejs.create({zone:document.getElementById('joystick'),mode:'static',position:{left:'60px',top:'60px'},color:'white'});
-      joy.on('move',(e,d)=>{joyData.x=d.vector.x; joyData.y=d.vector.y;});
-      joy.on('end',()=>{joyData.x=0; joyData.y=0;});
-      document.getElementById('btnA').onclick=()=>{interact();};
-    },
-    update: function(){
-      if(!player) return;
-      let speed=200;
-      if(document.getElementById('btnB').matches(':active') || this.input.keyboard.addKey('SHIFT').isDown) speed=350;
-      let cursors = this.input.keyboard.createCursorKeys();
-      let vx = (cursors.left.isDown?-1:cursors.right.isDown?1:joyData.x)*speed;
-      let vy = (cursors.up.isDown?-1:cursors.down.isDown?1:joyData.y)*-speed;
-      player.body.setVelocity(vx,vy);
-    }
-  }
-};
-
-function interact(){
-  for(let b of buildings){
-    if(Phaser.Math.Distance.Between(player.x,player.y,b.x,b.y)<180){
-      if(b.name==='Dorm'){alert('Zzz... Tulog ka. Day 2 na!');}
-      else{alert('Pumasok ka sa '+b.name+'!');}
-      return;
-    }
-  }
-  for(let n of npcs){
-    if(Phaser.Math.Distance.Between(player.x,player.y,n.x,n.y)<120){alert(n.dialog); return;}
-  }
-  alert('Hanap ka ng building na malapit!');
+let joy={x:0,y:0}, player, keys, speed=180, energy=100, inBuilding=false;
+function showDialog(name,text){
+ document.getElementById('dName').innerText=name;
+ document.getElementById('dText').innerText=text;
+ document.getElementById('dialog').style.display='block';
 }
+function hideDialog(){document.getElementById('dialog').style.display='none';}
 
-new Phaser.Game(config);
+const game = new Phaser.Game({
+ width: innerWidth, height: innerHeight, backgroundColor:'#5a8f3e',
+ physics:{default:'arcade'},
+ scene:{
+  create(){
+   // world
+   this.add.rectangle(1250,1250,2500,2500,0x5a8f3e);
+   this.add.grid(1250,1250,2500,2500,40,40,0x000000,0,0x000000,0.05);
+   this.add.rectangle(1250,1250,2500,180,0xd9c49a).setDepth(1);
+   this.add.rectangle(1250,1250,180,2500,0xd9c49a).setDepth(1);
+
+   // Buildings with collision
+   this.buildings = this.physics.add.staticGroup();
+   let b1 = this.add.rectangle(1250,800,320,220,0x8b6a50).setStrokeStyle(4,0x000).setDepth(2); this.buildings.add(b1); b1.name='Main'; this.add.text(1250,800,'MAIN\nBUILDING',{align:'center',color:'#fff',fontSize:'18px',fontStyle:'bold'}).setOrigin(0.5).setDepth(3);
+   let b2 = this.add.rectangle(800,1250,200,200,0xf5d6a0).setStrokeStyle(4,0x000).setDepth(2); this.buildings.add(b2); b2.name='Canteen'; this.add.text(800,1250,'CANTEEN',{color:'#000'}).setOrigin(0.5).setDepth(3);
+   let b3 = this.add.rectangle(1250,1750,260,190,0x90caf9).setStrokeStyle(4,0x000).setDepth(2); this.buildings.add(b3); b3.name='Dorm'; this.add.text(1250,1750,'DORM',{color:'#000'}).setOrigin(0.5).setDepth(3);
+   let b4 = this.add.rectangle(1750,1250,200,200,0x81c784).setStrokeStyle(4,0x000).setDepth(2); this.buildings.add(b4); b4.name='Garden'; this.add.text(1750,1250,'GARDEN',{color:'#000'}).setOrigin(0.5).setDepth(3);
+
+   // Player - cute
+   player = this.add.container(1250,1350);
+   let body = this.add.rectangle(0,0,20,26,0x1e3a8a);
+   let head = this.add.circle(0,-18,10,0xffdbac).setStrokeStyle(2,0x000);
+   player.add([body,head]);
+   this.physics.add.existing(player); player.body.setSize(20,26); player.body.setCollideWorldBounds(true);
+   this.physics.add.collider(player,this.buildings);
+
+   // NPC
+   this.npcs=[];
+   let guard = this.add.container(1250,2050);
+   guard.add([this.add.rectangle(0,0,18,22,0xdc2626), this.add.circle(0,-15,8,0xffdbac)]);
+   guard.name='Manong Guard'; guard.msg='O estudyante! Pumasok ka na sa Main Building para sa orientation. Pindutin mo A pag malapit ka na!'; this.npcs.push(guard);
+   this.physics.add.existing(guard);
+
+   this.cameras.main.startFollow(player,true,0.15,0.15);
+   this.cameras.main.setBounds(0,0,2500,2500);
+   this.physics.world.setBounds(0,0,2500,2500);
+   keys=this.input.keyboard.addKeys('W,A,S,D,E,SHIFT');
+
+   let nip = nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'55px',top:'55px'},color:'white',size:90});
+   nip.on('move',(e,d)=>{joy.x=d.vector.x; joy.y=d.vector.y;}); nip.on('end',()=>{joy.x=0;joy.y=0;});
+   document.getElementById('btnA').onclick=()=>{doInteract.call(this)};
+   this.input.keyboard.on('keydown-E',()=>{doInteract.call(this)});
+   document.getElementById('dialog').onclick=hideDialog;
+  },
+  update(){
+   if(document.getElementById('dialog').style.display==='block') {player.body.setVelocity(0); return;}
+   let run = keys.SHIFT.isDown || document.getElementById('btnB').matches(':active');
+   let curSpeed = run?320:180;
+   if(run && (joy.x!=0||joy.y!=0||keys.W.isDown||keys.A.isDown||keys.S.isDown||keys.D.isDown)){energy-=0.08; document.getElementById('energy').innerText='⚡'+Math.floor(energy);}
+   let vx = (keys.A.isDown?-1:keys.D.isDown?1:joy.x)*curSpeed;
+   let vy = (keys.W.isDown?-1:keys.S.isDown?1:-joy.y)*curSpeed;
+   player.body.setVelocity(vx,vy);
+   // hint near building
+   for(let b of this.buildings.children.entries){ if(Phaser.Math.Distance.Between(player.x,player.y,b.x,b.y)<200){document.getElementById('quest').innerText='🎯 Press A sa '+b.name; return;} }
+   for(let n of this.npcs){ if(Phaser.Math.Distance.Between(player.x,player.y,n.x,n.y)<130){document.getElementById('quest').innerText='🎯 Press A kausapin '+n.name; return;} }
+  }
+ }
+});
+
+function doInteract(){
+ if(document.getElementById('dialog').style.display==='block'){hideDialog(); return;}
+ let closest=null, dist=999;
+ for(let b of game.scene.scenes[0].buildings.children.entries){ let d=Phaser.Math.Distance.Between(player.x,player.y,b.x,b.y); if(d<dist){dist=d; closest=b;} }
+ if(closest && dist<200){
+  if(closest.name==='Main'){
+   showDialog('System','Pumasok ka sa Main Building!\n\nDay 1 - Orientation: Mag-aral ka mabuti para sa IELTS! Energy +20');
+   energy=Math.min(100,energy+20);
+   document.getElementById('day').innerText='Day 1 | 8:00 AM - Classroom';
+   document.getElementById('quest').innerText='🎯 Pumunta sa Canteen';
+   // teleport to canteen area as "inside"
+   player.x=1250; player.y=1000;
+  } else if(closest.name==='Canteen'){showDialog('Tindera','Kain ka muna! Adobo + Energy 100%'); energy=100; document.getElementById('energy').innerText='⚡100';}
+  else if(closest.name==='Dorm'){showDialog('System','Tulog ka... Day 2 na!'); document.getElementById('day').innerText='Day 2 | 7:00 AM'; player.x=1250; player.y=1350;}
+  else{showDialog(closest.name,'Nandito ka sa '+closest.name);}
+  return;
+ }
+ for(let n of game.scene.scenes[0].npcs){ if(Phaser.Math.Distance.Between(player.x,player.y,n.x,n.y)<150){showDialog(n.name,n.msg); return;} }
+}
 </script>
 </body>
 </html>
