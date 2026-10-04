@@ -2,152 +2,160 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>READYPH V6 CAMPUS UPGRADE</title>
+<title>READYPH V7 MEGA CAMPUS</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
 <style>
  body{margin:0;background:#000;overflow:hidden;font-family:Arial;touch-action:none}
- #joy{position:fixed;left:10px;bottom:10px;width:130px;height:130px;z-index:20;background:rgba(255,255,255,0.1);border-radius:50%;border:2px solid rgba(255,255,255,0.5)}
- #btnA{position:fixed;right:20px;bottom:85px;width:82px;height:82px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:22px;z-index:20;box-shadow:0 4px 12px rgba(0,0,0,.5)}
- #btnB{position:fixed;right:110px;bottom:15px;width:64px;height:64px;background:#f59e0b;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:bold;z-index:20}
- #hud{position:fixed;top:0;left:0;right:0;background:#000000ee;color:#fff;padding:10px 12px;display:flex;justify-content:space-between;z-index:10;font-size:12px;font-weight:bold}
+ #joy{position:fixed;left:10px;bottom:10px;width:130px;height:130px;z-index:20;background:rgba(255,255,255,0.12);border-radius:50%;border:2px solid rgba(255,255,255,0.6)}
+ #btnA{position:fixed;right:20px;bottom:85px;width:82px;height:82px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:22px;z-index:20}
+ #btnB{position:fixed;right:110px;bottom:15px;width:70px;height:70px;background:#f59e0b;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;z-index:20;font-size:12px}
+ #hud{position:fixed;top:0;left:0;right:0;background:#000000f0;color:#fff;padding:8px 12px;display:flex;justify-content:space-between;z-index:10;font-size:11px;font-weight:bold}
+ #questHUD{position:fixed;top:42px;left:8px;background:#ffffffee;padding:8px 10px;border-radius:10px;z-index:10;font-size:10px;min-width:150px;border:2px solid #000}
  #dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:4px solid #22c55e;padding:16px;color:#fff;display:none;z-index:30;border-radius:12px 12px 0 0}
  #quiz{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:16px;width:88%;max-width:380px;display:none;z-index:40;color:#000}
- #cert{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fffbeb;padding:24px;border-radius:16px;width:88%;max-width:380px;display:none;z-index:50;text-align:center;border:4px solid #f59e0b}
  #exitBtn{position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:#ef4444;color:#fff;padding:12px 24px;border-radius:20px;border:2px solid #fff;font-weight:900;display:none;z-index:25}
+ #bikeInd{position:fixed;bottom:160px;right:15px;background:#000;color:#f59e0b;padding:6px 10px;border-radius:12px;font-size:11px;font-weight:900;display:none;z-index:15;border:1px solid #f59e0b}
 </style>
 </head>
 <body>
-<div id="hud"><span id="hudLeft">Day 1 | Score:0</span><span id="hudMid">⚡100</span><span id="hudRight">Campus</span></div>
-<div id="joy"></div><button id="btnA">A</button><button id="btnB">RUN</button>
-<button id="exitBtn">🚪 EXIT</button>
+<div id="hud"><span id="hudLeft">Day 1 | Score:0</span><span id="hudMid">⚡100 | 🚲 OFF</span><span id="hudRight">☀️ Day</span></div>
+<div id="questHUD"><b>📋 QUESTS</b><div id="qList" style="margin-top:4px"></div></div>
+<div id="joy"></div><button id="btnA">A</button><button id="btnB">🚲 BIKE</button>
+<button id="exitBtn">🚪 EXIT BUILDING</button><div id="bikeInd">🚲 BIKING x2 SPEED!</div>
 <div id="dialog"><b id="dName" style="color:#22c55e"></b><p id="dText" style="white-space:pre-line;margin:8px 0"></p><small>Tap to close</small></div>
 <div id="quiz"><div style="display:flex;justify-content:space-between"><b id="qProg">Q1</b><b id="qScore">0</b></div><h3 id="qText" style="margin:12px 0"></h3><div id="qOpts"></div></div>
-<div id="cert"><h2>🏆 CERTIFICATE</h2><p id="certScore"></p><button onclick="localStorage.clear(); location.reload()" style="margin-top:12px;padding:12px;width:100%;border-radius:10px;border:0;background:#22c55e;color:#fff;font-weight:900">PLAY AGAIN</button></div>
 
 <script>
-let joy={x:0,y:0}, score=0, day=1, energy=100, isIndoor=false;
-let saved=JSON.parse(localStorage.getItem('readyph_v5')||'{"score":0,"day":1}'); score=saved.score||0; day=saved.day||1;
-const qBank=[
- {q:"She ___ to school every day.", opts:["go","goes","going"], ans:1},{q:"I have ___ finished.", opts:["already","yet","ever"], ans:0},{q:"Could you ___ me?", opts:["help","helps","helped"], ans:0},{q:"Synonym of happy?", opts:["sad","joyful","angry"], ans:1},{q:"Antonym of difficult?", opts:["hard","easy","tough"], ans:1},{q:"Past of 'go'?", opts:["goed","went","gone"], ans:1},{q:"___ are you from?", opts:["Where","What","Who"], ans:0},{q:"Article: ___ apple", opts:["A","An","The"], ans:1},{q:"I ___ studying for 2 hrs.", opts:["have been","has been","am"], ans:0},{q:"'The graph shows' is used in?", opts:["Task 1","Task 2","Speaking"], ans:0}
-];
+let joy={x:0,y:0}, score=0, day=1, energy=100, isIndoor=false, isOnBike=false, currentBuilding=null, timeOfDay=0;
+let saved=JSON.parse(localStorage.getItem('readyph_v7')||'{"score":0,"day":1,"quests":[0,0,0]}'); score=saved.score||0; day=saved.day||1;
+let quests=[{id:0,title:"📚 Visit Library",done:saved.quests?.[0]||0,reward:50},{id:1,title:"🏀 Enter Gym",done:saved.quests?.[1]||0,reward:50},{id:2,title:"🏢 Go to Office",done:saved.quests?.[2]||0,reward:100}];
+const qBank=[{q:"She ___ to school every day.", opts:["go","goes","going"], ans:1},{q:"I have ___ finished.", opts:["already","yet","ever"], ans:0},{q:"Synonym of happy?", opts:["sad","joyful","angry"], ans:1},{q:"Past of 'go'?", opts:["goed","went","gone"], ans:1},{q:"Article: ___ apple", opts:["A","An","The"], ans:1},{q:"If I ___ rich, I'd travel.", opts:["am","were","was"], ans:1}];
 let qIdx=0;
-function save(){localStorage.setItem('readyph_v5',JSON.stringify({score,day}));}
-function updateHUD(){document.getElementById('hudLeft').innerText=`Day ${day} | Score:${score}`; document.getElementById('hudMid').innerText=`⚡${Math.floor(energy)}`; document.getElementById('qScore').innerText=`Score:${score}`; if(score>=500){document.getElementById('cert').style.display='block'; document.getElementById('certScore').innerText=`Final: ${score}/1000 PASSED!`;}}
+function save(){localStorage.setItem('readyph_v7',JSON.stringify({score,day,quests:quests.map(q=>q.done)}));}
+function updateHUD(){document.getElementById('hudLeft').innerText=`Day ${day} | Score:${score}`; document.getElementById('hudMid').innerText=`⚡${Math.floor(energy)} | 🚲 ${isOnBike?'ON':'OFF'}`; document.getElementById('qScore').innerText=`Score:${score}`; let qHtml=''; quests.forEach(q=>{qHtml+=`<div>${q.done?'✅':'⬜'} ${q.title} ${q.done?'':`(+${q.reward})`}</div>`}); document.getElementById('qList').innerHTML=qHtml; }
 function showDialog(n,t){document.getElementById('dName').innerText=n; document.getElementById('dText').innerText=t; document.getElementById('dialog').style.display='block';}
 function hideDialog(){document.getElementById('dialog').style.display='none';}
-function exitClassroom(){
- let sc=game.scene.getScene('Game'); sc.isIndoor=false; isIndoor=false;
- sc.player.x=1250; sc.player.y=1050;
- sc.buildings.forEach(b=>{b.rect.setVisible(true); b.label.setVisible(true);});
- sc.classItems.forEach(o=>o.setVisible(false)); sc.teacher.setVisible(false);
- sc.cameras.main.setBounds(0,0,2500,2500); sc.cameras.main.setBackgroundColor(0x6dbf5a);
- document.getElementById('exitBtn').style.display='none'; hideDialog();
-}
+function completeQuest(id){let q=quests.find(x=>x.id===id); if(q&&!q.done){q.done=1; score+=q.reward; save(); updateHUD(); showDialog('🎉 QUEST DONE!',`${q.title} +${q.reward} points!`); if(navigator.vibrate) navigator.vibrate([50,50,50]);}}
 
 class Game extends Phaser.Scene{
- constructor(){super('Game')} 
+ constructor(){super('Game')}
  create(){
-  // MAP
-  this.add.rectangle(1250,1250,2500,2500,0x6dbf5a);
-  this.add.rectangle(1250,1250,2500,160,0xe8dcc3); this.add.rectangle(1250,1250,160,2500,0xe8dcc3);
-  // grid
-  for(let i=0;i<2500;i+=200){this.add.rectangle(i,1250,2,2500,0x000000,0.03); this.add.rectangle(1250,i,2500,2,0x000000,0.03);}
-  // trees
-  for(let i=0;i<25;i++){let x=Phaser.Math.Between(100,2400), y=Phaser.Math.Between(100,2400); if(Phaser.Math.Distance.Between(x,y,1250,800)<400) continue; this.add.circle(x,y,12,0x2d6a2e).setDepth(0); this.add.rectangle(x,y+10,6,18,0x5d4037).setDepth(0);}
+  this.MAP=3000;
+  // BASE GRASS
+  this.add.rectangle(1500,1500,3000,3000,0x5faa4a);
+  // ROADS
+  this.add.rectangle(1500,1250,3000,120,0x3a3a3a); this.add.rectangle(1500,1250,3000,6,0xffffff,0.8); // h road dashed
+  this.add.rectangle(1500,600,3000,80,0x4a4a4a); this.add.rectangle(1500,1900,3000,80,0x4a4a4a);
+  this.add.rectangle(750,1500,80,3000,0x4a4a4a); this.add.rectangle(1750,1500,80,3000,0x4a4a4a); this.add.rectangle(1250,1500,100,3000,0x2e2e2e);
+  // SIDEWALK
+  this.add.rectangle(1500,1250,3000,130,0xe8dcc3,0.3);
+  // FOUNTAIN CENTER
+  this.add.circle(1250,1250,55,0x7ec8e3).setStrokeStyle(4,0xffffff); this.add.circle(1250,1250,20,0xffffff); this.add.text(1250,1250,'⛲',{fontSize:'28px'}).setOrigin(0.5).setDepth(2);
 
   this.buildings=[];
-  let addBuilding=(x,y,w,h,color,name,emoji)=>{
-   let rect=this.add.rectangle(x,y,w,h,color).setStrokeStyle(4,0x000000); rect.setDepth(2);
-   let label=this.add.text(x,y,`${emoji}\n${name}`,{fontSize:'12px',align:'center',fontStyle:'bold'}).setOrigin(0.5); label.setDepth(3);
-   this.buildings.push({x,y,w,h,name,rect,label});
-   return {rect,label};
+  let addB=(x,y,w,h,c,name,emoji)=>{
+   let rect=this.add.rectangle(x,y,w,h,c).setStrokeStyle(4,0x000).setDepth(2);
+   // windows
+   for(let wx=x-w/2+20; wx<x+w/2; wx+=30){ for(let wy=y-h/2+15; wy<y+h/2; wy+=30){ this.add.rectangle(wx,wy,12,12,0xfff7a0,0.8).setDepth(2.5); } }
+   let door=this.add.rectangle(x,y+h/2-10,28,20,0x3e2723).setDepth(2.6);
+   let label=this.add.text(x,y-10,`${emoji}\n${name}`,{fontSize:'11px',align:'center',fontStyle:'bold',backgroundColor:'#000000aa',color:'#fff'}).setOrigin(0.5).setDepth(3);
+   this.buildings.push({x,y,w,h,name,rect,label,door});
+   return {rect,label,door};
   };
-  // OLD
-  let main=addBuilding(1250,800,360,250,0x9c7c62,'MAIN','🏫');
-  main.label.setText('🏫\nREADYPH MAIN\nPRESS A'); 
-  addBuilding(750,1250,220,220,0xffd99a,'CANTEEN','🍛');
-  addBuilding(1250,1800,280,200,0x90caf9,'DORM','🛏️');
-  // NEW V6
-  addBuilding(1750,1250,240,200,0xc8e6c9,'LIBRARY','📚');
-  addBuilding(750,600,220,180,0xffccbc,'GYM','🏀');
-  addBuilding(1750,600,200,180,0xd1c4e9,'OFFICE','🏢');
+  addB(1500,800,380,260,0x9c7c62,'MAIN','🏫 IELTS');
+  addB(750,1250,220,220,0xffd99a,'CANTEEN','🍛');
+  addB(1500,2000,300,200,0x90caf9,'DORM','🛏️');
+  addB(2000,1250,260,200,0xc8e6c9,'LIBRARY','📚');
+  addB(750,600,240,180,0xffccbc,'GYM','🏀');
+  addB(2000,600,220,180,0xd1c4e9,'OFFICE','🏢');
+  addB(450,1900,180,140,0xb0bec5,'PARKING','🅿️🚲');
 
-  // PLAYER - UPGRADED UNIFORM
-  this.player = this.add.container(1250,1100); this.player.setDepth(10);
-  let shadow=this.add.ellipse(0,14,18,7,0x000000,0.35);
-  let pants=this.add.rectangle(0,8,16,18,0x1e3a8a).setStrokeStyle(1.5,0x000); // blue pants
-  let polo=this.add.rectangle(0,-6,20,20,0xffffff).setStrokeStyle(1.5,0x000); // white polo
+  // TREES + LIGHTS
+  for(let i=0;i<35;i++){let x=Phaser.Math.Between(50,2950), y=Phaser.Math.Between(50,2950); if(Phaser.Math.Distance.Between(x,y,1250,1250)<120) continue; this.add.circle(x,y,14,0x2d6a2e).setDepth(1); this.add.rectangle(x,y+12,6,20,0x5d4037).setDepth(1);}
+  this.lights=[]; for(let i=0;i<12;i++){let x=Phaser.Math.Between(200,2800), y=Phaser.Math.Between(200,2800); let l=this.add.circle(x,y,6,0xffff99).setDepth(4); this.lights.push(l);}
+
+  // PLAYER V7 - BETTER
+  this.player = this.add.container(1500,1100); this.player.setDepth(10);
+  let shadow=this.add.ellipse(0,16,20,8,0x000000,0.35);
+  let bike=this.add.rectangle(0,10,28,6,0x111111); bike.setVisible(false); this.bikeGFX=bike;
+  let pants=this.add.rectangle(0,8,16,18,0x1e3a8a).setStrokeStyle(1.5,0x000);
+  let polo=this.add.rectangle(0,-6,20,20,0xffffff).setStrokeStyle(1.5,0x000);
   let collar=this.add.rectangle(0,-14,12,6,0x1e3a8a);
-  let backpack=this.add.rectangle(0,-2,22,14,0x3b82f6).setStrokeStyle(1,0x000); backpack.x=10;
+  let backpack=this.add.rectangle(8,-4,14,16,0x3b82f6).setStrokeStyle(1,0x000);
   let head=this.add.circle(0,-22,10,0xffdbac).setStrokeStyle(1.5,0x000);
   let hair=this.add.rectangle(0,-30,20,8,0x2c1810);
   let eye1=this.add.circle(-3,-22,1.5,0x000); let eye2=this.add.circle(3,-22,1.5,0x000);
-  this.player.add([shadow,pants,backpack,polo,collar,head,hair,eye1,eye2]);
+  this.player.add([shadow,bike,pants,backpack,polo,collar,head,hair,eye1,eye2]);
 
-  // NPC STUDENTS
+  // NPCs 10
   this.npcs=[];
-  let npcData=[
-   {x:900,y:1000,color:0xff8a65,name:'Ana',msg:'Hi! Punta ka Library para mag review! 📚'},
-   {x:1600,y:1000,color:0x81c784,name:'Mark',msg:'Gym tayo! Energy +20 pag nag gym ka! 🏀'},
-   {x:1250,y:600,color:0xba68c8,name:'Sofia',msg:'Office muna, may scholarship info! 🏢'},
-   {x:1000,y:1400,color:0x4db6ac,name:'Jake',msg:'Canteen? Sarap ng adobo dun! 🍛'},
-   {x:1500,y:1500,color:0xffd54f,name:'Mia',msg:'Dorm para magpahinga, Day +1! 🛏️'}
-  ];
-  npcData.forEach(d=>{
-   let npc=this.add.container(d.x,d.y); npc.setDepth(5);
-   let s=this.add.ellipse(0,10,14,5,0x000000,0.25);
-   let b=this.add.rectangle(0,0,16,20,d.color).setStrokeStyle(1,0x000);
-   let h=this.add.circle(0,-16,8,0xffdbac).setStrokeStyle(1,0x000);
-   npc.add([s,b,h]); npc.name=d.name; npc.msg=d.msg; npc.origX=d.x; npc.origY=d.y; npc.dir=Math.random()*6.28;
-   this.npcs.push(npc);
+  let names=[['Ana',0xff8a65,900,1000],['Mark',0x81c784,1800,1000],['Sofia',0xba68c8,2000,800],['Jake',0x4db6ac,1000,1400],['Mia',0xffd54f,1600,1600],['Liam',0x90caf9,700,800],['Chloe',0xf48fb1,2000,1500],['Ethan',0xa5d6a7,500,1250],['Zoe',0xce93d8,1250,1800],['Noah',0xffab91,1800,1900]];
+  names.forEach(d=>{
+   let npc=this.add.container(d[2],d[3]); npc.setDepth(5);
+   let s=this.add.ellipse(0,10,14,5,0x000000,0.25); let b=this.add.rectangle(0,0,16,20,d[1]).setStrokeStyle(1,0x000); let h=this.add.circle(0,-16,8,0xffdbac).setStrokeStyle(1,0x000);
+   npc.add([s,b,h]); npc.nName=d[0]; npc.origX=d[2]; npc.origY=d[3]; npc.dir=Math.random()*6.28; this.npcs.push(npc);
   });
 
-  // TEACHER - FIXED
-  this.teacher = this.add.container(400,220); this.teacher.setVisible(false); this.teacher.setDepth(20);
-  let tShadow=this.add.ellipse(0,14,18,7,0x000000,0.3); let tBody=this.add.rectangle(0,0,26,34,0x16a34a).setStrokeStyle(2,0x000); let tHead=this.add.circle(0,-22,12,0xffdbac).setStrokeStyle(1.5,0x000);
-  this.teacher.add([tShadow,tBody,tHead]); this.teacher.add(this.add.text(0,-50,'Ms. ReadyPH',{fontSize:'12px',backgroundColor:'#000',color:'#22c55e'}).setOrigin(0.5));
+  // INTERIORS (hidden)
+  this.interiorGroups={};
+  // MAIN INTERIOR
+  let mainInt=[]; mainInt.push(this.add.rectangle(400,50,540,70,0x1e3a2f).setVisible(false)); mainInt.push(this.add.text(400,50,'MAIN - IELTS CLASS',{color:'#fff'}).setOrigin(0.5).setVisible(false));
+  for(let r=0;r<3;r++)for(let c=0;c<4;c++){let x=140+c*170,y=180+r*110; let d=this.add.rectangle(x,y,60,35,0x8d6e63).setStrokeStyle(2,0x3e2723).setVisible(false); mainInt.push(d);}
+  this.interiorGroups['MAIN']=mainInt;
+  // LIBRARY INTERIOR
+  let libInt=[]; libInt.push(this.add.rectangle(400,300,800,600,0xf5f5dc).setVisible(false)); libInt.push(this.add.text(400,60,'📚 LIBRARY - Quiet Zone',{fontSize:'18px'}).setOrigin(0.5).setVisible(false));
+  for(let i=0;i<6;i++){let x=120+i*120; let shelf=this.add.rectangle(x,250,18,200,0x5d4037).setVisible(false); let books=this.add.rectangle(x,250,12,180,0xc8a415).setVisible(false); libInt.push(shelf,books);}
+  libInt.push(this.add.text(400,500,'Press A to study +20',{backgroundColor:'#000',color:'#fff'}).setOrigin(0.5).setVisible(false));
+  this.interiorGroups['LIBRARY']=libInt;
+  // GYM INTERIOR
+  let gymInt=[]; gymInt.push(this.add.rectangle(400,300,800,600,0xe8f5e9).setVisible(false)); gymInt.push(this.add.rectangle(400,300,400,220,0xfff,0).setStrokeStyle(4,0xff5722).setVisible(false)); gymInt.push(this.add.text(400,80,'🏀 GYM - Press A to workout',{fontSize:'16px'}).setOrigin(0.5).setVisible(false)); gymInt.push(this.add.circle(400,300,18,0xff5722).setVisible(false));
+  this.interiorGroups['GYM']=gymInt;
+  // OFFICE INTERIOR
+  let offInt=[]; offInt.push(this.add.rectangle(400,300,800,600,0xe3f2fd).setVisible(false)); offInt.push(this.add.text(400,80,'🏢 ADMIN OFFICE',{fontSize:'16px'}).setOrigin(0.5).setVisible(false));
+  for(let i=0;i<3;i++){let d=this.add.rectangle(150+i*250,280,140,70,0x90a4ae).setStrokeStyle(2,0x000).setVisible(false); offInt.push(d);}
+  offInt.push(this.add.text(400,400,'Scholarship: 500 pts needed!',{backgroundColor:'#000',color:'#ffeb3b'}).setOrigin(0.5).setVisible(false));
+  this.interiorGroups['OFFICE']=offInt;
 
-  this.classItems=[];
-  let bgBoard=this.add.rectangle(400,50,540,70,0x1e3a2f).setStrokeStyle(4,0x000).setVisible(false); bgBoard.setDepth(1);
-  let txt=this.add.text(400,50,'ENGLISH / IELTS - READYPH',{color:'#fff',fontSize:'16px',fontStyle:'bold'}).setOrigin(0.5).setVisible(false); txt.setDepth(2);
-  let subTxt=this.add.text(400,70,'Press A near teacher for quiz',{color:'#ffeb3b',fontSize:'11px'}).setOrigin(0.5).setVisible(false); subTxt.setDepth(2);
-  this.classItems.push(bgBoard,txt,subTxt);
-  for(let r=0;r<3;r++){for(let c=0;c<4;c++){let x=140+c*170, y=200+r*120; let d=this.add.rectangle(x,y,60,35,0x8d6e63).setStrokeStyle(2,0x3e2723).setVisible(false); d.setDepth(1); this.classItems.push(d);}}
-  this.exitArea = this.add.rectangle(400,580,800,40,0xef4444,0.5).setVisible(false); this.classItems.push(this.exitArea);
-  this.exitLabel = this.add.text(400,580,'🚪 EXIT HERE - Baba dito para lumabas',{color:'#fff',fontSize:'14px',backgroundColor:'#ef4444'}).setOrigin(0.5).setVisible(false); this.classItems.push(this.exitLabel);
+  // TEACHER (for MAIN)
+  this.teacher = this.add.container(400,200); this.teacher.setVisible(false); this.teacher.setDepth(20);
+  let tS=this.add.ellipse(0,14,18,7,0x000000,0.3); let tB=this.add.rectangle(0,0,26,34,0x16a34a).setStrokeStyle(2,0x000); let tH=this.add.circle(0,-22,12,0xffdbac).setStrokeStyle(1.5,0x000);
+  this.teacher.add([tS,tB,tH]); this.teacher.add(this.add.text(0,-50,'Ms. ReadyPH').setOrigin(0.5));
 
-  this.cameras.main.setBounds(0,0,2500,2500); this.cameras.main.startFollow(this.player,true,0.12,0.12);
-  this.keys=this.input.keyboard.addKeys('W,A,S,D,SHIFT');
+  // NIGHT OVERLAY
+  this.nightOverlay=this.add.rectangle(1500,1500,3000,3000,0x0a0a2a,0).setDepth(100).setScrollFactor(0); this.nightOverlay.setVisible(false);
+
+  this.cameras.main.setBounds(0,0,3000,3000); this.cameras.main.startFollow(this.player,true,0.12,0.12);
+  this.keys=this.input.keyboard.addKeys('W,A,S,D,SHIFT,B');
   this.isIndoor=false; isIndoor=false; updateHUD();
  }
 
  update(time,delta){
   if(document.getElementById('quiz').style.display==='block'||document.getElementById('dialog').style.display==='block') return;
-  let speed = 5; if(this.keys.SHIFT.isDown || document.getElementById('btnB').matches(':active')) speed=8;
+  // DAY/NIGHT
+  timeOfDay+=0.00015; if(timeOfDay>1) timeOfDay=0;
+  let isNight=timeOfDay>0.6;
+  this.nightOverlay.setVisible(isNight); this.nightOverlay.alpha=isNight?(timeOfDay-0.6)*1.2:0;
+  this.lights.forEach(l=>l.setVisible(isNight));
+  document.getElementById('hudRight').innerText=isNight?'🌙 Night':'☀️ Day';
+
+  let baseSpeed = isOnBike?12:5; if(this.keys.SHIFT.isDown) baseSpeed+=3;
   let mx=0,my=0;
   if(this.keys.A.isDown) mx=-1; else if(this.keys.D.isDown) mx=1; else mx=joy.x;
   if(this.keys.W.isDown) my=-1; else if(this.keys.S.isDown) my=1; else my=joy.y;
-  if(Math.abs(mx) < 0.25) mx=0; if(Math.abs(my) < 0.25) my=0;
-  if(mx!=0 || my!=0){ this.player.x+=mx*speed; this.player.y+=my*speed; energy=Math.max(0,energy-0.03); updateHUD(); }
+  if(Math.abs(mx)<0.25) mx=0; if(Math.abs(my)<0.25) my=0;
+  if(mx!=0||my!=0){ this.player.x+=mx*baseSpeed; this.player.y+=my*baseSpeed; energy=Math.max(0,energy-0.02); if(Math.floor(time/200)%2===0) updateHUD(); }
   if(!this.isIndoor){
-   this.player.x=Phaser.Math.Clamp(this.player.x,20,2480); this.player.y=Phaser.Math.Clamp(this.player.y,20,2480);
-   // NPC WANDER
-   this.npcs.forEach(npc=>{
-    npc.dir+= (Math.random()-0.5)*0.05;
-    npc.x+=Math.cos(npc.dir)*0.6; npc.y+=Math.sin(npc.dir)*0.6;
-    if(Phaser.Math.Distance.Between(npc.x,npc.y,npc.origX,npc.origY)>180) npc.dir+=3.14;
-   });
+   this.player.x=Phaser.Math.Clamp(this.player.x,20,2980); this.player.y=Phaser.Math.Clamp(this.player.y,20,2980);
+   this.npcs.forEach(npc=>{ npc.dir+=(Math.random()-0.5)*0.04; npc.x+=Math.cos(npc.dir)*0.7; npc.y+=Math.sin(npc.dir)*0.7; if(Phaser.Math.Distance.Between(npc.x,npc.y,npc.origX,npc.origY)>200) npc.dir+=3.14; });
   } else {
    this.player.x=Phaser.Math.Clamp(this.player.x,60,740); this.player.y=Phaser.Math.Clamp(this.player.y,80,590);
-   if(this.player.y>500) document.getElementById('exitBtn').style.display='block'; else document.getElementById('exitBtn').style.display='none';
+   if(this.player.y>520) document.getElementById('exitBtn').style.display='block'; else document.getElementById('exitBtn').style.display='none';
   }
-  let dMain=Phaser.Math.Distance.Between(this.player.x,this.player.y,1250,800);
-  if(dMain<280 && !this.isIndoor){document.getElementById('hudRight').innerText='PRESS A!';} else if(!this.isIndoor){document.getElementById('hudRight').innerText='Campus V6';}
  }
 }
 
-const game=new Phaser.Game({width:innerWidth,height:innerHeight,backgroundColor:'#5a8f3e',scene:Game});
+const game=new Phaser.Game({width:innerWidth,height:innerHeight,backgroundColor:'#5faa4a',scene:Game});
 
 function startQuiz(){
  let q=qBank[qIdx%qBank.length];
@@ -162,46 +170,71 @@ function startQuiz(){
  document.getElementById('quiz').style.display='block';
 }
 
+function enterBuilding(name){
+ let sc=game.scene.getScene('Game'); sc.isIndoor=true; isIndoor=true; currentBuilding=name;
+ sc.player.x=400; sc.player.y=480;
+ sc.buildings.forEach(b=>{b.rect.setVisible(false); b.label.setVisible(false); b.door.setVisible(false);});
+ sc.npcs.forEach(n=>n.setVisible(false));
+ Object.values(sc.interiorGroups).forEach(g=>g.forEach(o=>o.setVisible(false)));
+ if(sc.interiorGroups[name]) sc.interiorGroups[name].forEach(o=>o.setVisible(true));
+ if(name==='MAIN') sc.teacher.setVisible(true);
+ sc.cameras.main.setBounds(0,0,800,600); sc.cameras.main.setBackgroundColor(0xfaf6e8);
+ document.getElementById('exitBtn').style.display='block';
+ if(name==='LIBRARY') completeQuest(0); if(name==='GYM') completeQuest(1); if(name==='OFFICE') completeQuest(2);
+ showDialog(name,`Welcome to ${name}! Explore inside! Baba para lumabas.`);
+}
+
+function exitBuilding(){
+ let sc=game.scene.getScene('Game'); sc.isIndoor=false; isIndoor=false; currentBuilding=null;
+ sc.player.x=1500; sc.player.y=1050;
+ sc.buildings.forEach(b=>{b.rect.setVisible(true); b.label.setVisible(true); b.door.setVisible(true);});
+ sc.npcs.forEach(n=>n.setVisible(true));
+ Object.values(sc.interiorGroups).forEach(g=>g.forEach(o=>o.setVisible(false)));
+ sc.teacher.setVisible(false);
+ sc.cameras.main.setBounds(0,0,3000,3000); sc.cameras.main.setBackgroundColor(0x5faa4a);
+ document.getElementById('exitBtn').style.display='none'; hideDialog();
+}
+
 function doInteract(){
  let sc=game.scene.getScene('Game'); if(!sc) return;
  if(!sc.isIndoor){
-  let dMain=Phaser.Math.Distance.Between(sc.player.x,sc.player.y,1250,800);
-  if(dMain<300){
-   sc.isIndoor=true; isIndoor=true;
-   sc.buildings.forEach(b=>{b.rect.setVisible(false); b.label.setVisible(false);});
-   sc.classItems.forEach(o=>o.setVisible(true)); sc.teacher.setVisible(true);
-   sc.npcs.forEach(n=>n.setVisible(false));
-   sc.cameras.main.setBounds(0,0,800,600); sc.cameras.main.setBackgroundColor(0xfaf6e8);
-   showDialog('Ms. ReadyPH','Welcome to V6! New campus outside! Lapit sakin para mag quiz!');
-   return;
-  }
-  // Check NPCs
-  for(let npc of sc.npcs){ if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,npc.x,npc.y)<90){ showDialog(npc.name,npc.msg); return; } }
-  // Check buildings
+  for(let npc of sc.npcs){ if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,npc.x,npc.y)<90){ showDialog(npc.nName,`Hi! I'm ${npc.nName}! Tip: Visit all buildings for quests!`); return; } }
   for(let b of sc.buildings){
-   if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<150){
+   if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<180){
     if(b.name==='CANTEEN'){energy=100; updateHUD(); showDialog('Canteen 🍛','Busog! Energy 100!');}
-    else if(b.name==='DORM'){day++; energy=100; save(); updateHUD(); showDialog('Dorm 🛏️',`Day ${day} na!`); sc.player.x=1250; sc.player.y=1350;}
-    else if(b.name==='LIBRARY'){score+=20; save(); updateHUD(); showDialog('Library 📚','Nag review ka! +20 Score!');}
-    else if(b.name==='GYM'){energy=100; updateHUD(); showDialog('Gym 🏀','Workout! Energy full + lakas!');}
-    else if(b.name==='OFFICE'){showDialog('Office 🏢','Scholarship info: Need 500 score for certificate!');}
+    else if(b.name==='DORM'){day++; energy=100; save(); updateHUD(); showDialog('Dorm 🛏️',`Day ${day}! Natulog ka!`); sc.player.x=1500; sc.player.y=1350;}
+    else if(b.name==='PARKING'){showDialog('Parking 🅿️','Dito ka kumuha ng bike! Press BIKE button!');}
+    else {enterBuilding(b.name); }
     return;
    }
   }
  } else {
-  let dT=Phaser.Math.Distance.Between(sc.player.x,sc.player.y,400,220);
-  if(dT<150){startQuiz();} else if(sc.player.y>520){exitClassroom();}
+  if(currentBuilding==='MAIN'){ let dT=Phaser.Math.Distance.Between(sc.player.x,sc.player.y,400,200); if(dT<140){startQuiz();} else if(sc.player.y>520){exitBuilding();}}
+  else if(currentBuilding==='LIBRARY'){ if(sc.player.y>520) exitBuilding(); else {score+=20; save(); updateHUD(); showDialog('📚 Studying...','+20 Score! Galing mag review!');}}
+  else if(currentBuilding==='GYM'){ if(sc.player.y>520) exitBuilding(); else {energy=100; updateHUD(); showDialog('🏀 Workout!','Energy 100! Lakas!');}}
+  else if(currentBuilding==='OFFICE'){ if(sc.player.y>520) exitBuilding(); else {showDialog('🏢 Office','Scholarship: Need 500 pts! Current:'+score);}}
+  else { if(sc.player.y>520) exitBuilding(); }
  }
+}
+
+function toggleBike(){
+ let sc=game.scene.getScene('Game'); isOnBike=!isOnBike; sc.bikeGFX.setVisible(isOnBike);
+ document.getElementById('bikeInd').style.display=isOnBike?'block':'none';
+ document.getElementById('btnB').style.background=isOnBike?'#22c55e':'#f59e0b';
+ document.getElementById('btnB').innerText=isOnBike?'🚲 ON':'🚲 BIKE';
+ updateHUD();
+ if(isOnBike) showDialog('🚲 Bike ON!','x2.4 Speed! Press BIKE ulit para bumaba.'); else hideDialog();
 }
 
 let mgr=nipplejs.create({zone:document.getElementById('joy'), mode:'static', position:{left:'65px',top:'65px'}, color:'white', size:90});
 mgr.on('move',(e,d)=>{if(d&&d.vector){joy.x=d.vector.x; joy.y=-d.vector.y;}});
 mgr.on('end',()=>{joy.x=0; joy.y=0;});
-window.addEventListener('touchend',()=>{ setTimeout(()=>{joy.x=0; joy.y=0;},50);});
+window.addEventListener('touchend',()=>{setTimeout(()=>{joy.x=0; joy.y=0;},50);});
 document.getElementById('btnA').onclick=doInteract;
-document.getElementById('exitBtn').onclick=exitClassroom;
+document.getElementById('btnB').onclick=toggleBike;
+document.getElementById('exitBtn').onclick=exitBuilding;
 document.getElementById('dialog').onclick=hideDialog;
-document.addEventListener('keydown',e=>{if(e.key.toLowerCase()==='e') doInteract();});
+document.addEventListener('keydown',e=>{if(e.key.toLowerCase()==='e') doInteract(); if(e.key.toLowerCase()==='b') toggleBike();});
 </script>
 </body>
 </html>
