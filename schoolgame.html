@@ -2,14 +2,14 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>READYPH V4.1 STABLE</title>
+<title>READYPH V4.3 FIXED MOVE</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
 <style>
- body{margin:0;background:#000;overflow:hidden;font-family:Arial}
- #joy{position:fixed;left:15px;bottom:15px;width:110px;height:110px;z-index:5}
- #btnA{position:fixed;right:20px;bottom:85px;width:80px;height:80px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:22px;z-index:5}
- #btnB{position:fixed;right:110px;bottom:15px;width:62px;height:62px;background:#f59e0b;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:bold;z-index:5}
+ body{margin:0;background:#000;overflow:hidden;font-family:Arial;touch-action:none}
+ #joy{position:fixed;left:10px;bottom:10px;width:130px;height:130px;z-index:20;background:rgba(255,255,255,0.1);border-radius:50%;border:2px dashed #fff6}
+ #btnA{position:fixed;right:20px;bottom:85px;width:80px;height:80px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:22px;z-index:20}
+ #btnB{position:fixed;right:110px;bottom:15px;width:62px;height:62px;background:#f59e0b;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:bold;z-index:20}
  #hud{position:fixed;top:0;left:0;right:0;background:#000000dd;color:#fff;padding:10px 12px;display:flex;justify-content:space-between;z-index:5;font-size:12px}
  #dialog{position:fixed;bottom:0;left:0;right:0;background:#111;border-top:4px solid #22c55e;padding:16px;color:#fff;display:none;z-index:10}
  #quiz{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:16px;width:88%;max-width:380px;display:none;z-index:20;color:#000}
@@ -17,45 +17,25 @@
 </style>
 </head>
 <body>
-<div id="hud"><span id="hudLeft">Day 1 | Score:0</span><span id="hudMid">⚡100</span><span id="hudRight">MAIN BUILDING</span></div>
+<div id="hud"><span id="hudLeft">Day 1 | Score:0</span><span id="hudMid">⚡100</span><span id="hudRight">MAIN</span></div>
 <div id="joy"></div><button id="btnA">A</button><button id="btnB">RUN</button>
 <div id="dialog"><b id="dName" style="color:#22c55e"></b><p id="dText" style="white-space:pre-line;margin:8px 0"></p><small>Tap to close</small></div>
 <div id="quiz"><b id="qProg">Q1/20</b><h3 id="qText" style="margin:10px 0"></h3><div id="qOpts"></div></div>
-<div id="cert"><h2>🏆 CERTIFICATE</h2><p style="font-weight:800">READYPH IELTS PASSER!</p><p id="certScore"></p><button onclick="document.getElementById('cert').style.display='none'; score=0; localStorage.setItem('readyph_v4',JSON.stringify({day,energy:100,score:0})); location.reload()" style="padding:12px 20px;border-radius:10px;border:0;background:#22c55e;color:#fff;font-weight:800;width:100%;margin-top:10px">PLAY AGAIN</button></div>
+<div id="cert"><h2>🏆 CERTIFICATE</h2><p id="certScore"></p><button onclick="localStorage.clear(); location.reload()" style="padding:12px 20px;border-radius:10px;border:0;background:#22c55e;color:#fff;font-weight:800;width:100%">PLAY AGAIN</button></div>
 <script>
-let joy={x:0,y:0}, player, keys, energy=100, day=1, score=0;
+let joy={x:0,y:0}, player, keys, energy=100, day=1, score=0, isIndoor=false;
 let saved=JSON.parse(localStorage.getItem('readyph_v4')||'{"day":1,"energy":100,"score":0}'); day=saved.day; energy=saved.energy; score=saved.score;
 const qBank=[
- {q:"She ___ to school every day.", opts:["go","goes","going"], ans:1},
- {q:"I have ___ finished.", opts:["already","yet","ever"], ans:0},
- {q:"Could you ___ me?", opts:["help","helps","helped"], ans:0},
- {q:"Synonym of happy?", opts:["sad","joyful","angry"], ans:1},
- {q:"Antonym of difficult?", opts:["hard","easy","tough"], ans:1},
- {q:"Past of 'go'?", opts:["goed","went","gone"], ans:1},
- {q:"___ are you from?", opts:["Where","What","Who"], ans:0},
- {q:"Article: ___ apple", opts:["A","An","The"], ans:1},
- {q:"I ___ studying for 2 hrs.", opts:["have been","has been","am"], ans:0},
- {q:"'The graph shows' is used in?", opts:["Task 1","Task 2","Speaking"], ans:0},
- {q:"Despite ___ tired, he continued.", opts:["being","be","is"], ans:0},
- {q:"Which is formal?", opts:["gonna","going to","wanna"], ans:1},
- {q:"Plural of child?", opts:["childs","children","childes"], ans:1},
- {q:"If I ___ rich, I would travel.", opts:["am","were","was"], ans:1},
- {q:"Synonym of quickly?", opts:["slowly","rapidly","late"], ans:1},
- {q:"There ___ many people.", opts:["is","are","am"], ans:1},
- {q:"He is good ___ English.", opts:["at","in","on"], ans:0},
- {q:"Past participle of write?", opts:["wrote","written","writed"], ans:1},
- {q:"I look forward ___ you.", opts:["to hearing from","to hear from","hearing"], ans:0},
- {q:"Band 7 needs?", opts:["Good grammar+vocab","Memorize only","Luck"], ans:0}
+ {q:"She ___ to school every day.", opts:["go","goes","going"], ans:1},{q:"I have ___ finished.", opts:["already","yet","ever"], ans:0},{q:"Could you ___ me?", opts:["help","helps","helped"], ans:0},{q:"Synonym of happy?", opts:["sad","joyful","angry"], ans:1},{q:"Antonym of difficult?", opts:["hard","easy","tough"], ans:1},{q:"Past of go?", opts:["goed","went","gone"], ans:1},{q:"___ are you from?", opts:["Where","What","Who"], ans:0},{q:"Article: ___ apple", opts:["A","An","The"], ans:1},{q:"I ___ studying 2 hrs.", opts:["have been","has been","am"], ans:0},{q:"'The graph shows' used in?", opts:["Task 1","Task 2","Speaking"], ans:0},{q:"Despite ___ tired, he cont.", opts:["being","be","is"], ans:0},{q:"Which is formal?", opts:["gonna","going to","wanna"], ans:1},{q:"Plural of child?", opts:["childs","children","childes"], ans:1},{q:"If I ___ rich, I'd travel.", opts:["am","were","was"], ans:1},{q:"Synonym of quickly?", opts:["slowly","rapidly","late"], ans:1},{q:"There ___ many people.", opts:["is","are","am"], ans:1},{q:"He is good ___ English.", opts:["at","in","on"], ans:0},{q:"Past participle of write?", opts:["wrote","written","writed"], ans:1},{q:"I look forward ___ you.", opts:["to hearing from","to hear from","hearing"], ans:0},{q:"Band 7 needs?", opts:["Good grammar+vocab","Memorize only","Luck"], ans:0}
 ];
 let qIdx=0;
 function save(){localStorage.setItem('readyph_v4',JSON.stringify({day,energy,score}));}
-function updateHUD(){document.getElementById('hudLeft').innerText=`Day ${day} | Score:${score}`; document.getElementById('hudMid').innerText=`⚡${Math.floor(energy)}`; if(score>=500){document.getElementById('cert').style.display='block'; document.getElementById('certScore').innerText=`Final: ${score}/1000 - PASSED!`;}}
+function updateHUD(){document.getElementById('hudLeft').innerText=`Day ${day} | Score:${score}`; document.getElementById('hudMid').innerText=`⚡${Math.floor(energy)}`; if(score>=500){document.getElementById('cert').style.display='block'; document.getElementById('certScore').innerText=`Score ${score}/1000 PASSED!`;}}
 function showDialog(n,t){document.getElementById('dName').innerText=n; document.getElementById('dText').innerText=t; document.getElementById('dialog').style.display='block';}
 function hideDialog(){document.getElementById('dialog').style.display='none';}
 
 class Outdoor extends Phaser.Scene{
- constructor(){super('Outdoor')}
- create(){
+ constructor(){super('Outdoor')} create(){
   this.add.rectangle(1250,1250,2500,2500,0x6dbf5a);
   this.add.rectangle(1250,1250,2500,160,0xe8dcc3); this.add.rectangle(1250,1250,160,2500,0xe8dcc3);
   this.main=this.add.rectangle(1250,800,340,240,0x9c7c62).setStrokeStyle(5,0x3d2817);
@@ -64,42 +44,49 @@ class Outdoor extends Phaser.Scene{
   this.buildings=this.physics.add.staticGroup();
   let c=this.add.rectangle(750,1250,200,200,0xffd99a).setStrokeStyle(4,0x5d4037); this.buildings.add(c); c.name='Canteen';
   let d=this.add.rectangle(1250,1800,260,190,0x90caf9).setStrokeStyle(4,0x1a237e); this.buildings.add(d); d.name='Dorm';
-  this.add.text(750,1250,'CANTEEN').setOrigin(0.5); this.add.text(1250,1800,'DORM').setOrigin(0.5);
-  player=this.add.container(1250,1100); player.add([this.add.rectangle(0,0,18,24,0x1e3a8a), this.add.circle(0,-16,9,0xffdbac).setStrokeStyle(1,0x000)]);
-  this.physics.add.existing(player); player.body.setSize(18,24); this.physics.add.collider(player,this.buildings);
-  this.cameras.main.startFollow(player,true,0.12,0.12); this.cameras.main.setBounds(0,0,2500,2500); this.physics.world.setBounds(0,0,2500,2500);
+  player=this.add.circle(1250,1100,14,0x1e3a8a).setStrokeStyle(2,0x000000); player.setDepth(10);
+  this.physics.add.existing(player); player.body.setCollideWorldBounds(true);
+  this.physics.add.collider(player,this.buildings);
+  this.cameras.main.startFollow(player,true,0.15,0.15); this.cameras.main.setBounds(0,0,2500,2500); this.physics.world.setBounds(0,0,2500,2500);
   keys=this.input.keyboard.addKeys('W,A,S,D,E,SHIFT');
-  this.guard=this.add.container(1250,2020); this.guard.add([this.add.rectangle(0,0,18,22,0xc62828), this.add.circle(0,-15,8,0xffdbac)]); this.physics.add.existing(this.guard);
-  updateHUD();
+  isIndoor=false; updateHUD();
  }
  update(){
-  if(document.getElementById('dialog').style.display!=='none'||document.getElementById('quiz').style.display!=='none'){player.body.setVelocity(0); return;}
-  let run=keys.SHIFT.isDown||document.getElementById('btnB').matches(':active'); let sp=run?300:170;
-  if(run&&(joy.x||joy.y)) energy=Math.max(0,energy-0.06); updateHUD();
-  let vx=(keys.A.isDown?-1:keys.D.isDown?1:joy.x)*sp; let vy=(keys.W.isDown?-1:keys.S.isDown?1:-joy.y)*sp; player.body.setVelocity(vx,vy);
+  if(document.getElementById('dialog').style.display!=='none'||document.getElementById('quiz').style.display!=='none'){return;}
+  let speed=4; if(keys.SHIFT.isDown) speed=7;
+  let mx=0,my=0;
+  if(keys.A.isDown) mx=-1; else if(keys.D.isDown) mx=1; else mx=joy.x;
+  if(keys.W.isDown) my=-1; else if(keys.S.isDown) my=1; else my=joy.y;
+  // DIRECT MOVE - SIGURADONG GAGALAW
+  if(Math.abs(mx)>0.1 || Math.abs(my)>0.1){
+   player.x += mx*speed; player.y += my*speed;
+   energy=Math.max(0,energy-0.04); updateHUD();
+  }
   let dist=Phaser.Math.Distance.Between(player.x,player.y,1250,800);
-  if(dist<300){this.main.setStrokeStyle(5,0xffff00); document.getElementById('hudRight').innerText='Press A to Enter MAIN!';} else {this.main.setStrokeStyle(5,0x3d2817); document.getElementById('hudRight').innerText='Explore Campus';}
+  if(dist<300){this.main.setStrokeStyle(5,0xffff00); document.getElementById('hudRight').innerText='Press A!';} else {this.main.setStrokeStyle(5,0x3d2817); document.getElementById('hudRight').innerText='Explore';}
  }
 }
-
 class Indoor extends Phaser.Scene{
- constructor(){super('Indoor')}
- create(){
+ constructor(){super('Indoor')} create(){
   this.add.rectangle(400,300,800,600,0xfaf6e8);
   this.add.rectangle(400,80,500,90,0x1e3a2f).setStrokeStyle(4,0x000);
   this.add.text(400,70,'ENGLISH / IELTS',{color:'#fff',fontSize:'16px'}).setOrigin(0.5);
   this.add.text(400,90,'Score 500 = Certificate',{color:'#ffeb3b',fontSize:'11px'}).setOrigin(0.5);
   for(let r=0;r<3;r++){for(let c=0;c<4;c++){let x=120+c*170, y=180+r*110; this.add.rectangle(x,y,60,35,0x8d6e63).setStrokeStyle(2,0x3e2723);}}
-  this.add.rectangle(400,560,800,30,0x8d6e63); this.add.text(400,560,'EXIT - Baba para lumabas',{color:'#ffff00'}).setOrigin(0.5);
-  player=this.add.container(400,450); player.add([this.add.rectangle(0,0,18,24,0x1e3a8a), this.add.circle(0,-16,9,0xffdbac)]);
-  this.physics.add.existing(player); this.physics.world.setBounds(0,0,800,600); this.cameras.main.startFollow(player); this.cameras.main.setBounds(0,0,800,600);
+  this.add.rectangle(400,560,800,30,0x8d6e63); this.add.text(400,560,'EXIT - Baba',{color:'#ffff00'}).setOrigin(0.5);
+  player=this.add.circle(400,450,14,0x1e3a8a).setStrokeStyle(2,0x000); player.setDepth(10);
+  this.physics.add.existing(player); this.physics.world.setBounds(0,0,800,600); this.cameras.main.setBounds(0,0,800,600); this.cameras.main.startFollow(player,true,0.15,0.15);
   keys=this.input.keyboard.addKeys('W,A,S,D,E,SHIFT');
-  this.teacher=this.add.container(400,135); this.teacher.add([this.add.rectangle(0,0,22,30,0x16a34a), this.add.circle(0,-20,10,0xffdbac)]); this.physics.add.existing(this.teacher);
-  showDialog('Ms. ReadyPH','Hi! '+qBank.length+' questions. +50 per correct. Reach 500 for certificate! Lapit ka sakin at Press A!');
+  this.teacher=this.add.rectangle(400,135,24,30,0x16a34a).setStrokeStyle(2,0x000);
+  this.add.text(400,110,'Ms. ReadyPH',{fontSize:'12px',color:'#fff',backgroundColor:'#000'}).setOrigin(0.5);
+  isIndoor=true; showDialog('Ms. ReadyPH','Lapit + Press A para mag quiz! 500 = cert!');
  }
  update(){
-  if(document.getElementById('quiz').style.display!=='none'){player.body.setVelocity(0); return;}
-  let vx=(keys.A.isDown?-1:keys.D.isDown?1:joy.x)*170; let vy=(keys.W.isDown?-1:keys.S.isDown?1:-joy.y)*170; player.body.setVelocity(vx,vy);
+  if(document.getElementById('quiz').style.display!=='none') return;
+  let mx=0,my=0;
+  if(keys.A.isDown) mx=-1; else if(keys.D.isDown) mx=1; else mx=joy.x;
+  if(keys.W.isDown) my=-1; else if(keys.S.isDown) my=1; else my=joy.y;
+  if(Math.abs(mx)>0.1 || Math.abs(my)>0.1){ player.x+=mx*4; player.y+=my*4; }
   if(player.y>575){this.scene.start('Outdoor'); hideDialog();}
  }
 }
@@ -112,21 +99,21 @@ function startQuiz(){
  let box=document.getElementById('qOpts'); box.innerHTML='';
  q.opts.forEach((o,i)=>{
   let b=document.createElement('button'); b.style='width:100%;padding:12px;margin:5px 0;border-radius:8px;border:2px solid #000;background:#fff;font-weight:bold;text-align:left'; b.innerText=String.fromCharCode(65+i)+'. '+o;
-  b.onclick=()=>{if(i===q.ans){score+=50; energy=Math.min(100,energy+5); showDialog('CORRECT!','+50 points!');}else{showDialog('MALI','Tama: '+q.opts[q.ans]);} qIdx++; save(); updateHUD(); document.getElementById('quiz').style.display='none'; if(qIdx>=qBank.length) qIdx=0;};
+  b.onclick=()=>{if(i===q.ans){score+=50; showDialog('CORRECT!','+50');}else{showDialog('MALI','Tama: '+q.opts[q.ans]);} qIdx++; save(); updateHUD(); document.getElementById('quiz').style.display='none'; if(qIdx>=qBank.length) qIdx=0;};
   box.appendChild(b);
  });
  document.getElementById('quiz').style.display='block';
 }
 function doInteract(){
  let sc=game.scene.getScenes(true)[0]; if(!sc||!player) return;
- if(sc.scene.key==='Outdoor'){
+ if(!isIndoor){
   if(Phaser.Math.Distance.Between(player.x,player.y,1250,800)<300){sc.scene.start('Indoor'); return;}
-  for(let b of sc.buildings.children.entries){ if(Phaser.Math.Distance.Between(player.x,player.y,b.x,b.y)<180){ if(b.name==='Canteen'){energy=100; showDialog('Canteen','Busog! Energy 100!');} if(b.name==='Dorm'){day++; energy=100; save(); updateHUD(); showDialog('Dorm','Day '+day+' na!'); player.x=1250; player.y=1350;} return; }}
-  if(Phaser.Math.Distance.Between(player.x,player.y,sc.guard.x,sc.guard.y)<150){showDialog('Guard','Score: '+score+' Punta ka Main!'); return;}
+  for(let b of sc.buildings.children.entries){ if(Phaser.Math.Distance.Between(player.x,player.y,b.x,b.y)<180){ if(b.name==='Canteen'){energy=100; showDialog('Canteen','Energy 100!');} if(b.name==='Dorm'){day++; energy=100; save(); updateHUD(); showDialog('Dorm','Day '+day); player.x=1250; player.y=1350;} return; }}
  } else { if(Phaser.Math.Distance.Between(player.x,player.y,400,135)<120){startQuiz();} }
 }
-let nip=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'55px',top:'55px'},color:'white',size:90});
-nip.on('move',(e,d)=>{joy.x=d.vector.x; joy.y=d.vector.y;}); nip.on('end',()=>{joy.x=0; joy.y=0;});
+let mgr=nipplejs.create({zone:document.getElementById('joy'), mode:'static', position:{left:'65px',top:'65px'}, color:'white', size:90});
+mgr.on('move',(e,d)=>{ if(d&&d.vector){ joy.x=d.vector.x; joy.y=-d.vector.y; }});
+mgr.on('end',()=>{ joy.x=0; joy.y=0; });
 document.getElementById('btnA').onclick=doInteract;
 document.addEventListener('keydown',e=>{if(e.key.toLowerCase()==='e') doInteract();});
 document.getElementById('dialog').onclick=hideDialog;
