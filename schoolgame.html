@@ -2,109 +2,111 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>READYPH V3 - Final</title>
+<title>READYPH V3.1</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
-<style>body{margin:0;background:#000;overflow:hidden;font-family:Arial}#joy{position:fixed;left:15px;bottom:15px;width:110px;height:110px;z-index:5}#btnA{position:fixed;right:20px;bottom:85px;width:75px;height:75px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:22px;z-index:5}#btnB{position:fixed;right:100px;bottom:20px;width:60px;height:60px;background:#f59e0b;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:bold;z-index:5}#hud{position:fixed;top:0;left:0;right:0;background:#000000cc;color:#fff;padding:10px 12px;display:flex;justify-content:space-between;z-index:5;font-size:12px}#dialog{position:fixed;bottom:0;left:0;right:0;background:#111;border-top:3px solid #22c55e;padding:15px;color:#fff;display:none;z-index:10}#quiz{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:12px;width:85%;max-width:350px;display:none;z-index:20;color:#000}</style>
+<style>body{margin:0;background:#000;overflow:hidden;font-family:Arial}#joy{position:fixed;left:15px;bottom:15px;width:110px;height:110px;z-index:5}#btnA{position:fixed;right:20px;bottom:85px;width:78px;height:78px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:22px;z-index:5;box-shadow:0 0 10px #22c55e}#btnB{position:fixed;right:105px;bottom:20px;width:60px;height:60px;background:#f59e0b;border-radius:50%;border:3px solid #fff;color:#fff;z-index:5}#hud{position:fixed;top:0;left:0;right:0;background:#000000dd;color:#fff;padding:10px 12px;display:flex;justify-content:space-between;z-index:5;font-size:12px}#dialog{position:fixed;bottom:0;left:0;right:0;background:#111;border-top:3px solid #22c55e;padding:15px;color:#fff;display:none;z-index:10}#quiz{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:12px;width:85%;max-width:360px;display:none;z-index:20;color:#000}</style>
 </head>
 <body>
-<div id="hud"><span id="day">Day 1 | 7AM</span><span id="energy">⚡100</span><span id="quest">🎯 Main Building</span></div>
+<div id="hud"><span id="day">Day 1</span><span id="energy">⚡100</span><span id="quest">🎯 Punta sa MAIN</span></div>
 <div id="joy"></div><button id="btnA">A</button><button id="btnB">RUN</button>
-<div id="dialog"><b id="dName"></b><p id="dText" style="white-space:pre-line"></p><small>Tap A to close</small></div>
-<div id="quiz"><h3 id="qTitle">English Quiz</h3><p id="qText"></p><div id="qOpts"></div></div>
+<div id="dialog"><b id="dName"></b><p id="dText" style="white-space:pre-line;margin:8px 0"></p><small>Tap anywhere to close</small></div>
+<div id="quiz"><h3 id="qTitle"></h3><p id="qText"></p><div id="qOpts"></div><button onclick="document.getElementById('quiz').style.display='none'" style="margin-top:10px">Exit</button></div>
 <script>
-let joy={x:0,y:0}, player, keys, energy=100, day=1, inside=false, score=0;
-let saveData = JSON.parse(localStorage.getItem('readyph_save')||'{"day":1,"energy":100,"score":0}');
-day=saveData.day; energy=saveData.energy; score=saveData.score;
-
+let joy={x:0,y:0}, player, keys, energy=100, day=1, score=0;
+let saved=JSON.parse(localStorage.getItem('readyph_save')||'{"day":1,"energy":100,"score":0}'); day=saved.day; energy=saved.energy; score=saved.score;
 const questions=[
- {q:"Choose the correct: 'She ___ to school everyday.'", opts:["go","goes","going"], ans:1},
- {q:"IELTS: What is synonym of 'happy'?", opts:["sad","joyful","angry"], ans:1},
- {q:"Correct: 'I have ___ finished.'", opts:["already","yet","ever"], ans:0}
+ {q:"She ___ to school everyday.", opts:["go","goes","going"], ans:1, expl:"goes kasi She"},
+ {q:"Synonym of 'happy'?", opts:["sad","joyful","angry"], ans:1},
+ {q:"I have ___ finished.", opts:["already","yet","ever"], ans:0},
+ {q:"Choose correct: '___ you help me?'", opts:["Could","Coulds","Coud"], ans:0}
 ];
-let currentQ=0;
-
+let qIndex=0;
 function showDialog(n,t){document.getElementById('dName').innerText=n; document.getElementById('dText').innerText=t; document.getElementById('dialog').style.display='block';}
 function hideDialog(){document.getElementById('dialog').style.display='none';}
 function save(){localStorage.setItem('readyph_save',JSON.stringify({day,energy,score}));}
 
 class Outdoor extends Phaser.Scene{
- constructor(){super('Outdoor')}
- create(){
+ constructor(){super('Outdoor')} create(){
   this.add.rectangle(1250,1250,2500,2500,0x5a8f3e); this.add.grid(1250,1250,2500,2500,40,40,0x000000,0,0x000000,0.05);
-  this.add.rectangle(1250,1250,2500,180,0xd9c49a); this.add.rectangle(1250,1250,180,2500,0xd9c49a);
-  this.buildings=this.physics.add.staticGroup();
-  let b1=this.add.rectangle(1250,800,320,220,0x8b6a50).setStrokeStyle(4,0x000); this.buildings.add(b1); b1.name='Main'; this.add.text(1250,800,'MAIN',{color:'#fff',fontSize:'20px',fontStyle:'bold'}).setOrigin(0.5);
-  let b2=this.add.rectangle(800,1250,200,200,0xf5d6a0).setStrokeStyle(4,0x000); this.buildings.add(b2); b2.name='Canteen'; this.add.text(800,1250,'CANTEEN').setOrigin(0.5);
-  let b3=this.add.rectangle(1250,1750,260,190,0x90caf9).setStrokeStyle(4,0x000); this.buildings.add(b3); b3.name='Dorm'; this.add.text(1250,1750,'DORM').setOrigin(0.5);
-  this.add.text(1750,1250,'GARDEN - Chill',{backgroundColor:'#00000088'}).setOrigin(0.5);
+  this.add.rectangle(1250,1250,2500,160,0xd9c49a); this.add.rectangle(1250,1250,160,2500,0xd9c49a);
 
-  player=this.add.container(1250,1350); player.add([this.add.rectangle(0,0,18,24,0x1e3a8a), this.add.circle(0,-16,9,0xffdbac).setStrokeStyle(1,0x000)]);
-  this.physics.add.existing(player); player.body.setSize(18,24); this.physics.add.collider(player,this.buildings);
+  // BUILDINGS - visual only for Main para makapasok
+  this.mainBuilding = this.add.rectangle(1250,800,340,240,0x8b6a50).setStrokeStyle(4,0x000);
+  this.add.text(1250,780,'MAIN BUILDING',{color:'#fff',fontSize:'20px',fontStyle:'bold'}).setOrigin(0.5);
+  this.add.text(1250,810,'[ Press A to Enter ]',{color:'#ffff00',fontSize:'12px'}).setOrigin(0.5);
+  this.doorZone = this.add.rectangle(1250,940,80,20,0x000000,0.3);
+
+  this.buildings=this.physics.add.staticGroup();
+  let b2=this.add.rectangle(800,1250,200,200,0xf5d6a0).setStrokeStyle(4,0x000); this.buildings.add(b2); b2.name='Canteen';
+  let b3=this.add.rectangle(1250,1750,260,190,0x90caf9).setStrokeStyle(4,0x000); this.buildings.add(b3); b3.name='Dorm';
+  this.add.text(800,1250,'CANTEEN').setOrigin(0.5); this.add.text(1250,1750,'DORM').setOrigin(0.5);
+
+  player=this.add.container(1250,1100);
+  player.add([this.add.rectangle(0,0,18,24,0x1e3a8a), this.add.circle(0,-16,9,0xffdbac).setStrokeStyle(1,0x000)]);
+  this.physics.add.existing(player); player.body.setSize(18,24); player.body.setCollideWorldBounds(true);
+  this.physics.add.collider(player,this.buildings);
   this.cameras.main.startFollow(player,true,0.12,0.12); this.cameras.main.setBounds(0,0,2500,2500); this.physics.world.setBounds(0,0,2500,2500);
   keys=this.input.keyboard.addKeys('W,A,S,D,E,SHIFT');
   this.npc=this.add.container(1250,2000); this.npc.add([this.add.rectangle(0,0,18,22,0xdc2626), this.add.circle(0,-15,8,0xffdbac)]); this.physics.add.existing(this.npc);
   document.getElementById('day').innerText=`Day ${day} | Score:${score}`;
  }
  update(){
-  if(document.getElementById('dialog').style.display==='block'||document.getElementById('quiz').style.display==='block') {player.body.setVelocity(0); return;}
+  if(document.getElementById('dialog').style.display==='block'||document.getElementById('quiz').style.display==='block'){player.body.setVelocity(0); return;}
   let run=keys.SHIFT.isDown||document.getElementById('btnB').matches(':active'); let sp=run?300:170;
-  if(run && (joy.x!=0||joy.y!=0)) energy=Math.max(0,energy-0.07);
+  if(run && (joy.x!=0||joy.y!=0)) energy=Math.max(0,energy-0.05);
   document.getElementById('energy').innerText='⚡'+Math.floor(energy);
   let vx=(keys.A.isDown?-1:keys.D.isDown?1:joy.x)*sp; let vy=(keys.W.isDown?-1:keys.S.isDown?1:-joy.y)*sp;
   player.body.setVelocity(vx,vy);
+  let dMain=Phaser.Math.Distance.Between(player.x,player.y,1250,800);
+  if(dMain<300){document.getElementById('quest').innerText='🎯 Press A para pumasok sa MAIN!'; this.mainBuilding.setStrokeStyle(4,0xffff00);} else {this.mainBuilding.setStrokeStyle(4,0x000000);}
  }
 }
 class Indoor extends Phaser.Scene{
- constructor(){super('Indoor')}
- create(){
-  this.add.rectangle(400,300,800,600,0xf5f5dc); // classroom floor
-  this.add.rectangle(400,50,800,100,0x444).setStrokeStyle(2,0x000); this.add.text(400,50,'CLASSROOM - IELTS TRAINING',{color:'#fff'}).setOrigin(0.5);
-  for(let i=0;i<3;i++){for(let j=0;j<4;j++){this.add.rectangle(150+j*170,150+i*120,120,60,0x8d6e63).setStrokeStyle(2,0x000);}}
-  player=this.add.container(400,500); player.add([this.add.rectangle(0,0,18,24,0x1e3a8a), this.add.circle(0,-16,9,0xffdbac)]);
+ constructor(){super('Indoor')} create(){
+  this.add.rectangle(400,300,800,600,0xf5f5dc);
+  this.add.rectangle(400,50,800,100,0x333).setStrokeStyle(2,0x000); this.add.text(400,50,'CLASSROOM - IELTS TRAINING',{color:'#fff',fontSize:'18px'}).setOrigin(0.5);
+  for(let i=0;i<3;i++){for(let j=0;j<4;j++){this.add.rectangle(150+j*170,160+i*110,110,50,0x8d6e63).setStrokeStyle(2,0x000);}}
+  this.add.rectangle(400,550,800,30,0x654321); this.add.text(400,550,'EXIT - Lakad pababa para lumabas',{color:'#ffff00'}).setOrigin(0.5);
+  player=this.add.container(400,450); player.add([this.add.rectangle(0,0,18,24,0x1e3a8a), this.add.circle(0,-16,9,0xffdbac)]);
   this.physics.add.existing(player); this.physics.world.setBounds(0,0,800,600);
   this.cameras.main.startFollow(player); this.cameras.main.setBounds(0,0,800,600);
   keys=this.input.keyboard.addKeys('W,A,S,D,E,SHIFT');
-  this.teacher=this.add.container(400,120); this.teacher.add([this.add.rectangle(0,0,20,28,0x4caf50), this.add.circle(0,-18,10,0xffdbac)]); this.physics.add.existing(this.teacher);
-  showDialog('Teacher','Welcome to IELTS Class!\n\nTap A near me to start quiz. +50 score per correct!');
+  this.teacher=this.add.container(400,110); this.teacher.add([this.add.rectangle(0,0,22,30,0x22c55e), this.add.circle(0,-20,10,0xffdbac)]); this.physics.add.existing(this.teacher);
+  this.add.text(400,140,'Teacher',{backgroundColor:'#000',color:'#fff',fontSize:'12px'}).setOrigin(0.5);
+  showDialog('Teacher','Welcome sa IELTS Class!\nLumapit ka sakin at pindutin A para mag quiz!\n\n+50 score kada tama!');
  }
  update(){
-  if(document.getElementById('quiz').style.display==='block') return;
+  if(document.getElementById('quiz').style.display==='block'){player.body.setVelocity(0); return;}
   let sp=170; let vx=(keys.A.isDown?-1:keys.D.isDown?1:joy.x)*sp; let vy=(keys.W.isDown?-1:keys.S.isDown?1:-joy.y)*sp; player.body.setVelocity(vx,vy);
-  if(Phaser.Math.Distance.Between(player.x,player.y,400,580)>260){this.scene.start('Outdoor'); hideDialog(); inside=false; document.getElementById('quest').innerText='🎯 Explore Campus';}
+  if(player.y>570){this.scene.start('Outdoor'); hideDialog(); document.getElementById('quest').innerText='🎯 Explore Campus';}
  }
 }
-
 const game=new Phaser.Game({width:innerWidth,height:innerHeight,backgroundColor:'#000',physics:{default:'arcade'},scene:[Outdoor,Indoor]});
-
 function startQuiz(){
- let q=questions[currentQ%questions.length]; document.getElementById('qTitle').innerText=`Question ${score+1}`; document.getElementById('qText').innerText=q.q;
+ let q=questions[qIndex%questions.length]; document.getElementById('qTitle').innerText=`Quiz - Score: ${score}`; document.getElementById('qText').innerText=q.q;
  let opts=document.getElementById('qOpts'); opts.innerHTML='';
- q.opts.forEach((o,i)=>{let b=document.createElement('button'); b.innerText=o; b.style='width:100%;padding:12px;margin:6px 0;border-radius:8px;border:1px solid #000'; b.onclick=()=>{if(i===q.ans){score+=50; energy=Math.min(100,energy+10); showDialog('Correct!','+50 Score! Galing!');}else{showDialog('Mali','Correct is: '+q.opts[q.ans]);} currentQ++; document.getElementById('quiz').style.display='none'; save(); document.getElementById('day').innerText=`Day ${day} | Score:${score}`;}; opts.appendChild(b);});
+ q.opts.forEach((o,i)=>{let b=document.createElement('button'); b.innerText=o; b.style='width:100%;padding:12px;margin:5px 0;border-radius:8px;border:2px solid #000;background:#fff;font-weight:bold'; b.onclick=()=>{if(i===q.ans){score+=50; energy=Math.min(100,energy+10); showDialog('TAMA!','+50 Score! Galing mo!');}else{showDialog('MALI',`Tama: ${q.opts[q.ans]}`);} qIndex++; document.getElementById('quiz').style.display='none'; save(); document.getElementById('day').innerText=`Day ${day} | Score:${score}`; document.getElementById('energy').innerText='⚡'+Math.floor(energy);}; opts.appendChild(b);});
  document.getElementById('quiz').style.display='block';
 }
-
 function doInteract(){
- if(document.getElementById('dialog').style.display==='block'){hideDialog(); return;}
- let sc=game.scene.getScenes(true)[0]; if(!sc || !player) return;
+ let sc=game.scene.getScenes(true)[0]; if(!sc ||!player) return;
  if(sc.scene.key==='Outdoor'){
-  for(let b of sc.buildings.children.entries){ if(Phaser.Math.Distance.Between(player.x,player.y,b.x,b.y)<200){
-   if(b.name==='Main'){inside=true; sc.scene.start('Indoor'); document.getElementById('quest').innerText='🎯 Talk to Teacher'; return;}
-   if(b.name==='Dorm'){day++; energy=100; save(); showDialog('Dorm','Tulog ka... Day '+day+' na! Energy restored!'); document.getElementById('day').innerText=`Day ${day} | Score:${score}`; return;}
-   if(b.name==='Canteen'){energy=100; showDialog('Canteen','Busog! Energy 100!'); return;}
+  let dMain=Phaser.Math.Distance.Between(player.x,player.y,1250,800);
+  if(dMain<280){sc.scene.start('Indoor'); return;}
+  for(let b of sc.buildings.children.entries){ if(Phaser.Math.Distance.Between(player.x,player.y,b.x,b.y)<180){
+   if(b.name==='Dorm'){day++; energy=100; save(); showDialog('Dorm','Natutulog... Day '+day+' na! Energy full!'); document.getElementById('day').innerText=`Day ${day} | Score:${score}`; player.x=1250; player.y=1350; return;}
+   if(b.name==='Canteen'){energy=100; showDialog('Canteen','Busog! Energy 100!'); document.getElementById('energy').innerText='⚡100'; return;}
   }}
-  if(Phaser.Math.Distance.Between(player.x,player.y,sc.npc.x,sc.npc.y)<150){showDialog('Manong Guard','Anak, pumasok ka na sa Main para sa IELTS! Score mo: '+score); return;}
- } else {
-  if(Phaser.Math.Distance.Between(player.x,player.y,400,120)<100){startQuiz();}
- }
+  if(Phaser.Math.Distance.Between(player.x,player.y,sc.npc.x,sc.npc.y)<150){showDialog('Guard',`Score mo: ${score}\nPunta ka Main para mag quiz!`); return;}
+ } else { if(Phaser.Math.Distance.Between(player.x,player.y,400,110)<120){startQuiz();} }
 }
-
 let nip=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'55px',top:'55px'},color:'white',size:90});
 nip.on('move',(e,d)=>{joy.x=d.vector.x; joy.y=d.vector.y;}); nip.on('end',()=>{joy.x=0; joy.y=0;});
 document.getElementById('btnA').onclick=doInteract;
 document.addEventListener('keydown',e=>{if(e.key.toLowerCase()==='e') doInteract();});
 document.getElementById('dialog').onclick=hideDialog;
-document.getElementById('day').innerText=`Day ${day} | Score:${score}`; document.getElementById('energy').innerText='⚡'+Math.floor(energy);
+document.getElementById('day').innerText=`Day ${day} | Score:${score}`;
 </script>
 </body>
 </html>
