@@ -1,6 +1,6 @@
 <!DOCTYPE html><html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>V72 FIX BLACK AGAIN</title>
+<title>V74 ABSOLUTE PNG LOAD</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <style>
 html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
@@ -12,38 +12,33 @@ html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%;touc
 #shop{height:100%;display:flex;gap:8px;padding:10px;overflow-x:auto}
 .card{width:82px;min-width:82px;height:132px;background:#222;border:2px solid #444;border-radius:10px;display:flex;flex-direction:column;align-items:center;padding:6px;flex-shrink:0}
 .card img{width:48px;height:48px;object-fit:contain;background:#1a1a1a;border-radius:8px}
-.card b{font-size:7px;color:#fff;margin:4px 0}
+.card b{font-size:7px;color:#fff;margin:4px 0;text-align:center}
 .card button{background:#4ade80;color:#000;border:none;border-radius:6px;padding:5px;font-size:8px;font-weight:900;width:100%}
 #ownedTab{position:fixed;top:42px;left:0;bottom:165px;width:62px;background:rgba(0,0,0,.92);border-right:2px solid #333;z-index:55;display:flex;flex-direction:column;align-items:center;padding:6px 0;transition:transform.3s}
 #ownedTab.minimized{transform:translateX(-52px)}
 #ownedList{flex:1;width:100%;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:0 5px;align-items:center}
 .ownedItem{width:46px;height:46px;background:#222;border:2px solid #555;border-radius:10px;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer}
 .ownedItem img{width:34px;height:34px;object-fit:contain}
-.ownedItem.highlight{border-color:#facc15}
-.ownedItem.hasLover{border-color:#ff69b4!important}
-.ownedItem.hasPet{border-color:#7dd3fc!important}
-#minBtn{position:absolute;top:50%;right:-16px;width:16px;height:50px;background:#4ade80;border:none;border-radius:0 10px 10px 0;font-weight:900;font-size:12px;cursor:pointer}
+#minBtn{position:absolute;top:50%;right:-16px;width:16px;height:50px;background:#4ade80;border:none;border-radius:0 10px 10px 0;font-weight:900}
 #statWin{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:#1e1e1e;border:3px solid #4ade80;border-radius:16px;padding:12px;width:310px;z-index:90;transition:transform.2s;max-height:85vh;overflow-y:auto}
 #statWin.open{transform:translate(-50%,-50%) scale(1)}
 .animGrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin:8px 0}
 .animGrid button{padding:7px 2px;border:none;border-radius:8px;font-size:9px;font-weight:900;color:#000}
 .statRow{display:flex;justify-content:space-between;background:#2a2a2a;margin:3px 0;padding:5px 8px;border-radius:6px;font-size:10px;color:#ddd}
 .statRow b{color:#4ade80}
-#msg{position:fixed;top:50px;left:50%;transform:translateX(-50%) scale(0);background:linear-gradient(90deg,#f472b6,#a78bfa);color:#fff;padding:9px 18px;border-radius:20px;font-weight:900;font-size:11px;z-index:70;transition:transform.3s;pointer-events:none;max-width:90vw;text-align:center}
+#msg{position:fixed;top:50px;left:50%;transform:translateX(-50%) scale(0);background:linear-gradient(90deg,#f472b6,#a78bfa);color:#fff;padding:9px 18px;border-radius:20px;font-weight:900;font-size:11px;z-index:70;transition:transform.3s;pointer-events:none;text-align:center;max-width:90vw}
 #msg.show{transform:translateX(-50%) scale(1)}
-#debugTxt{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);color:#ff5555;font-size:14px;font-weight:900;text-align:center;z-index:100;pointer-events:none;display:none;background:rgba(0,0,0,.8);padding:12px;border-radius:10px}
 </style>
 </head><body>
 <div id="game"></div>
-<div id="top"><span>🏝️ V72 MAP FIX</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span></span></div>
-<div id="debugTxt"></div>
+<div id="top"><span>🏝️ V74 PNG LOAD</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span></span></div>
 <div id="ownedTab"><b>OWNED</b><div id="ownedList"></div><button id="minBtn" onclick="toggleTab()">◀</button></div>
 <div id="msg"></div>
 <div id="statWin">
 <div style="display:flex;gap:10px;align-items:center"><img id="sImg" style="width:52px;height:52px;background:#111;border-radius:10px;object-fit:contain"><div><h3 id="sName" style="margin:0;color:#fff;font-size:13px">Name</h3><div id="sType" style="color:#aaa;font-size:9px"></div><div id="sAnim" style="color:#4ade80;font-size:10px;font-weight:900"></div></div></div>
 <div class="animGrid">
-<button style="background:#60a5fa" onclick="playAnim('walk')">🚶 WALK</button><button style="background:#fb7185" onclick="playAnim('run')">🏃 RUN</button><button style="background:#a7f3d0" onclick="playAnim('idle')">😴 IDLE</button><button style="background:#fde68a" onclick="playAnim('jump')">🤾 JUMP</button><button style="background:#fbbf24" onclick="playAnim('eat')">😋 EAT</button><button style="background:#c4b5fd" onclick="playAnim('sleep')">💤 SLEEP</button><button style="background:#f472b6" onclick="playAnim('dance')">💃 DANCE</button><button style="background:#6ee7b7" onclick="playAnim('sit')">🪑 SIT</button><button style="background:#93c5fd" onclick="playAnim('wave')">👋 WAVE</button><button style="background:#facc15" onclick="playAnim('cheer')">🎉 CHEER</button><button style="background:#a5b4fc" onclick="playAnim('spin')">🌀 SPIN</button><button style="background:#fdba74" onclick="playAnim('bounce')">⚽ BOUNCE</button>
-</div><div id="sStats"></div><button onclick="closeStat()" style="width:100%;margin-top:8px;padding:8px;background:#333;color:#fff;border:none;border-radius:8px;font-weight:900">❌ CLOSE</button>
+<button style="background:#60a5fa" onclick="playAnim('walk')">WALK</button><button style="background:#fb7185" onclick="playAnim('run')">RUN</button><button style="background:#a7f3d0" onclick="playAnim('idle')">IDLE</button><button style="background:#fde68a" onclick="playAnim('jump')">JUMP</button><button style="background:#fbbf24" onclick="playAnim('eat')">EAT</button><button style="background:#c4b5fd" onclick="playAnim('sleep')">SLEEP</button><button style="background:#f472b6" onclick="playAnim('dance')">DANCE</button><button style="background:#6ee7b7" onclick="playAnim('sit')">SIT</button><button style="background:#93c5fd" onclick="playAnim('wave')">WAVE</button><button style="background:#facc15" onclick="playAnim('cheer')">CHEER</button><button style="background:#a5b4fc" onclick="playAnim('spin')">SPIN</button><button style="background:#fdba74" onclick="playAnim('bounce')">BOUNCE</button>
+</div><div id="sStats"></div><button onclick="closeStat()" style="width:100%;margin-top:8px;padding:8px;background:#333;color:#fff;border:none;border-radius:8px;font-weight:900">CLOSE</button>
 </div><div id="shopWrap" class="closed"><div id="shop"></div></div><button id="toggle">🛒 SHOP</button>
 <script>
 const ANIMALS=['beaver','bee','bunny','cat','caterpillar','chick','cow','crab','deer','dog','elephant','fox','giraffe','hog','koala','lion','monkey','panda','parrot','penguin','pig','polar','tiger'];
@@ -54,47 +49,35 @@ function toggleTab(){ isTabMin=!isTabMin; document.getElementById('ownedTab').cl
 function getGender(id){ return id.includes('female')?'female':id.includes('male')?'male':'animal'; }
 function isHumanId(id){ return id.includes('female')||id.includes('male'); }
 
-class WorldV72 extends Phaser.Scene{
- constructor(){super('WorldV72'); this.ents=[]}
+// ABSOLUTE PATH - DITO KUKUNIN LAHAT NG PNG MO!
+const BASE='https://readyphofficial-eng.github.io/readyph-games/new/';
+
+class WorldV74 extends Phaser.Scene{
+ constructor(){super('WorldV74'); this.ents=[]}
  preload(){
-  // CACHE BUSTER para sure new version lagi!
-  let v='?v=72_'+Date.now();
-  console.log('Loading map with cache buster');
-  this.load.image('map','./new/map-triangle-4k.png'+v);
-  ANIMALS.forEach(n=>{ this.load.image('a-'+n,'./new/animal-'+n+'.png'+v); });
-  HUMANS.forEach(n=>{ this.load.image('h-'+n,'./new/character-'+n+'.png'+v); });
-  this.load.on('loaderror',(f)=>{ console.error('FAILED TO LOAD:',f.src); document.getElementById('debugTxt').style.display='block'; document.getElementById('debugTxt').innerText='FAILED: '+f.src.split('/').pop()+'\nCheck new/ folder!'; });
+  // DIREKTA NA! HINDI NA RELATIVE
+  this.load.image('map',BASE+'map-triangle-4k.png');
+  ANIMALS.forEach(n=>{ this.load.image('a-'+n,BASE+'animal-'+n+'.png'); });
+  HUMANS.forEach(n=>{ this.load.image('h-'+n,BASE+'character-'+n+'.png'); });
  }
  create(){
   const W=3500,H=3500;
-  // Green background para hindi pure black pag fail map
-  this.add.rectangle(W/2,H/2,W,H,0x1a3a2a).setDepth(0);
+  this.add.rectangle(W/2,H/2,W,H,0x1e3a2a).setDepth(0);
 
   if(this.textures.exists('map')){
-   try{
-    let tex=this.textures.get('map').getSourceImage();
-    console.log('MAP LOADED OK:',tex.width,tex.height);
-    this.island=this.add.image(W/2,H/2,'map').setDepth(1);
-    // FIX: fixed 2000px para hindi masyado malaki
-    this.island.setDisplaySize(2000,2000);
-    this.bounds={x:W/2-900,y:H/2-750,w:1800,h:1500};
-    document.getElementById('debugTxt').style.display='none';
-   }catch(e){
-    console.error('MAP DISPLAY ERROR',e);
-    document.getElementById('debugTxt').style.display='block';
-    document.getElementById('debugTxt').innerText='MAP ERROR: '+e;
-    this.bounds={x:W/2-900,y:H/2-750,w:1800,h:1500};
-   }
+   let tex=this.textures.get('map').getSourceImage();
+   this.island=this.add.image(W/2,H/2,'map').setDepth(1);
+   this.island.setDisplaySize(2100,2100);
+   this.bounds={x:W/2-1000,y:H/2-700,w:2000,h:1400};
   } else {
-   console.error('MAP TEXTURE NOT EXISTS');
-   document.getElementById('debugTxt').style.display='block';
-   document.getElementById('debugTxt').innerText='MAP NOT FOUND\n./new/map-triangle-4k.png\nRefresh after 2 mins';
-   this.bounds={x:W/2-900,y:H/2-750,w:1800,h:1500};
+   this.add.text(W/2,H/2,'MAP FAIL\nPero shop gagana pa rin',{fontSize:'20px',color:'#ff0',align:'center'}).setOrigin(0.5).setDepth(5);
+   this.bounds={x:W/2-1000,y:H/2-700,w:2000,h:1400};
   }
-  this.cameras.main.setBounds(0,0,W,H); this.cameras.main.centerOn(W/2,H/2); this.cameras.main.setZoom(0.45);
+
+  this.cameras.main.setBounds(0,0,W,H); this.cameras.main.centerOn(W/2,H/2); this.cameras.main.setZoom(0.42);
   this.isDragging=false;
   this.input.on('pointerdown',p=>{ if(isShopOpen&&p.y<innerHeight-155&&selected){ let wp=this.cameras.main.getWorldPoint(p.x,p.y); this.spawn(wp.x,wp.y,selected,false); selected=null; return; } if(p.x<62&&p.y>42&&p.y<innerHeight-165) return; if(document.getElementById('statWin').classList.contains('open')) return; if(!isShopOpen){ this.isDragging=true; this.dragStart={x:p.x,y:p.y,sx:this.cameras.main.scrollX,sy:this.cameras.main.scrollY}; } });
-  this.input.on('pointermove',p=>{ if(this.isDragging&&this.dragStart&&!isShopOpen){ this.cameras.main.scrollX=this.dragStart.sx-(p.x-this.dragStart.x)/0.45; this.cameras.main.scrollY=this.dragStart.sy-(p.y-this.dragStart.y)/0.45; } });
+  this.input.on('pointermove',p=>{ if(this.isDragging&&this.dragStart&&!isShopOpen){ this.cameras.main.scrollX=this.dragStart.sx-(p.x-this.dragStart.x)/0.42; this.cameras.main.scrollY=this.dragStart.sy-(p.y-this.dragStart.y)/0.42; } });
   this.input.on('pointerup',()=>this.isDragging=false);
   this.buildShop();
   document.getElementById('toggle').onclick=()=>{ isShopOpen=!isShopOpen; document.getElementById('shopWrap').className=isShopOpen?'':'closed'; document.getElementById('toggle').innerHTML=isShopOpen?'❌ CLOSE':'🛒 SHOP'; };
@@ -103,56 +86,48 @@ class WorldV72 extends Phaser.Scene{
   const shop=document.getElementById('shop');
   [...HUMANS.map(n=>({id:'h-'+n,name:n,price:20,t:'human'})),...ANIMALS.map(n=>({id:'a-'+n,name:n,price:10,t:'animal'}))].forEach(it=>{
    let key=it.id; let c=document.createElement('div'); c.className='card';
-   c.innerHTML=`<img src="./new/${it.t=='human'?'character':'animal'}-${it.name}.png?v=72"><b>${it.name.toUpperCase()}</b><button>🪙${it.price}</button>`;
-   c.querySelector('button').onclick=()=>{ if(coins<it.price) return; if(!this.textures.exists(key)) return; coins-=it.price; document.getElementById('coins').innerText=coins; selected=key; document.querySelectorAll('.card').forEach(x=>x.style.borderColor='#444'); c.style.borderColor='#4ade80'; };
+   // SHOP IMG DIN ABSOLUTE!
+   c.innerHTML=`<img src="${BASE}${it.t=='human'?'character':'animal'}-${it.name}.png"><b>${it.name.toUpperCase()}</b><button>🪙${it.price}</button>`;
+   c.querySelector('button').onclick=()=>{ if(coins<it.price) return; if(!this.textures.exists(key)){ this.showMsg('Di pa load '+it.name); return; } coins-=it.price; document.getElementById('coins').innerText=coins; selected=key; document.querySelectorAll('.card').forEach(x=>x.style.borderColor='#444'); c.style.borderColor='#4ade80'; };
    shop.appendChild(c);
   });
  }
  spawn(x,y,id,isBaby=false){
-  if(!this.textures.exists(id)) return; let human=isHumanId(id);
-  let baseW=human?68:52, baseH=human?88:52;
+  if(!this.textures.exists(id)) return;
+  let human=isHumanId(id);
   let spr=this.add.image(x,y,id).setDepth(10).setInteractive();
-  spr.setDisplaySize(baseW,baseH); spr.baseW=baseW; spr.baseH=baseH;
+  spr.setScale(human?0.22:0.18); // FIXED SIZE - DI NA LALAKI
+  spr.baseScale=spr.scaleX;
   spr.stats={name:(isBaby?'Baby ':'')+NAMES[Math.floor(Math.random()*NAMES.length)]+' #'+Math.floor(Math.random()*99),type:id.replace('a-','').replace('h-','').toUpperCase(),gender:getGender(id),isHuman:human,lvl:1,happiness:72+Math.floor(Math.random()*20),friends:0,friendsList:[],lover:null,loverName:null,familyTime:0,isBaby:isBaby,owner:null,ownerRef:null,pets:[],id:id};
   spr.animState='idle'; spr.baseSpeed=human?1.2:1.5; spr.moveTimer=0; spr.lastMeet=0;
   this.ents.push(spr); document.getElementById('cnt').innerText=this.ents.length; this.addOwned(spr); this.playAnimOn(spr,'idle');
   spr.on('pointerdown',()=>this.showStats(spr));
-  if(isBaby) this.showMsg('👶 Baby Born! '+spr.stats.name);
+  if(isBaby) this.showMsg('👶 Baby '+spr.stats.name);
  }
- addOwned(spr){ const list=document.getElementById('ownedList'); let div=document.createElement('div'); div.className='ownedItem'; div.innerHTML=`<img src="./new/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png?v=72"><span style="position:absolute;bottom:-4px;right:-4px;background:#4ade80;color:#000;font-size:6px;font-weight:900;padding:1px 4px;border-radius:6px">LVL${spr.stats.lvl}</span>`; div.onclick=()=>{ selectedEnt=spr; this.focusOn(spr); this.showStats(spr); }; spr._tab=div; spr._tabUpdate=()=>{ let b=div.querySelector('span'); if(b) b.innerText='LVL'+spr.stats.lvl; if(spr.stats.lover) div.classList.add('hasLover'); if(spr.stats.owner) div.classList.add('hasPet'); }; list.appendChild(div); }
- focusOn(spr){ this.cameras.main.pan(spr.x,spr.y,400,'Power2'); document.querySelectorAll('.ownedItem').forEach(e=>e.classList.remove('highlight')); if(spr._tab) spr._tab.classList.add('highlight'); setTimeout(()=>spr._tab&&spr._tab.classList.remove('highlight'),2000); }
- showStats(spr){ selectedEnt=spr; document.getElementById('sImg').src='./new/'+(spr.stats.isHuman?'character':'animal')+'-'+spr.stats.type.toLowerCase()+'.png?v=72'; document.getElementById('sName').innerText=spr.stats.name+(spr.stats.isBaby?' 👶':''); document.getElementById('sType').innerText=spr.stats.type+' • '+spr.stats.gender.toUpperCase(); document.getElementById('sAnim').innerText='LVL'+spr.stats.lvl+' | '+spr.animState.toUpperCase(); let loverTxt=spr.stats.lover?'💕 '+spr.stats.loverName:'Single'; let ownerTxt=spr.stats.owner?'🐾 Pet of '+spr.stats.owner:'Wild'; let petsTxt=spr.stats.pets.length?spr.stats.pets.slice(0,2).join(', '):'None'; document.getElementById('sStats').innerHTML=`<div class="statRow"><span>📶 LEVEL</span><b>${spr.stats.lvl}</b></div><div class="statRow"><span>😊 HAPPY</span><b>${spr.stats.happiness}%</b></div><div class="statRow"><span>👫 FRIENDS</span><b>${spr.stats.friends}</b></div>${spr.stats.isHuman?`<div class="statRow"><span>💕 LOVER</span><b style="font-size:9px">${loverTxt}</b></div><div class="statRow"><span>👶 FAMILY</span><b>${Math.floor(spr.stats.familyTime/1000)}s/30s</b></div><div class="statRow"><span>🐾 PETS</span><b style="font-size:8px">${petsTxt}</b></div>`:`<div class="statRow"><span>🐾 OWNER</span><b style="font-size:8px">${ownerTxt}</b></div>`}`; document.getElementById('statWin').classList.add('open'); }
- checkLevelUp(spr){ if(spr.stats.lvl>=5) return; let f=spr.stats.friends,h=spr.stats.happiness,can=false; if(spr.stats.lvl==1&&f>=1&&h>=75) can=true; if(spr.stats.lvl==2&&f>=3&&h>=80) can=true; if(spr.stats.lvl==3&&f>=5&&h>=85) can=true; if(spr.stats.lvl==4&&f>=8&&h>=90) can=true; if(can){ spr.stats.lvl++; this.showMsg('⬆️ LVL UP! '+spr.stats.name+' LVL'+spr.stats.lvl); if(spr._tabUpdate) spr._tabUpdate(); this.tweens.add({targets:spr,scaleX:1.15,scaleY:1.15,duration:150,yoyo:true,repeat:1,onComplete:()=>{ spr.setScale(1); spr.setDisplaySize(spr.baseW,spr.baseH); }}); } }
- makeFriends(a,b){
-  if(a==b||Date.now()-a.lastMeet<2500) return;
-  if(!a.stats.isHuman && b.stats.isHuman &&!a.stats.owner){ a.stats.owner=b.stats.name; a.stats.ownerRef=b; b.stats.pets.push(a.stats.name+' ('+a.stats.type+')'); this.showMsg('🐾 '+a.stats.name+' pet of '+b.stats.name); if(b._tabUpdate) b._tabUpdate(); if(a._tab) a._tab.classList.add('hasPet'); }
-  if(!b.stats.isHuman && a.stats.isHuman &&!b.stats.owner){ b.stats.owner=a.stats.name; b.stats.ownerRef=a; a.stats.pets.push(b.stats.name+' ('+b.stats.type+')'); this.showMsg('🐾 '+b.stats.name+' pet of '+a.stats.name); if(a._tabUpdate) a._tabUpdate(); if(b._tab) b._tab.classList.add('hasPet'); }
-  if(a.stats.isHuman&&b.stats.isHuman){
-   if(a.stats.friendsList.includes(b.stats.name)){ if(a.stats.lover==b&&Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)<100){ a.stats.familyTime+=200; b.stats.familyTime+=200; if(a.stats.familyTime>30000){ this.makeBaby(a,b); a.stats.familyTime=0; b.stats.familyTime=0; } } return; }
-   a.stats.friendsList.push(b.stats.name); b.stats.friendsList.push(a.stats.name); a.stats.friends++; b.stats.friends++; totalFriends++; document.getElementById('fCount').innerText=totalFriends;
-   a.stats.happiness=Math.min(100,a.stats.happiness+8); b.stats.happiness=Math.min(100,b.stats.happiness+8); a.lastMeet=Date.now(); b.lastMeet=Date.now();
-   this.playAnimOn(a,'wave'); this.playAnimOn(b,'wave'); this.showHeart(a); this.checkLevelUp(a); this.checkLevelUp(b); if(a._tabUpdate) a._tabUpdate(); if(b._tabUpdate) b._tabUpdate(); this.checkLovers(a,b);
-  } else { if(!a.stats.friendsList.includes(b.stats.name)){ a.stats.friendsList.push(b.stats.name); b.stats.friendsList.push(a.stats.name); a.stats.friends++; b.stats.friends++; this.playAnimOn(a,'wave'); this.checkLevelUp(a); this.checkLevelUp(b); } }
- }
- checkLovers(a,b){ if(!a.stats.isHuman||!b.stats.isHuman||a.stats.lover||b.stats.lover||a.stats.gender==b.stats.gender) return; if(a.stats.friends<3||b.stats.friends<3||a.stats.happiness<85||b.stats.happiness<85) return; if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)>90) return; if(Math.random()<0.04){ a.stats.lover=b; a.stats.loverName=b.stats.name; b.stats.lover=a; b.stats.loverName=a.stats.name; this.showMsg('💕 LOVERS! '+a.stats.name+' + '+b.stats.name); this.showHeart(a); this.showHeart(b); if(a._tab) a._tab.classList.add('hasLover'); if(b._tab) b._tab.classList.add('hasLover'); } }
+ addOwned(spr){ const list=document.getElementById('ownedList'); let div=document.createElement('div'); div.className='ownedItem'; div.innerHTML=`<img src="${BASE}${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png"><span style="position:absolute;bottom:-4px;right:-4px;background:#4ade80;color:#000;font-size:6px;font-weight:900;padding:1px 4px;border-radius:6px">LVL${spr.stats.lvl}</span>`; div.onclick=()=>{ selectedEnt=spr; this.focusOn(spr); this.showStats(spr); }; spr._tab=div; spr._tabUpdate=()=>{ let b=div.querySelector('span'); if(b) b.innerText='LVL'+spr.stats.lvl; }; list.appendChild(div); }
+ focusOn(spr){ this.cameras.main.pan(spr.x,spr.y,400,'Power2'); }
+ showStats(spr){ selectedEnt=spr; document.getElementById('sImg').src=BASE+(spr.stats.isHuman?'character':'animal')+'-'+spr.stats.type.toLowerCase()+'.png'; document.getElementById('sName').innerText=spr.stats.name; document.getElementById('sType').innerText=spr.stats.type+' • '+spr.stats.gender.toUpperCase(); document.getElementById('sAnim').innerText='LVL'+spr.stats.lvl+' | '+spr.animState.toUpperCase(); let loverTxt=spr.stats.lover?'💕 '+spr.stats.loverName:'Single'; let ownerTxt=spr.stats.owner?'🐾 '+spr.stats.owner:'Wild'; let petsTxt=spr.stats.pets.length?spr.stats.pets.slice(0,2).join(', '):'None'; document.getElementById('sStats').innerHTML=`<div class="statRow"><span>LEVEL</span><b>${spr.stats.lvl}</b></div><div class="statRow"><span>HAPPY</span><b>${spr.stats.happiness}%</b></div><div class="statRow"><span>FRIENDS</span><b>${spr.stats.friends}</b></div>${spr.stats.isHuman?`<div class="statRow"><span>LOVER</span><b style="font-size:9px">${loverTxt}</b></div><div class="statRow"><span>FAMILY</span><b>${Math.floor(spr.stats.familyTime/1000)}s/30s</b></div><div class="statRow"><span>PETS</span><b style="font-size:8px">${petsTxt}</b></div>`:`<div class="statRow"><span>OWNER</span><b style="font-size:8px">${ownerTxt}</b></div>`}`; document.getElementById('statWin').classList.add('open'); }
+ checkLevelUp(spr){ if(spr.stats.lvl>=5) return; let f=spr.stats.friends,h=spr.stats.happiness,can=false; if(spr.stats.lvl==1&&f>=1&&h>=75) can=true; if(spr.stats.lvl==2&&f>=3&&h>=80) can=true; if(spr.stats.lvl==3&&f>=5&&h>=85) can=true; if(spr.stats.lvl==4&&f>=8&&h>=90) can=true; if(can){ spr.stats.lvl++; this.showMsg('⬆️ LVL '+spr.stats.lvl); if(spr._tabUpdate) spr._tabUpdate(); this.tweens.add({targets:spr,scaleX:spr.baseScale*1.3,scaleY:spr.baseScale*1.3,duration:150,yoyo:true,repeat:1,onComplete:()=>spr.setScale(spr.baseScale)}); } }
+ makeFriends(a,b){ if(a==b||Date.now()-a.lastMeet<2500) return; if(!a.stats.isHuman && b.stats.isHuman &&!a.stats.owner){ a.stats.owner=b.stats.name; a.stats.ownerRef=b; b.stats.pets.push(a.stats.name); this.showMsg('🐾 '+a.stats.name+' pet of '+b.stats.name); } if(!b.stats.isHuman && a.stats.isHuman &&!b.stats.owner){ b.stats.owner=a.stats.name; b.stats.ownerRef=a; a.stats.pets.push(b.stats.name); this.showMsg('🐾 '+b.stats.name+' pet of '+a.stats.name); } if(a.stats.isHuman&&b.stats.isHuman){ if(a.stats.friendsList.includes(b.stats.name)){ if(a.stats.lover==b&&Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)<100){ a.stats.familyTime+=200; b.stats.familyTime+=200; if(a.stats.familyTime>30000){ this.makeBaby(a,b); a.stats.familyTime=0; b.stats.familyTime=0; } } return; } a.stats.friendsList.push(b.stats.name); b.stats.friendsList.push(a.stats.name); a.stats.friends++; b.stats.friends++; totalFriends++; document.getElementById('fCount').innerText=totalFriends; a.stats.happiness=Math.min(100,a.stats.happiness+8); b.stats.happiness=Math.min(100,b.stats.happiness+8); a.lastMeet=Date.now(); b.lastMeet=Date.now(); this.playAnimOn(a,'wave'); this.playAnimOn(b,'wave'); this.showHeart(a); this.checkLevelUp(a); this.checkLevelUp(b); this.checkLovers(a,b); } else { if(!a.stats.friendsList.includes(b.stats.name)){ a.stats.friendsList.push(b.stats.name); b.stats.friendsList.push(a.stats.name); a.stats.friends++; b.stats.friends++; this.playAnimOn(a,'wave'); this.checkLevelUp(a); this.checkLevelUp(b); } } }
+ checkLovers(a,b){ if(!a.stats.isHuman||!b.stats.isHuman||a.stats.lover||b.stats.lover||a.stats.gender==b.stats.gender) return; if(a.stats.friends<3||b.stats.friends<3||a.stats.happiness<85||b.stats.happiness<85) return; if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)>90) return; if(Math.random()<0.04){ a.stats.lover=b; a.stats.loverName=b.stats.name; b.stats.lover=a; b.stats.loverName=a.stats.name; this.showMsg('💕 '+a.stats.name+' + '+b.stats.name); this.showHeart(a); this.showHeart(b); } }
  makeBaby(a,b){ let babyId=Math.random()<0.5?a.stats.id:b.stats.id; this.spawn((a.x+b.x)/2,(a.y+b.y)/2+20,babyId,true); }
- showHeart(spr){ let h=this.add.text(spr.x,spr.y-65,spr.stats.lover?'💕':'❤️',{fontSize:'22px'}).setDepth(50).setOrigin(0.5); this.tweens.add({targets:h,y:h.y-55,alpha:0,duration:1200,onComplete:()=>h.destroy()}); }
+ showHeart(spr){ let h=this.add.text(spr.x,spr.y-45,spr.stats.lover?'💕':'❤️',{fontSize:'18px'}).setDepth(50).setOrigin(0.5); this.tweens.add({targets:h,y:h.y-40,alpha:0,duration:1200,onComplete:()=>h.destroy()}); }
  showMsg(t){ let el=document.getElementById('msg'); el.innerText=t; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2500); }
  playAnimOn(spr,anim){
-  if(!spr.active) return; if(spr.currentTween){ spr.currentTween.stop(); this.tweens.killTweensOf(spr); } spr.setAngle(0); spr.setAlpha(1); spr.setScale(1); spr.setDisplaySize(spr.baseW,spr.baseH);
+  if(!spr.active) return; if(spr.currentTween){ spr.currentTween.stop(); this.tweens.killTweensOf(spr); } spr.setAngle(0); spr.setAlpha(1); spr.setScale(spr.baseScale);
   spr.animState=anim; if(selectedEnt==spr) document.getElementById('sAnim').innerText='LVL'+spr.stats.lvl+' | '+anim.toUpperCase();
-  if(anim=='idle'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-2, duration:700, yoyo:true, repeat:-1}); }
-  else if(anim=='walk'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-2, duration:220, yoyo:true, repeat:-1}); }
-  else if(anim=='run'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-4, duration:130, yoyo:true, repeat:-1}); }
-  else if(anim=='jump'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-50, duration:250, yoyo:true, onComplete:()=>this.playAnimOn(spr,'idle')}); }
-  else if(anim=='eat'){ spr.currentTween=this.tweens.add({targets:spr, scaleY:0.92, duration:150, yoyo:true, repeat:3, onComplete:()=>{ spr.setDisplaySize(spr.baseW,spr.baseH); this.playAnimOn(spr,'idle'); }}); }
+  if(anim=='idle'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-1, duration:700, yoyo:true, repeat:-1}); }
+  else if(anim=='walk'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-1, duration:220, yoyo:true, repeat:-1}); }
+  else if(anim=='run'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-2, duration:130, yoyo:true, repeat:-1}); }
+  else if(anim=='jump'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-40, duration:220, yoyo:true, onComplete:()=>this.playAnimOn(spr,'idle')}); }
+  else if(anim=='eat'){ spr.currentTween=this.tweens.add({targets:spr, scaleY:spr.baseScale*0.85, duration:150, yoyo:true, repeat:3, onComplete:()=>{ spr.setScale(spr.baseScale); this.playAnimOn(spr,'idle'); }}); }
   else if(anim=='sleep'){ spr.currentTween=this.tweens.add({targets:spr, angle:90, alpha:0.7, duration:400}); }
-  else if(anim=='dance'){ spr.currentTween=this.tweens.add({targets:spr, angle:8, duration:140, yoyo:true, repeat:-1}); this.tweens.add({targets:spr, y:spr.y-6, duration:140, yoyo:true, repeat:-1}); }
-  else if(anim=='sit'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y+8, duration:300}); }
+  else if(anim=='dance'){ spr.currentTween=this.tweens.add({targets:spr, angle:8, duration:140, yoyo:true, repeat:-1}); }
+  else if(anim=='sit'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y+6, duration:300}); }
   else if(anim=='wave'){ spr.currentTween=this.tweens.add({targets:spr, angle:12, duration:120, yoyo:true, repeat:5, onComplete:()=>this.playAnimOn(spr,'idle')}); this.showHeart(spr); }
-  else if(anim=='cheer'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-10, duration:130, yoyo:true, repeat:4, onComplete:()=>this.playAnimOn(spr,'dance')}); }
+  else if(anim=='cheer'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-8, duration:130, yoyo:true, repeat:4, onComplete:()=>this.playAnimOn(spr,'dance')}); }
   else if(anim=='spin'){ spr.currentTween=this.tweens.add({targets:spr, angle:360, duration:500, repeat:1, onComplete:()=>{ spr.setAngle(0); this.playAnimOn(spr,'idle'); }}); }
-  else if(anim=='bounce'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-25, duration:170, yoyo:true, repeat:2, onComplete:()=>this.playAnimOn(spr,'idle')}); }
+  else if(anim=='bounce'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-20, duration:170, yoyo:true, repeat:2, onComplete:()=>this.playAnimOn(spr,'idle')}); }
  }
  update(t,d){
   if(isShopOpen) return;
@@ -160,7 +135,32 @@ class WorldV72 extends Phaser.Scene{
   this.ents.forEach(e=>{
    if(e.stats.ownerRef && e.stats.ownerRef.active){
     let dist=Phaser.Math.Distance.Between(e.x,e.y,e.stats.ownerRef.x,e.stats.ownerRef.y);
-    if(dist>150){ let ang=Math.atan2(e.stats.ownerRef.y-e.y, e.stats.ownerRef.x-e.x); e.vx=Math.cos(ang)*e.baseSpeed*1.5; e.vy=Math.sin(ang)*e.baseSpeed*1.5; e.setFlipX(e.vx<0); this.playAnimOn(e,'run'); e.x+=e.vx; e.y+=e.vy; return; }
+    if(dist>130){ let ang=Math.atan2(e.stats.ownerRef.y-e.y, e.stats.ownerRef.x-e.x); e.vx=Math.cos(ang)*e.baseSpeed*1.6; e.vy=Math.sin(ang)*e.baseSpeed*1.6; e.setFlipX(e.vx<0); if(e.animState!='run') this.playAnimOn(e,'run'); e.x+=e.vx; e.y+=e.vy; return; }
+    else if(dist>60){ e.vx=0; e.vy=0; if(Math.random()<0.02) this.playAnimOn(e,'sit'); return; }
    }
    if(['sleep','sit','eat','jump','wave','cheer','spin','bounce'].includes(e.animState)) return;
-   e.mo
+   e.moveTimer-=d;
+   if(e.moveTimer<=0){
+    let r=Math.random();
+    if(r<0.25){ this.playAnimOn(e,'walk'); e.moveTimer=1800+Math.random()*2000; }
+    else if(r<0.32){ this.playAnimOn(e,'run'); e.moveTimer=1200+Math.random()*1000; }
+    else if(r<0.44){ this.playAnimOn(e,'idle'); e.moveTimer=1000+Math.random()*1500; e.vx=0; e.vy=0; return; }
+    else if(r<0.52){ this.playAnimOn(e,'dance'); e.moveTimer=2000; e.vx=0; e.vy=0; return; }
+    else if(r<0.60){ this.playAnimOn(e,'eat'); e.moveTimer=1500; e.vx=0; e.vy=0; return; }
+    else if(r<0.68){ this.playAnimOn(e,'wave'); e.moveTimer=1200; e.vx=0; e.vy=0; return; }
+    else if(r<0.75){ this.playAnimOn(e,'sit'); e.moveTimer=2000; e.vx=0; e.vy=0; return; }
+    else if(r<0.82){ this.playAnimOn(e,'bounce'); e.moveTimer=1300; e.vx=0; e.vy=0; return; }
+    else { this.playAnimOn(e,'jump'); e.moveTimer=1000; e.vx=0; e.vy=0; return; }
+    if(r<0.35){ e.targetX=this.bounds.x+Math.random()*this.bounds.w; e.targetY=this.bounds.y+Math.random()*this.bounds.h; let ang=Math.atan2(e.targetY-e.y,e.targetX-e.x); let sp=e.animState=='run'?e.baseSpeed*1.8:e.baseSpeed; e.vx=Math.cos(ang)*sp; e.vy=Math.sin(ang)*sp; e.setFlipX(e.vx<0); }
+   }
+   e.x+=(e.vx||0); e.y+=(e.vy||0);
+   if(e.x<this.bounds.x||e.x>this.bounds.x+this.bounds.w) e.vx*=-1; if(e.y<this.bounds.y||e.y>this.bounds.y+this.bounds.h) e.vy*=-1;
+   if(e.vx) e.setFlipX(e.vx<0);
+  });
+ }
+}
+function closeStat(){document.getElementById('statWin').classList.remove('open');}
+function playAnim(a){ if(selectedEnt) window.game.scene.scenes[0].playAnimOn(selectedEnt,a); }
+let game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#12351f',scene:WorldV74,scale:{mode:Phaser.Scale.RESIZE}});
+window.game=game;
+</script></body></html>
