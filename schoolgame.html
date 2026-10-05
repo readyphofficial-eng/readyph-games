@@ -1,178 +1,143 @@
 <!DOCTYPE html><html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>READYPH WORLD BOX V42</title>
+<title>READYPH OPEN WORLD V43</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
 <style>
-html,body{margin:0;padding:0;background:#7ab86f;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
+html,body{margin:0;padding:0;background:#8abf6a;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
 #game{position:fixed;inset:0}
-#joy{position:fixed;left:12px;bottom:18px;width:120px;height:120px;background:rgba(255,255,255,.35);border-radius:50%;border:2px solid #fff;z-index:50}
+#joy{position:fixed;left:12px;bottom:18px;width:120px;height:120px;background:rgba(255,255,255,.4);border-radius:50%;border:2px solid #fff;z-index:50}
 #hud{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.85);color:#fff;padding:8px 12px;display:flex;justify-content:space-between;z-index:40;font-size:11px;font-weight:800}
-#infoBox{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;padding:6px 12px;border-radius:20px;font-size:10px;z-index:40}
+#mini{position:fixed;right:8px;top:45px;width:90px;height:90px;background:rgba(0,0,0,.6);border:2px solid #fff;border-radius:8px;z-index:40}
 </style>
 </head><body>
 <div id="game"></div>
-<div id="hud"><span>WORLD BOX V42 - NO PLAYER</span><span id="info">clean/ | drag to explore</span></div>
-<div id="infoBox">🗺️ WORLD BOX MODE - Joystick to move camera - Ikaw na maglagay ng tao/hayop</div>
+<div id="hud"><span>OPEN WORLD V43 - REAL CITY</span><span id="info">Loading...</span></div>
 <div id="joy"></div>
+<canvas id="mini"></canvas>
 <script>
 let joy={x:0,y:0}, game;
 
-const BUILDINGS=[
-"low-detail-building-a","low-detail-building-b","low-detail-building-c","low-detail-building-d",
-"low-detail-building-e","low-detail-building-f","low-detail-building-g","low-detail-building-h",
-"low-detail-building-i","low-detail-building-j","low-detail-building-k","low-detail-building-l",
-"low-detail-building-m","low-detail-building-n","low-detail-building-wide-a","low-detail-building-wide-b"
-];
-const TREES=["tree","tree-small","tree-large","tree-high","tree-crooked","tree-high-round"];
-const ROADS=["road","road-bend","road-corner"];
+const BUILDINGS=["low-detail-building-a","low-detail-building-b","low-detail-building-c","low-detail-building-d","low-detail-building-e","low-detail-building-f","low-detail-building-g","low-detail-building-h","low-detail-building-i","low-detail-building-j","low-detail-building-k","low-detail-building-l","low-detail-building-m","low-detail-building-n","low-detail-building-wide-a","low-detail-building-wide-b"];
+const TREES=["tree-small","tree-small","tree","tree","tree-large"];
 
-class WorldBox extends Phaser.Scene{
- constructor(){super('WorldBox')}
+class OpenWorld extends Phaser.Scene{
+ constructor(){super('OpenWorld')}
  preload(){
-  let base='clean/';
-  BUILDINGS.forEach(k=>{ this.load.image(k, base+k+'.png'); });
-  TREES.forEach(k=>{ this.load.image(k, base+k+'.png'); });
-  ROADS.forEach(k=>{ this.load.image(k, base+k+'.png'); });
-  this.load.image('ground', base+'ground.png');
-  this.load.image('fence', base+'fence.png');
+  let b='clean/';
+  BUILDINGS.forEach(k=>this.load.image(k,b+k+'.png'));
+  TREES.forEach((k,i)=>{ if(i<3) this.load.image(k,b+k+'.png'); });
+  this.load.image('ground',b+'ground.png');
+  this.load.image('road',b+'road.png');
+  this.load.image('road-corner',b+'road-corner.png');
+  this.load.image('fence',b+'fence.png');
  }
 
  create(){
-  const W=8000,H=8000;
+  const W=7000,H=7000, BLOCK=640, ROAD_W=100;
 
-  // Ground tiles
-  this.add.rectangle(W/2,H/2,W,H,0x7ab86f).setDepth(0);
+  // Ground
+  this.add.rectangle(W/2,H/2,W,H,0x8abf6a).setDepth(0);
   if(this.textures.exists('ground')){
-   for(let y=0;y<H;y+=256){
-    for(let x=0;x<W;x+=256){
-     this.add.image(x,y,'ground').setDepth(0).setAlpha(0.4).setScale(1);
-    }
+   for(let y=0;y<H;y+=256){ for(let x=0;x<W;x+=256){ this.add.image(x,y,'ground').setDepth(0).setScale(0.9).setAlpha(0.35); } }
+  }
+
+  // Realistic roads - grid ng city blocks
+  let roads=[];
+  for(let x=0;x<=W;x+=BLOCK+ROAD_W){
+   this.add.rectangle(x, H/2, ROAD_W, H, 0x5a5a5a).setDepth(1);
+   if(this.textures.exists('road')){
+    for(let y=0;y<H;y+=128){ this.add.image(x,y,'road').setDepth(2).setScale(1.2,1).setAlpha(0.95); }
+   }
+  }
+  for(let y=0;y<=H;y+=BLOCK+ROAD_W){
+   this.add.rectangle(W/2, y, W, ROAD_W, 0x5a5a5a).setDepth(1);
+   if(this.textures.exists('road')){
+    for(let x=0;x<W;x+=128){ this.add.image(x,y,'road').setDepth(2).setScale(1.2,1).setAngle(90).setAlpha(0.95); }
    }
   }
 
-  // Roads grid - parang city blocks
-  if(this.textures.exists('road')){
-   for(let x=400;x<W;x+=700){
-    for(let y=0;y<H;y+=80){
-     this.add.image(x,y,'road').setDepth(1).setScale(1.8).setAlpha(0.9);
-    }
-   }
-   for(let y=400;y<H;y+=700){
-    for(let x=0;x<W;x+=80){
-     this.add.image(x,y,'road').setDepth(1).setScale(1.8).setAngle(90).setAlpha(0.9);
-    }
-   }
-  }
-
-  // Buildings - kalat sa map
-  let spots=[];
-  for(let y=300;y<H-300;y+=320){
-   for(let x=300;x<W-300;x+=340){
-    if(x%700<120 && y%700<120) continue; // wag sa kalsada
-    spots.push([x,y]);
-   }
-  }
-  spots=spots.sort(()=>Math.random()-0.5);
+  // Buildings - REAL CITY LAYOUT, hindi random!
+  // Bawat block, 2-4 buildings na naka-align sa loob, hindi sa kalsada
   let bCount=0;
-  spots.forEach((s,i)=>{
-   if(i>=160) return;
-   let key=BUILDINGS[i % BUILDINGS.length];
-   if(!this.textures.exists(key)) return;
-   let img=this.add.image(s[0],s[1],key).setDepth(3);
-   img.setScale(100/Math.max(img.width,img.height));
-   img.setOrigin(0.5,0.75);
-   bCount++;
-  });
+  let blockX=0, blockY=0;
+  for(let by=ROAD_W+50; by<H-BLOCK; by+=BLOCK+ROAD_W){
+   for(let bx=ROAD_W+50; bx<W-BLOCK; bx+=BLOCK+ROAD_W){
+    // Bawat block - gumawa ng 3-4 buildings sa loob
+    let numB=Phaser.Math.Between(2,4);
+    let usedInBlock=[];
+    for(let n=0;n<numB;n++){
+     let key=BUILDINGS[Phaser.Math.Between(0,BUILDINGS.length-1)];
+     if(!this.textures.exists(key)) continue;
+     // Position sa loob ng block, may margin sa road
+     let margin=110;
+     let x=bx + margin + Phaser.Math.Between(0, BLOCK-margin*2-120);
+     let y=by + margin + Phaser.Math.Between(0, BLOCK-margin*2-120);
+     // Iwas dikit dikit
+     let tooClose=false;
+     for(let u of usedInBlock){ if(Phaser.Math.Distance.Between(x,y,u[0],u[1])<140) tooClose=true; }
+     if(tooClose) continue;
 
-  // Trees - pang design
-  let tCount=0;
-  for(let i=0;i<120;i++){
-   let x=Phaser.Math.Between(100,W-100), y=Phaser.Math.Between(100,H-100);
-   let key=TREES[i % TREES.length];
-   if(!this.textures.exists(key)) continue;
-   this.add.image(x,y,key).setDepth(2).setScale(0.35).setAlpha(0.95);
-   tCount++;
+     let img=this.add.image(x,y,key).setDepth(5);
+     // REALISTIC SIZE FIX - yung low-detail buildings mo mga 200-300px original, gawin 110-150px lang sa screen!
+     let targetH=Phaser.Math.Between(110,150); // realistic height
+     let sc=targetH / img.height;
+     // wide buildings mas malapad
+     if(key.includes('wide')) sc*=0.9;
+     img.setScale(sc);
+     img.setOrigin(0.5,0.85); // para nasa lupa yung paa, hindi lumulutang
+     usedInBlock.push([x,y]);
+     bCount++;
+    }
+    // Dagdag puno sa block - sa gilid
+    if(this.textures.exists('tree-small')){
+     for(let t=0;t<2;t++){
+      let tx=bx + Phaser.Math.Between(30, BLOCK-30);
+      let ty=by + BLOCK - Phaser.Math.Between(20,60);
+      let tree=this.add.image(tx,ty,'tree-small').setDepth(6);
+      tree.setScale(0.45); // realistic tree size - maliit lang vs building!
+      tree.setOrigin(0.5,0.9);
+     }
+    }
+   }
   }
 
-  // Camera setup - WORLD BOX, walang player!
+  // Camera - start sa gitna ng city
   this.cameras.main.setBounds(0,0,W,H);
   this.cameras.main.centerOn(W/2,H/2);
-  this.cameras.main.setZoom(0.7); // zoom out para kita malaki agad
+  this.cameras.main.setZoom(0.85);
 
-  this.keys=this.input.keyboard.addKeys('W,A,S,D,Q,E');
-  document.getElementById('info').innerText=bCount+' buildings | '+tCount+' trees | '+W+'x'+H+' | clean/';
+  this.keys=this.input.keyboard.addKeys('W,A,S,D');
+  this.W=W; this.H=H;
+  document.getElementById('info').innerText=bCount+' buildings | City Blocks: '+Math.floor(W/(BLOCK+ROAD_W))+'x'+Math.floor(H/(BLOCK+ROAD_W))+' | Real sizes';
 
-  // Drag to pan - world box style!
-  this.input.on('pointermove', (pointer)=>{
-   if(pointer.isDown &&!pointer.wasTouch){
-    // mouse drag
-    this.cameras.main.scrollX -= (pointer.x - pointer.prevPosition.x) / this.cameras.main.zoom;
-    this.cameras.main.scrollY -= (pointer.y - pointer.prevPosition.y) / this.cameras.main.zoom;
+  // Drag pan
+  this.input.on('pointermove', (p)=>{
+   if(p.isDown && p.prevPosition){
+    this.cameras.main.scrollX -= (p.x - p.prevPosition.x) / this.cameras.main.zoom;
+    this.cameras.main.scrollY -= (p.y - p.prevPosition.y) / this.cameras.main.zoom;
    }
   });
-
-  // Pinch zoom hint
-  this.zoom=0.7;
+  this.zoom=0.85;
  }
 
  update(){
-  let sp=18, mx=joy.x, my=joy.y;
+  let sp=22, mx=joy.x, my=joy.y;
   if(this.keys.A.isDown) mx=-1; if(this.keys.D.isDown) mx=1;
   if(this.keys.W.isDown) my=-1; if(this.keys.S.isDown) my=1;
-  if(this.keys.Q.isDown) this.zoom = Phaser.Math.Clamp(this.zoom+0.02,0.3,1.5);
-  if(this.keys.E.isDown) this.zoom = Phaser.Math.Clamp(this.zoom-0.02,0.3,1.5);
-
-  if(Math.abs(mx)<0.12) mx=0; if(Math.abs(my)<0.12) my=0;
-
+  if(Math.abs(mx)<0.1) mx=0; if(Math.abs(my)<0.1) my=0;
   if(mx||my){
    this.cameras.main.scrollX += mx*sp;
    this.cameras.main.scrollY += my*sp;
   }
-
-  // joystick moves camera, not player!
-  if(this.keys.Q.isDown || this.keys.E.isDown){
-   this.cameras.main.setZoom(this.zoom);
-  }
-
-  // Touch drag for camera
-  if(this.input.activePointer.isDown && this.input.activePointer.wasTouch){
-   // handled by pointermove
-  }
+  // Clamp
+  this.cameras.main.scrollX=Phaser.Math.Clamp(this.cameras.main.scrollX,0,this.W-innerWidth/this.zoom);
+  this.cameras.main.scrollY=Phaser.Math.Clamp(this.cameras.main.scrollY,0,this.H-innerHeight/this.zoom);
  }
 }
-
-game=new Phaser.Game({
- type:Phaser.AUTO,
- parent:'game',
- width:innerWidth,
- height:innerHeight,
- backgroundColor:'#7ab86f',
- scene:WorldBox,
- scale:{mode:Phaser.Scale.RESIZE}
-});
-
+game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#8abf6a',scene:OpenWorld,scale:{mode:Phaser.Scale.RESIZE}});
 let stick=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'60px',top:'60px'},color:'white',size:90});
 stick.on('move',(e,d)=>{if(d&&d.vector){joy.x=d.vector.x; joy.y=-d.vector.y;}});
-stick.on('end',()=>{joy.x=0; joy.y=0;});
-
-// Add pinch zoom for mobile
-let lastDist=0;
-document.addEventListener('touchmove', (e)=>{
- if(e.touches.length==2){
-  let dx=e.touches[0].clientX-e.touches[1].clientX;
-  let dy=e.touches[0].clientY-e.touches[1].clientY;
-  let dist=Math.sqrt(dx*dx+dy*dy);
-  if(lastDist>0){
-   let scene=game.scene.getScene('WorldBox');
-   if(scene){
-    scene.zoom = Phaser.Math.Clamp(scene.zoom + (dist-lastDist)*0.005,0.3,1.8);
-    scene.cameras.main.setZoom(scene.zoom);
-   }
-  }
-  lastDist=dist;
- }
-},{passive:false});
-document.addEventListener('touchend', ()=>{lastDist=0;});
+stick.on('end',()=>{joy.x=0;joy.y=0;});
 </script></body></html>
