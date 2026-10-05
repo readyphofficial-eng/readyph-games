@@ -1,20 +1,20 @@
 <!DOCTYPE html><html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>V49 EXACT SAMPLE COPY</title>
+<title>V51 HQ - NO LOW-QUALITY</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
 <style>
-html,body{margin:0;padding:0;background:#3d3d3d;overflow:hidden;height:100%;touch-action:none}
+html,body{margin:0;padding:0;background:#3d3d3d;overflow:hidden;height:100%;touch-action:none;image-rendering:-webkit-optimize-contrast}
 #game{position:fixed;inset:0}
 #joy{position:fixed;left:12px;bottom:18px;width:110px;height:110px;background:rgba(255,255,255,.25);border-radius:50%;border:2px solid #fff;z-index:50}
-#hud{position:fixed;top:0;left:0;right:0;background:#000;color:#fff;padding:8px;font-size:11px;font-weight:800;z-index:40;display:flex;justify-content:space-between}
+#hud{position:fixed;top:0;left:0;right:0;background:#000;color:#fff;padding:6px 10px;font-size:10px;font-weight:800;z-index:40;display:flex;justify-content:space-between}
 #load{position:fixed;inset:0;background:#0f172a;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99;font-weight:800}
 </style>
 </head><body>
-<div id="load"><div>📋 COPYING SAMPLE LAYOUTS...</div><div id="l1" style="color:#4ade80;margin-top:8px">Loading 284 assets...</div></div>
+<div id="load"><div>🔥 V51 HIGH QUALITY FIX</div><div id="l1" style="color:#4ade80;margin-top:8px">Loading HQ assets only...</div><div id="l2" style="font-size:10px;opacity:.6"></div></div>
 <div id="game"></div>
-<div id="hud"><span>V49 - EXACT COPY | MEDIEVAL | CASTLE | CITY | GRASS</span><span id="info"></span></div>
+<div id="hud"><span>V51 HQ | HIGH-QUALITY BUILDINGS | NO LOW-DETAIL</span><span id="info"></span></div>
 <div id="joy"></div>
 <script>
 let joy={x:0,y:0}, ALL=[];
@@ -26,216 +26,132 @@ async function getAssets(){
    if(!r.ok) break;
    let d=await r.json();
    if(!Array.isArray(d)||d.length==0) break;
-   let f=d.filter(x=>x.name.endsWith('.png')&&!x.name.toLowerCase().includes('character')&&!x.name.toLowerCase().includes('animal')).map(x=>x.name);
+   // HQ ONLY - wag low-detail!
+   let f=d.filter(x=>{
+    let n=x.name.toLowerCase();
+    return x.name.endsWith('.png') &&!n.includes('low-detail') &&!n.includes('character') &&!n.includes('animal') && n.length<40;
+   }).map(x=>x.name);
    list.push(...f);
    if(d.length<100) break;
   }
  }catch(e){}
- if(list.length<30){
-  try{
-   let r=await fetch(`https://api.github.com/repos/readyphofficial-eng/readyph-games/contents/clean?per_page=100&page=1`);
-   let d=await r.json();
-   list=d.filter(x=>x.name.endsWith('.png')).map(x=>x.name);
-  }catch(e){}
+ if(list.length<15){
+  list=["building-a.png","building-b.png","building-c.png","building-d.png","building-e.png","building-f.png","building-skyscraper-a.png","building-skyscraper-b.png","windmill.png","watermill.png","castle-wall.png","castle-wall-straight.png","castle-tower.png","tower.png","tree.png","tree-large.png","tree-pine.png","rock.png","ground-grass.png","fence-wood.png"];
  }
- if(list.length<30){
-  list=["windmill.png","watermill.png","building-a.png","building-b.png","building-c.png","building-d.png","building-e.png","low-detail-building-a.png","low-detail-building-b.png","low-detail-building-c.png","low-detail-building-d.png","low-detail-building-e.png","low-detail-building-f.png","castle-wall.png","castle-tower.png","wall-wood.png","tower.png","tree.png","tree-small.png","tree-large.png","tree-pine.png","tree-pine-small.png","rock.png","rock-small.png","rock-large.png","bush.png","ground-grass.png","fence.png","fence-wood.png","road.png","ground.png"];
- }
- ALL=list; return list;
+ ALL=list;
+ document.getElementById('l1').innerText=`${list.length} HQ assets (no low-detail)`;
+ document.getElementById('l2').innerText=`High quality only: building-a, skyscraper, etc`;
+ return list;
 }
 function find(keys){
- keys=Array.isArray(keys)?keys:[keys];
+ if(!Array.isArray(keys)) keys=[keys];
  for(let k of keys){
-  let f=ALL.find(x=>x.toLowerCase().includes(k.toLowerCase()));
+  let f=ALL.find(x=>x.toLowerCase().includes(k.toLowerCase())&&!x.toLowerCase().includes('low-detail'));
   if(f) return f.replace('.png','');
  }
  return null;
 }
 
-class CopyMap extends Phaser.Scene{
- constructor(){super('CopyMap')}
+class HQMap extends Phaser.Scene{
+ constructor(){super('HQMap')}
  preload(){
   ALL.forEach(f=>{ this.load.image(f.replace('.png',''), 'clean/'+f); });
  }
  create(){
-  const W=2200,H=2200;
+  const W=1800,H=1800;
   this.W=W; this.H=H;
   this.add.rectangle(W/2,H/2,W,H,0x3d3d3d).setDepth(0);
 
-  // Ground tiles
+  // HQ ground
   if(this.textures.exists('ground-grass')){
-   for(let y=0;y<H;y+=128){ for(let x=0;x<W;x+=128){ this.add.image(x,y,'ground-grass').setDepth(0).setScale(1).setAlpha(0.25); }}
+   for(let y=0;y<H;y+=100){ for(let x=0;x<W;x+=100){ this.add.image(x,y,'ground-grass').setDepth(0).setScale(0.9).setAlpha(0.3); }}
   }
 
-  const S=(n)=>{ // BIG SIZES FIX!
-   if(!n) return 1.5;
+  const S=(n)=>{
+   if(!n) return 1.0;
    n=n.toLowerCase();
-   if(n.includes('windmill')||n.includes('watermill')) return 2.6;
-   if(n.includes('castle-tower')||n.includes('skyscraper')) return 2.0;
-   if(n.includes('castle-wall')||n.includes('wall')) return 1.8;
-   if(n.includes('low-detail')||n.includes('building')) return 1.6;
-   if(n.includes('tower')) return 1.7;
-   if(n.includes('tree-large')) return 1.2;
-   if(n.includes('tree')) return 1.0;
-   if(n.includes('rock-large')) return 0.9;
-   if(n.includes('rock')) return 0.8;
-   if(n.includes('fence')||n.includes('bush')) return 0.9;
-   return 1.3;
+   // HQ - wag na mag x2.4, 1.0 lang para malinaw!
+   if(n.includes('windmill')||n.includes('watermill')) return 1.2;
+   if(n.includes('skyscraper')) return 1.1;
+   if(n.includes('building')) return 1.0; // 1.0 = original HQ quality!
+   if(n.includes('tower')) return 1.0;
+   if(n.includes('wall')) return 0.9;
+   if(n.includes('tree')) return 0.7;
+   if(n.includes('rock')) return 0.6;
+   return 0.8;
   };
-  const place=(key,x,y,scale=null)=>{
+  const place=(key,x,y)=>{
    if(!key||!this.textures.exists(key)) return null;
    let img=this.add.image(x,y,key).setDepth(y);
-   img.setScale(scale||S(key));
+   img.setScale(S(key));
    img.setOrigin(0.5,0.85);
+   // crisp, hindi blurry
+   img.setTexture(key);
    return img;
   };
 
-  let placed=0;
+  // === MEDIEVAL - HQ BUILDINGS ===
+  place(find(['windmill']), 180, 220);
+  place(find(['tree-pine']), 260, 280);
+  place(find(['tree-pine']), 300, 300);
+  place(find(['building-a']), 120, 450);
+  place(find(['building-b']), 280, 470);
+  place(find(['building-c']), 150, 600);
+  place(find(['watermill','building-d']), 450, 550);
+  place(find(['building-e']), 620, 500);
+  place(find(['fence-wood']), 500, 700);
 
-  // ========= COPY SAMPLE 1: MEDIEVAL VILLAGE (0,0 to 1100,1100) =========
-  // Gaya ng Aug 3 2025 sample mo - windmill top left, watermill gitna
-  this.add.rectangle(550,550,1100,1100,0x5a4a3a).setDepth(0).setAlpha(0.15);
-
-  // Windmill - top left gaya ng sample
-  place(find(['windmill']), 220, 220); placed++;
-  // Green trees behind windmill
-  place(find(['tree-large']), 320, 280); 
-  place(find(['tree-large']), 380, 300);
-  
-  // Small houses left side
-  place(find(['building-a','house-small']), 180, 420);
-  place(find(['building-b','house-small']), 200, 620);
-  
-  // Red roof large house bottom left
-  place(find(['building-c','building-e','barn']), 250, 580);
-
-  // Rocks
-  place(find(['rock-large']), 350, 650);
-  place(find(['rock-small']), 380, 680);
-
-  // Middle green building with watermill
-  place(find(['building-d','building-f']), 500, 580);
-  place(find(['watermill']), 620, 620);
-
-  // Large red barn right side
-  place(find(['building-e','barn','house-large']), 750, 480);
-
-  // Trees
-  place(find(['tree-pine']), 480, 480);
-  place(find(['tree-pine']), 520, 500);
-  place(find(['tree-small']), 550, 620);
-  place(find(['tree-small']), 420, 620);
-
-  // Fence at bottom
-  place(find(['fence-wood','fence']), 650, 780);
-  place(find(['fence-wood','fence']), 700, 790);
-
-  // Right side trees and rocks
-  place(find(['rock-large']), 800, 600);
-  place(find(['tree-pine']), 880, 580);
-  place(find(['tree-pine']), 920, 600);
-  placed+=15;
-
-  // ========= COPY SAMPLE 2: CASTLE S-SHAPE (1100,0 to 2200,1100) =========
-  this.add.rectangle(1650,550,1100,1100,0x5a5a6a).setDepth(0).setAlpha(0.15);
-  
-  let wall=find(['castle-wall','wall-wood','wall-stone']);
+  // === CASTLE - STRAIGHT WALLS HQ ===
+  let wall=find(['castle-wall-straight','wall-straight','castle-wall-a']);
   let tower=find(['castle-tower','tower']);
-  
-  // S-shape walls gaya ng Mar 27 2024 sample mo!
-  // Top part
-  place(wall, 1350, 280);
-  place(wall, 1500, 280);
-  place(wall, 1650, 280);
-  place(wall, 1650, 400);
-  place(wall, 1650, 520);
-  
-  // Middle S
-  place(wall, 1500, 520);
-  place(wall, 1350, 520);
-  place(wall, 1350, 640);
-  place(wall, 1350, 760);
-  place(wall, 1500, 760);
-  place(wall, 1650, 760);
-  place(wall, 1800, 760);
-  
-  // Towers on corners - blue roof
-  place(tower, 1350, 280);
-  place(tower, 1800, 280);
-  place(tower, 1350, 760);
-  place(tower, 1800, 760);
-  place(tower, 1350, 640);
-  
-  // Trees
-  place(find(['tree-small']), 1400, 800);
-  place(find(['tree-small']), 1850, 650);
-  place(find(['tree-pine']), 1700, 400);
-  place(find(['tree-pine']), 1750, 420);
-  
-  // Rocks
-  place(find(['rock-small']), 1380, 800);
-  place(find(['rock-small']), 1680, 480);
-  placed+=20;
+  if(wall){
+   [950,1100,1250].forEach(x=>place(wall,x,220));
+   [220,360,500].forEach(y=>place(wall,1250,y));
+   [950,1100].forEach(x=>place(wall,x,500));
+   [640,780].forEach(y=>place(wall,950,y));
+   [1100,1250,1400].forEach(x=>place(wall,x,780));
+  }
+  if(tower){
+   place(tower,950,220);
+   place(tower,1400,220);
+   place(tower,950,780);
+   place(tower,1400,780);
+  }
 
-  // ========= COPY SAMPLE 3: CITY (0,1100 to 1100,2200) - siksikan city =========
-  this.add.rectangle(550,1650,1100,1100,0x4a4a5a).setDepth(0).setAlpha(0.15);
-  
+  // === CITY - HQ SKYSCRAPERS, DIKIT PERO MALINAW ===
+  let city=ALL.filter(f=>f.includes('building-')||f.includes('skyscraper')).map(f=>f.replace('.png',''));
+  if(city.length<6) city=ALL.filter(f=>f.includes('building')).map(f=>f.replace('.png',''));
+
+  let startX=80,startY=1050,gap=110; // 110px gap para dikit pero di patong
+  for(let row=0;row<4;row++){
+   for(let col=0;col<4;col++){
+    let k=city[(row*4+col)%city.length];
+    if(!this.textures.exists(k)) continue;
+    let x=startX+col*gap;
+    let y=startY+row*gap;
+    place(k,x,y);
+   }
+  }
   // Roads
-  this.add.rectangle(550,1650,1100,35,0x222222).setDepth(1);
-  this.add.rectangle(550,1650,35,1100,0x222222).setDepth(1);
-  this.add.rectangle(550,1450,1100,35,0x222222).setDepth(1);
-  this.add.rectangle(550,1850,1100,35,0x222222).setDepth(1);
-  
-  let city=ALL.filter(f=>f.includes('low-detail')).map(f=>f.replace('.png',''));
-  if(city.length<10) city=ALL.filter(f=>f.includes('building')).map(f=>f.replace('.png',''));
-  
-  // Siksikan city gaya ng city sample mo!
-  let cityPos=[
-   [120,1250],[300,1250],[500,1250],[700,1250],[900,1250],
-   [120,1400],[300,1400],[500,1400],[700,1400],[900,1400],
-   [120,1550],[300,1550],[500,1600],[700,1550],[900,1550],
-   [120,1900],[300,1900],[500,1950],[700,1900],[900,1900],
-   [120,2050],[300,2050],[500,2050],[700,2050],[900,2050]
-  ];
-  cityPos.forEach((p,i)=>{
-   let k=city[i%city.length];
-   place(k,p[0],p[1]);
-  });
-  
-  // Small green parks with trees
-  place(find(['tree-small']), 150, 2000);
-  place(find(['tree-small']), 180, 2000);
-  place(find(['tree-small']), 850, 1950);
-  placed+=25;
+  this.add.rectangle(300,1200,600,16,0x2a2a2a).setDepth(900);
+  this.add.rectangle(300,1350,600,16,0x2a2a2a).setDepth(1050);
 
-  // ========= AREA 4: GRASSLAND (1100,1100 to 2200,2200) - puro nature lang =========
-  this.add.rectangle(1650,1650,1100,1100,0x4a6a4a).setDepth(0).setAlpha(0.12);
-  let grassTrees=ALL.filter(f=>f.includes('tree')).map(f=>f.replace('.png','')).slice(0,5);
-  for(let i=0;i<15;i++){
-   let k=grassTrees[i%grassTrees.length];
-   place(k, 1200+Math.random()*900, 1200+Math.random()*900, S(k)*0.9);
+  // Grassland
+  let gTrees=ALL.filter(f=>f.includes('tree')).map(f=>f.replace('.png','')).slice(0,4);
+  for(let i=0;i<10;i++){
+   let k=gTrees[i%gTrees.length];
+   place(k, 1100+Math.random()*600, 1100+Math.random()*600);
   }
-  let grassRocks=ALL.filter(f=>f.includes('rock')).map(f=>f.replace('.png','')).slice(0,3);
-  for(let i=0;i<8;i++){
-   let k=grassRocks[i%grassRocks.length];
-   place(k, 1200+Math.random()*900, 1200+Math.random()*900, S(k));
-  }
-  placed+=23;
 
   document.getElementById('load').style.display='none';
   this.cameras.main.setBounds(0,0,W,H);
-  this.cameras.main.centerOn(1100,1100);
-  this.cameras.main.setZoom(0.9); // Kita lahat 4 areas
+  this.cameras.main.centerOn(900,900);
+  this.cameras.main.setZoom(1.2); // mas malapit para malinaw!
 
   this.keys=this.input.keyboard.addKeys('W,A,S,D');
-  document.getElementById('info').innerText=`${ALL.length} assets | Placed:${placed} | COPY OF 3 SAMPLES`;
+  document.getElementById('info').innerText=`${ALL.length} HQ | Scale 1.0 (no blur) | Filter: no low-detail`;
 
-  this.input.on('pointermove', p=>{
-   if(p.isDown&&p.prevPosition){
-    this.cameras.main.scrollX-=(p.x-p.prevPosition.x)/this.cameras.main.zoom;
-    this.cameras.main.scrollY-=(p.y-p.prevPosition.y)/this.cameras.main.zoom;
-   }
-  });
+  this.input.on('pointermove', p=>{ if(p.isDown&&p.prevPosition){ this.cameras.main.scrollX-=(p.x-p.prevPosition.x)/this.cameras.main.zoom; this.cameras.main.scrollY-=(p.y-p.prevPosition.y)/this.cameras.main.zoom; }});
  }
  update(){
   let sp=18, mx=joy.x, my=joy.y;
@@ -248,7 +164,7 @@ class CopyMap extends Phaser.Scene{
 
 (async()=>{
  await getAssets();
- new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#3d3d3d',scene:CopyMap,scale:{mode:Phaser.Scale.RESIZE}});
+ new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#3d3d3d',scene:HQMap,scale:{mode:Phaser.Scale.RESIZE}});
  let s=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'60px',top:'60px'},color:'white',size:90});
  s.on('move',(e,d)=>{if(d&&d.vector){joy.x=d.vector.x; joy.y=-d.vector.y;}});
  s.on('end',()=>{joy.x=0;joy.y=0;});
