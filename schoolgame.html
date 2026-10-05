@@ -1,195 +1,112 @@
 <!DOCTYPE html><html><head>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>ReadyPH V10.1 Fixed</title>
+<title>ReadyPH V10.2 Fixed</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
-<style>body{margin:0;background:#5a8f3f;overflow:hidden;font-family:Arial;touch-action:none}
-#joy{position:fixed;left:10px;bottom:10px;width:130px;height:130px;z-index:20;background:rgba(255,255,255,.22);border-radius:50%;border:2px solid #fff}
-#btnA{position:fixed;right:15px;bottom:20px;width:85px;height:85px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:22px;z-index:20}
-#hud{position:fixed;top:0;left:0;right:0;background:#000000d9;color:#fff;padding:10px 14px;display:flex;justify-content:space-between;z-index:10;font-size:11px;font-weight:800}
-#dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:4px solid #22c55e;padding:18px;color:#fff;display:none;z-index:30;border-radius:16px 16px 0 0}</style>
-</head><body>
-<div id="hud"><span id="hL">V10.1 Dual: MEGA + TILEMAP</span><span id="hR">Score:0</span></div>
+<style>
+html,body{margin:0;padding:0;background:#6aa84f;overflow:hidden;height:100%;font-family:Arial;touch-action:none}
+#game{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1}
+#joy{position:fixed;left:10px;bottom:15px;width:125px;height:125px;z-index:50;background:rgba(255,255,255,.25);border-radius:50%;border:2px solid #fff;touch-action:none}
+#btnA{position:fixed;right:15px;bottom:25px;width:82px;height:82px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:22px;z-index:50;touch-action:none}
+#hud{position:fixed;top:0;left:0;right:0;background:#000000cc;color:#fff;padding:10px 12px;display:flex;justify-content:space-between;z-index:40;font-size:12px;font-weight:800}
+#dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:4px solid #22c55e;padding:18px;color:#fff;display:none;z-index:60;border-radius:16px 16px 0 0}
+</style></head><body>
+<div id="game"></div>
+<div id="hud"><span id="hL">V10.2 FIXED - MEGA buildings</span><span id="hR">Score:0</span></div>
 <div id="joy"></div><button id="btnA">A</button>
-<div id="dialog"><b id="dN" style="color:#4ade80"></b><p id="dT" style="white-space:pre-line"></p></div>
+<div id="dialog"><b id="dN" style="color:#4ade80;font-size:15px"></b><p id="dT" style="white-space:pre-line;margin:10px 0;font-size:14px"></p></div>
 <script>
 let joy={x:0,y:0},score=0,game;
-class GameScene extends Phaser.Scene{
+class MainScene extends Phaser.Scene{
  constructor(){super('Game')}
- preload(){
-  this.load.image('mega','assets/kenney/MEGA.png');
-  this.load.image('tilemap','assets/kenney/tilemap.png');
- }
+ preload(){ this.load.image('mega','assets/kenney/MEGA.png'); }
  create(){
-  let tilemapImg=this.textures.get('tilemap').getSourceImage();
-  let grassCanvas=document.createElement('canvas'); grassCanvas.width=64; grassCanvas.height=64;
-  let ctx=grassCanvas.getContext('2d');
-  try{ ctx.drawImage(tilemapImg,0,0,128,128,0,0,64,64); }catch(e){ ctx.fillStyle='#7bc86f'; ctx.fillRect(0,0,64,64); }
-  this.textures.addCanvas('groundTex',grassCanvas);
-
-  for(let x=0;x<3000;x+=64) for(let y=0;y<3000;y+=64){
-   this.add.image(x,y,'groundTex').setDepth(0).setAlpha(0.9);
+  // PLAIN GRASS LANG MUNA - hindi na gamit tilemap para hindi maging bricks
+  this.add.rectangle(1500,1500,3000,3000,0x7bc86f).setDepth(0);
+  for(let i=0;i<120;i++){
+   let x=Phaser.Math.Between(0,3000), y=Phaser.Math.Between(0,3000);
+   this.add.circle(x,y,3,0x5faa4f).setDepth(0).setAlpha(0.4);
   }
-  this.add.rectangle(1500,1250,3000,110,0x4a4a4a).setDepth(1);
-  this.add.rectangle(1250,1500,110,3000,0x4a4a4a).setDepth(1);
-  this.add.circle(1250,1250,55,0x7ec8e3).setStrokeStyle(5,0xffffff).setDepth(2);
+  // Roads
+  this.add.rectangle(1500,1250,3000,100,0x3a3a3a).setDepth(1);
+  this.add.rectangle(1500,1250,3000,6,0xffffff).setDepth(1).setAlpha(0.9);
+  this.add.rectangle(1250,1500,100,3000,0x3a3a3a).setDepth(1);
+  this.add.rectangle(1250,1500,6,3000,0xffffff).setDepth(1).setAlpha(0.9);
+  this.add.circle(1250,1250,50,0x7ec8e3).setStrokeStyle(4,0xffffff).setDepth(2);
 
-  let megaImg=this.textures.get('mega').getSourceImage();
-  let makeTex=(key,x,y,w,h)=>{
+  let mega=this.textures.get('mega').getSourceImage();
+  let mk=(k,x,y,w,h)=>{
    let c=document.createElement('canvas'); c.width=w; c.height=h;
-   c.getContext('2d').drawImage(megaImg,x,y,w,h,0,0,w,h);
-   if(this.textures.exists(key)) this.textures.remove(key);
-   this.textures.addCanvas(key,c);
+   c.getContext('2d').drawImage(mega,x,y,w,h,0,0,w,h);
+   if(this.textures.exists(k)) this.textures.remove(k);
+   this.textures.addCanvas(k,c);
   };
-  let bw=190,bh=190,gap=35,sx=18,sy=62;
-  makeTex('b_school',sx+0*(bw+gap),sy,bw,bh);
-  makeTex('b_office',sx+1*(bw+gap),sy,bw,bh);
-  makeTex('b_canteen',sx+2*(bw+gap),sy,bw,bh);
-  makeTex('b_library',sx+3*(bw+gap),sy,bw,bh);
-  makeTex('b_gym',sx+4*(bw+gap),sy,bw,bh);
-  makeTex('b_dorm',sx+5*(bw+gap),sy,bw,bh);
-  makeTex('b_hospital',sx+6*(bw+gap),sy,bw,bh);
-  makeTex('b_shop',sx+7*(bw+gap),sy,bw,bh);
+  // Correct crops for MEGA.png (based on generated image)
+  mk('s_school', 22, 92, 175, 165);
+  mk('s_office', 247, 92, 175, 165);
+  mk('s_canteen', 472, 92, 175, 165);
+  mk('s_library', 697, 92, 175, 165);
+  mk('s_gym', 922, 92, 175, 165);
+  mk('s_dorm', 1147, 92, 175, 165);
+  mk('s_hospital', 1372, 92, 175, 165);
+  mk('s_shop', 1597, 92, 175, 165);
 
   this.builds=[];
-  let place=(x,y,key,name)=>{
-   this.add.image(x,y,key).setScale(0.85).setDepth(2);
-   this.add.text(x,y+95,name,{fontSize:'11px',backgroundColor:'#000c',color:'#fff',padding:{x:6,y:3}}).setOrigin(0.5).setDepth(3);
-   this.builds.push({x,y,name});
+  let addB=(x,y,k,n)=>{
+   this.add.image(x,y,k).setScale(0.9).setDepth(2);
+   this.add.text(x,y+100,n,{fontSize:'11px',backgroundColor:'#000000bb',color:'#fff',padding:{x:6,y:3}}).setOrigin(0.5).setDepth(3);
+   this.builds.push({x,y,name:n});
   };
-  place(1500,700,'b_school','SCHOOL');
-  place(2000,650,'b_office','OFFICE');
-  place(750,1250,'b_canteen','CANTEEN');
-  place(2000,1250,'b_library','LIBRARY');
-  place(750,650,'b_gym','GYM');
-  place(1500,2050,'b_dorm','DORM');
-  place(2200,1750,'b_hospital','HOSPITAL');
-  place(550,1750,'b_shop','SHOP');
+  addB(1500,700,'s_school','SCHOOL');
+  addB(2000,650,'s_office','OFFICE');
+  addB(750,1250,'s_canteen','CANTEEN');
+  addB(2000,1250,'s_library','LIBRARY');
+  addB(750,650,'s_gym','GYM');
+  addB(1500,2050,'s_dorm','DORM');
+  addB(2200,1750,'s_hospital','HOSPITAL');
+  addB(550,1750,'s_shop','SHOP');
 
-  this.player=this.add.circle(1500,1080,14,0x1e3a8a).setStrokeStyle(3,0xfff).setDepth(10);
+  // Trees
+  for(let i=0;i<28;i++){
+   let x=Phaser.Math.Between(80,2920), y=Phaser.Math.Between(80,2920);
+   if(this.builds.some(b=>Phaser.Math.Distance.Between(x,y,b.x,b.y)<180)) continue;
+   if(Phaser.Math.Distance.Between(x,y,1250,1250)<120) continue;
+   let cc=this.add.container(x,y).setDepth(1);
+   cc.add(this.add.circle(0,10,7,0x6d4c41));
+   cc.add(this.add.circle(0,-8,20,0x2ecc71).setStrokeStyle(2,0x1e8449));
+  }
+
+  this.player=this.add.container(1500,1080).setDepth(10);
+  this.player.add(this.add.circle(0,10,12,0x000000).setAlpha(0.2));
+  this.player.add(this.add.circle(0,0,14,0x1e3a8a).setStrokeStyle(3,0xffffff));
+
   this.cameras.main.setBounds(0,0,3000,3000);
   this.cameras.main.startFollow(this.player,true,0.14,0.14);
   this.keys=this.input.keyboard.addKeys('W,A,S,D');
-  document.getElementById('hL').innerText='V10.1 DUAL LOADED!';
+  document.getElementById('hL').innerText='V10.2 FIXED - Joystick working!';
  }
+
  update(){
-  if(document.getElementById('dialog').style.display=='block') return;
-  let sp=6,mx=joy.x,my=joy.y;
-  if(this.keys.A.isDown) mx=-1; if(this.keys.D.isDown) mx=1; if(this.keys.W.isDown) my=-1; if(this.keys.S.isDown) my=1;
-  if(Math.abs(mx)<0.22) mx=0; if(Math.abs(my)<0.22) my=0;
-  if(mx||my){this.player.x+=mx*sp; this.player.y+=my*sp;}
-  this.player.x=Phaser.Math.Clamp(this.player.x,30,2970); this.player.y=Phaser.Math.Clamp(this.player.y,30,2970);
+  if(document.getElementById('dialog').style.display==='block') return;
+  let sp=6, mx=0, my=0;
+  if(this.keys.A.isDown) mx=-1; else if(this.keys.D.isDown) mx=1; else mx=joy.x;
+  if(this.keys.W.isDown) my=-1; else if(this.keys.S.isDown) my=1; else my=joy.y;
+  if(Math.abs(mx)<0.2) mx=0; if(Math.abs(my)<0.2) my=0;
+  if(mx||my){ this.player.x+=mx*sp; this.player.y+=my*sp; }
+  this.player.x=Phaser.Math.Clamp(this.player.x,30,2970);
+  this.player.y=Phaser.Math.Clamp(this.player.y,30,2970);
  }
 }
-game=new Phaser.Game({type:Phaser.AUTO,width:innerWidth,height:innerHeight,backgroundColor:'#6aa84f',scene:GameScene,scale:{mode:Phaser.Scale.RESIZE}});
-let stick=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'65px',top:'65px'},color:'white',size:90});
-stick.on('move',(e,d)=>{if(d&&d.vector){joy.x=d.vector.x; joy.y=-d.vector.y;}});
-stick.on('end',()=>{joy.x=0;joy.y=0;});
+game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#7bc86f',scene:MainScene,scale:{mode:Phaser.Scale.RESIZE}});
+let stick=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'62px',top:'62px'},color:'white',size:85});
+stick.on('move',(e,d)=>{ if(d&&d.vector){ joy.x=d.vector.x; joy.y=-d.vector.y; } });
+stick.on('end',()=>{ joy.x=0; joy.y=0; });
 function interact(){
  let sc=game.scene.getScene('Game'); if(!sc.builds) return;
- let near=null;
- for(let b of sc.builds){if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<160){near=b;break;}}
- if(!near){document.getElementById('dN').innerText='Explore!'; document.getElementById('dT').innerText='2 files gamit mo na! MEGA for buildings, TILEMAP for ground!\n\nSCHOOL taas, CANTEEN kaliwa, LIBRARY kanan, DORM baba!'; document.getElementById('dialog').style.display='block'; return;}
- document.getElementById('dN').innerText=near.name; document.getElementById('dT').innerText='Welcome to '+near.name+'!\n\nDual pack: '+near.name+' from MEGA.png, ground from tilemap.png!\n+100 pts!'; document.getElementById('dialog').style.display='block'; score+=100; document.getElementById('hR').innerText='Score:'+score;
+ let near=null; for(let b of sc.builds){ if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<160){ near=b; break; } }
+ if(!near){ document.getElementById('dN').innerText='Lakad pa!'; document.getElementById('dT').innerText='Punta ka sa building! SCHOOL nasa taas, CANTEEN kaliwa, LIBRARY kanan!'; document.getElementById('dialog').style.display='block'; return; }
+ document.getElementById('dN').innerText=near.name; document.getElementById('dT').innerText='Welcome sa '+near.name+'! Galing sa MEGA.png mo! +100 pts'; document.getElementById('dialog').style.display='block'; score+=100; document.getElementById('hR').innerText='Score:'+score;
 }
 document.getElementById('btnA').onclick=interact;
 document.getElementById('dialog').onclick=()=>document.getElementById('dialog').style.display='none';
-window.addEventListener('resize',()=>{try{game.scale.resize(innerWidth,innerHeight)}catch(e){}});
-</script></body></html><!DOCTYPE html><html><head>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>ReadyPH V10.1 Fixed</title>
-<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
-<style>body{margin:0;background:#5a8f3f;overflow:hidden;font-family:Arial;touch-action:none}
-#joy{position:fixed;left:10px;bottom:10px;width:130px;height:130px;z-index:20;background:rgba(255,255,255,.22);border-radius:50%;border:2px solid #fff}
-#btnA{position:fixed;right:15px;bottom:20px;width:85px;height:85px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:22px;z-index:20}
-#hud{position:fixed;top:0;left:0;right:0;background:#000000d9;color:#fff;padding:10px 14px;display:flex;justify-content:space-between;z-index:10;font-size:11px;font-weight:800}
-#dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:4px solid #22c55e;padding:18px;color:#fff;display:none;z-index:30;border-radius:16px 16px 0 0}</style>
-</head><body>
-<div id="hud"><span id="hL">V10.1 Dual: MEGA + TILEMAP</span><span id="hR">Score:0</span></div>
-<div id="joy"></div><button id="btnA">A</button>
-<div id="dialog"><b id="dN" style="color:#4ade80"></b><p id="dT" style="white-space:pre-line"></p></div>
-<script>
-let joy={x:0,y:0},score=0,game;
-class GameScene extends Phaser.Scene{
- constructor(){super('Game')}
- preload(){
-  this.load.image('mega','assets/kenney/MEGA.png');
-  this.load.image('tilemap','assets/kenney/tilemap.png');
- }
- create(){
-  let tilemapImg=this.textures.get('tilemap').getSourceImage();
-  let grassCanvas=document.createElement('canvas'); grassCanvas.width=64; grassCanvas.height=64;
-  let ctx=grassCanvas.getContext('2d');
-  try{ ctx.drawImage(tilemapImg,0,0,128,128,0,0,64,64); }catch(e){ ctx.fillStyle='#7bc86f'; ctx.fillRect(0,0,64,64); }
-  this.textures.addCanvas('groundTex',grassCanvas);
-
-  for(let x=0;x<3000;x+=64) for(let y=0;y<3000;y+=64){
-   this.add.image(x,y,'groundTex').setDepth(0).setAlpha(0.9);
-  }
-  this.add.rectangle(1500,1250,3000,110,0x4a4a4a).setDepth(1);
-  this.add.rectangle(1250,1500,110,3000,0x4a4a4a).setDepth(1);
-  this.add.circle(1250,1250,55,0x7ec8e3).setStrokeStyle(5,0xffffff).setDepth(2);
-
-  let megaImg=this.textures.get('mega').getSourceImage();
-  let makeTex=(key,x,y,w,h)=>{
-   let c=document.createElement('canvas'); c.width=w; c.height=h;
-   c.getContext('2d').drawImage(megaImg,x,y,w,h,0,0,w,h);
-   if(this.textures.exists(key)) this.textures.remove(key);
-   this.textures.addCanvas(key,c);
-  };
-  let bw=190,bh=190,gap=35,sx=18,sy=62;
-  makeTex('b_school',sx+0*(bw+gap),sy,bw,bh);
-  makeTex('b_office',sx+1*(bw+gap),sy,bw,bh);
-  makeTex('b_canteen',sx+2*(bw+gap),sy,bw,bh);
-  makeTex('b_library',sx+3*(bw+gap),sy,bw,bh);
-  makeTex('b_gym',sx+4*(bw+gap),sy,bw,bh);
-  makeTex('b_dorm',sx+5*(bw+gap),sy,bw,bh);
-  makeTex('b_hospital',sx+6*(bw+gap),sy,bw,bh);
-  makeTex('b_shop',sx+7*(bw+gap),sy,bw,bh);
-
-  this.builds=[];
-  let place=(x,y,key,name)=>{
-   this.add.image(x,y,key).setScale(0.85).setDepth(2);
-   this.add.text(x,y+95,name,{fontSize:'11px',backgroundColor:'#000c',color:'#fff',padding:{x:6,y:3}}).setOrigin(0.5).setDepth(3);
-   this.builds.push({x,y,name});
-  };
-  place(1500,700,'b_school','SCHOOL');
-  place(2000,650,'b_office','OFFICE');
-  place(750,1250,'b_canteen','CANTEEN');
-  place(2000,1250,'b_library','LIBRARY');
-  place(750,650,'b_gym','GYM');
-  place(1500,2050,'b_dorm','DORM');
-  place(2200,1750,'b_hospital','HOSPITAL');
-  place(550,1750,'b_shop','SHOP');
-
-  this.player=this.add.circle(1500,1080,14,0x1e3a8a).setStrokeStyle(3,0xfff).setDepth(10);
-  this.cameras.main.setBounds(0,0,3000,3000);
-  this.cameras.main.startFollow(this.player,true,0.14,0.14);
-  this.keys=this.input.keyboard.addKeys('W,A,S,D');
-  document.getElementById('hL').innerText='V10.1 DUAL LOADED!';
- }
- update(){
-  if(document.getElementById('dialog').style.display=='block') return;
-  let sp=6,mx=joy.x,my=joy.y;
-  if(this.keys.A.isDown) mx=-1; if(this.keys.D.isDown) mx=1; if(this.keys.W.isDown) my=-1; if(this.keys.S.isDown) my=1;
-  if(Math.abs(mx)<0.22) mx=0; if(Math.abs(my)<0.22) my=0;
-  if(mx||my){this.player.x+=mx*sp; this.player.y+=my*sp;}
-  this.player.x=Phaser.Math.Clamp(this.player.x,30,2970); this.player.y=Phaser.Math.Clamp(this.player.y,30,2970);
- }
-}
-game=new Phaser.Game({type:Phaser.AUTO,width:innerWidth,height:innerHeight,backgroundColor:'#6aa84f',scene:GameScene,scale:{mode:Phaser.Scale.RESIZE}});
-let stick=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'65px',top:'65px'},color:'white',size:90});
-stick.on('move',(e,d)=>{if(d&&d.vector){joy.x=d.vector.x; joy.y=-d.vector.y;}});
-stick.on('end',()=>{joy.x=0;joy.y=0;});
-function interact(){
- let sc=game.scene.getScene('Game'); if(!sc.builds) return;
- let near=null;
- for(let b of sc.builds){if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<160){near=b;break;}}
- if(!near){document.getElementById('dN').innerText='Explore!'; document.getElementById('dT').innerText='2 files gamit mo na! MEGA for buildings, TILEMAP for ground!\n\nSCHOOL taas, CANTEEN kaliwa, LIBRARY kanan, DORM baba!'; document.getElementById('dialog').style.display='block'; return;}
- document.getElementById('dN').innerText=near.name; document.getElementById('dT').innerText='Welcome to '+near.name+'!\n\nDual pack: '+near.name+' from MEGA.png, ground from tilemap.png!\n+100 pts!'; document.getElementById('dialog').style.display='block'; score+=100; document.getElementById('hR').innerText='Score:'+score;
-}
-document.getElementById('btnA').onclick=interact;
-document.getElementById('dialog').onclick=()=>document.getElementById('dialog').style.display='none';
-window.addEventListener('resize',()=>{try{game.scale.resize(innerWidth,innerHeight)}catch(e){}});
 </script></body></html>
