@@ -1,34 +1,31 @@
 <!DOCTYPE html><html><head>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>ReadyPH V16 NO GRID</title>
+<title>ReadyPH V17 BIG BUILDINGS</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
-<style>html,body{margin:0;padding:0;background:#4a9a42;overflow:hidden;height:100%;font-family:Arial;touch-action:none}canvas{image-rendering:pixelated;image-rendering:crisp-edges}#game{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1}#joy{position:fixed;left:12px;bottom:18px;width:120px;height:120px;z-index:50;background:rgba(255,255,255,.25);border-radius:50%;border:2px solid #fff}#btnA{position:fixed;right:14px;bottom:22px;width:86px;height:86px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:16px;z-index:50}#btnB{position:fixed;right:14px;bottom:116px;width:64px;height:64px;background:#ef4444;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:12px;z-index:50;display:none}#hud{position:fixed;top:0;left:0;right:0;background:#000000cc;color:#fff;padding:7px 10px;display:flex;justify-content:space-between;z-index:40;font-size:10px;font-weight:800}#quest{position:fixed;top:38px;left:8px;background:#000000aa;color:#fde047;padding:7px 9px;border-radius:8px;font-size:10px;z-index:40}#dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:4px solid #22c55e;padding:14px;color:#fff;display:none;z-index:60}#quiz{position:fixed;top:0;left:0;right:0;bottom:0;background:#000000f0;z-index:110;display:none;justify-content:center;align-items:center;flex-direction:column;padding:20px;color:#fff}.qBtn{width:92%;padding:12px;margin:6px;background:#fff;color:#000;border-radius:10px;font-weight:800;border:none}</style>
+<style>html,body{margin:0;padding:0;background:#4a9a42;overflow:hidden;height:100%;font-family:Arial;touch-action:none}canvas{image-rendering:pixelated}#game{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1}#joy{position:fixed;left:12px;bottom:18px;width:120px;height:120px;z-index:50;background:rgba(255,255,255,.28);border-radius:50%;border:2px solid #fff}#btnA{position:fixed;right:14px;bottom:22px;width:86px;height:86px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:16px;z-index:50}#btnB{position:fixed;right:14px;bottom:116px;width:64px;height:64px;background:#ef4444;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:12px;z-index:50;display:none}#hud{position:fixed;top:0;left:0;right:0;background:#000000cc;color:#fff;padding:7px 10px;display:flex;justify-content:space-between;z-index:40;font-size:10px;font-weight:800}#quest{position:fixed;top:38px;left:8px;background:#000000aa;color:#fde047;padding:7px 9px;border-radius:8px;font-size:10px;z-index:40;max-width:190px}#dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:4px solid #22c55e;padding:14px;color:#fff;display:none;z-index:60;max-height:50%;overflow:auto}#quiz{position:fixed;top:0;left:0;right:0;bottom:0;background:#000000f0;z-index:110;display:none;justify-content:center;align-items:center;flex-direction:column;padding:20px;color:#fff}.qBtn{width:92%;padding:12px;margin:6px;background:#fff;color:#000;border-radius:10px;font-weight:800;border:none}</style>
 </head><body>
 <div id="game"></div>
-<div id="hud"><span id="hudLoc">V16 NO GRID + BIG CHARS</span><span id="score">Score:0</span></div>
+<div id="hud"><span id="hudLoc">V17 BIG MAP</span><span id="score">Score:0</span></div>
 <div id="quest"><div id="qList"></div></div>
 <div id="joy"></div><button id="btnA">ENTER</button><button id="btnB">EXIT</button>
-<div id="dialog"><b id="dN" style="color:#4ade80"></b><p id="dT"></p><div id="dBtns"></div></div>
-<div id="quiz"><h2>Teacher Test</h2><p id="qQ"></p><div id="qOpts" style="width:100%;display:flex;flex-direction:column;align-items:center"></div><button onclick="closeQuiz()" style="margin-top:10px;padding:8px 18px;background:#ef4444;color:#fff;border-radius:20px;border:2px solid #fff">Close</button></div>
+<div id="dialog"><b id="dN" style="color:#4ade80"></b><p id="dT" style="white-space:pre-line"></p><div id="dBtns"></div></div>
+<div id="quiz"><h2>Teacher Test ONLY</h2><p id="qQ"></p><div id="qOpts" style="width:100%;display:flex;flex-direction:column;align-items:center"></div><button onclick="closeQuiz()" style="margin-top:10px;padding:8px 18px;background:#ef4444;color:#fff;border-radius:20px;border:2px solid #fff">Close</button></div>
 <script>
 let joy={x:0,y:0},score=0,game,mode='outside',currentBuilding=null,quests={teacher:false,food:false,library:false};
-const TESTS=[{q:"Polite greeting?",a:["Good morning, ma'am!","Yo teach!"],correct:0,reward:150},{q:"She ___ to school everyday.",a:["goes","go"],correct:0,reward:150},{q:"Past tense of 'study'?",a:["studied","studyed"],correct:0,reward:150}];
-function cleanBuilding(cv){
- let c=cv.getContext('2d'),d=c.getImageData(0,0,cv.width,cv.height);
- for(let i=0;i<d.data.length;i+=4){let r=d.data[i],g=d.data[i+1],b=d.data[i+2]; if((r>250&&g>250&&b>250)||(r>192&&g>192&&b>192&&r<238&&Math.abs(r-g)<12))d.data[i+3]=0;} c.putImageData(d,0,0);
-}
-function cleanChar(cv){
- let c=cv.getContext('2d'),d=c.getImageData(0,0,cv.width,cv.height);
- // tanggalin white + semi-transparent edge na nagiging dashed box
- for(let i=0;i<d.data.length;i+=4){
-  let r=d.data[i],g=d.data[i+1],b=d.data[i+2],a=d.data[i+3];
-  if((r>240&&g>240&&b>240&&a>200)||(r===255&&g===255&&b===255)) d.data[i+3]=0;
-  // yung dashed box - light gray transparent
-  if(a<30) d.data[i+3]=0;
- }
- c.putImageData(d,0,0);
-}
+const TESTS=[{q:"Polite greeting to teacher?",a:["Good morning, ma'am!","Yo teach!"],correct:0,reward:150},{q:"She ___ to school everyday.",a:["goes","go"],correct:0,reward:150},{q:"Past of 'study'?",a:["studied","studyed"],correct:0,reward:150},{q:"Where is library?",a:["Quiet place to read","Noisy playground"],correct:0,reward:150}];
+const STUDENT_DIALOGS=[
+ "Hi! Tara review tayo! Ang hirap ng English no?",
+ "Uy! Nakapag-test ka na kay Teacher? Kabado ako!",
+ "Punta ka Canteen? Samahan kita, gutom na ko!",
+ "Nasa Library ako kanina, daming books!",
+ "Excited na ko maglaro sa Gym mamaya!",
+ "Teacher said practice daw everyday para gumaling sa English!",
+ "Alam mo ba, 8 buildings pala school natin!",
+ "Tara tambay tayo malapit sa road, ang laki na ng buildings ngayon!"
+];
+function cleanBuilding(cv){let c=cv.getContext('2d'),d=c.getImageData(0,0,cv.width,cv.height);for(let i=0;i<d.data.length;i+=4){let r=d.data[i],g=d.data[i+1],b=d.data[i+2];if((r>250&&g>250&&b>250)||(r>192&&g>192&&b>192&&r<238&&Math.abs(r-g)<12))d.data[i+3]=0;}c.putImageData(d,0,0);}
+function cleanChar(cv){let c=cv.getContext('2d'),d=c.getImageData(0,0,cv.width,cv.height);for(let i=0;i<d.data.length;i+=4){let r=d.data[i],g=d.data[i+1],b=d.data[i+2],a=d.data[i+3];if((r>240&&g>240&&b>240&&a>200)||(r===255&&g===255&&b===255)||a<35)d.data[i+3]=0;}c.putImageData(d,0,0);}
 class Main extends Phaser.Scene{
  constructor(){super('Game')}
  preload(){
@@ -38,59 +35,77 @@ class Main extends Phaser.Scene{
   this.load.image('interiors','assets/kenney/INTERIORS.png');
  }
  create(){
-  // GRASS TILES - i-crop ng malaki para matanggal puting border sa original image!
-  let gImg=this.textures.get('ground').getSourceImage(),gw=gImg.width/4,gh=gImg.height/2;
-  // dating inset 4 lang, ngayon 12 para tanggal white border!
-  let inset=12;
-  let mk=(k,c,r)=>{
-   let cv=document.createElement('canvas'); cv.width=gw-inset*2; cv.height=gh-inset*2;
-   cv.getContext('2d').drawImage(gImg,c*gw+inset,r*gh+inset,gw-inset*2,gh-inset*2,0,0,gw-inset*2,gh-inset*2);
-   if(this.textures.exists(k))this.textures.remove(k);this.textures.addCanvas(k,cv);
-  };
-  mk('g1',0,0); mk('g2',1,0); mk('r_h',0,1); mk('r_v',1,1); mk('r_x',2,1);
+  let gImg=this.textures.get('ground').getSourceImage(),gw=gImg.width/4,gh=gImg.height/2, inset=13;
+  let mk=(k,c,r)=>{let cv=document.createElement('canvas');cv.width=gw-inset*2;cv.height=gh-inset*2;cv.getContext('2d').drawImage(gImg,c*gw+inset,r*gh+inset,gw-inset*2,gh-inset*2,0,0,gw-inset*2,gh-inset*2);if(this.textures.exists(k))this.textures.remove(k);this.textures.addCanvas(k,cv);};
+  mk('g1',0,0);mk('g2',1,0);mk('r_h',0,1);mk('r_v',1,1);
+  // BAGONG CROSSING - gawa natin mismo walang puti!
+  let cvCross=document.createElement('canvas');cvCross.width=64;cvCross.height=64;let cx=cvCross.getContext('2d');cx.fillStyle='#6b6b6b';cx.fillRect(0,0,64,64);cx.fillStyle='#f7c948';for(let i=0;i<64;i+=8){cx.fillRect(30,i,4,5);}for(let j=0;j<64;j+=8){cx.fillRect(j,30,5,4);}if(this.textures.exists('r_x_new'))this.textures.remove('r_x_new');this.textures.addCanvas('r_x_new',cvCross);
 
-  this.outside=[]; const T=64;
-  // Dikit na dikit - 64 exact, origin 0,0, background same color kaya kahit may 1px gap hindi halata
-  for(let x=0;x<3000;x+=T) for(let y=0;y<3000;y+=T){
-   let key=Math.random()<0.85?'g1':'g2';
-   let t=this.add.image(x,y,key).setOrigin(0,0).setDisplaySize(T+1,T+1).setDepth(0); // +1 overlap
-   this.outside.push(t);
-  }
+  this.outside=[];const T=64;
+  // dikit tiles - T+1 overlap para walang white grid
+  for(let x=0;x<3000;x+=T)for(let y=0;y<3000;y+=T){let t=this.add.image(x,y,Math.random()<0.85?'g1':'g2').setOrigin(0,0).setDisplaySize(T+0.8,T+0.8).setDepth(0);this.outside.push(t);}
   const RX=1280,RY=1280;
-  for(let x=0;x<3000;x+=T){let t=this.add.image(x,RY,'r_h').setOrigin(0,0).setDisplaySize(T+1,T+1).setDepth(1); this.outside.push(t);}
-  for(let y=0;y<3000;y+=T){let t=this.add.image(RX,y,'r_v').setOrigin(0,0).setDisplaySize(T+1,T+1).setDepth(1); this.outside.push(t);}
-  let cross=this.add.image(RX,RY,'r_x').setOrigin(0,0).setDisplaySize(T+1,T+1).setDepth(2); this.outside.push(cross);
+  for(let x=0;x<3000;x+=T){let t=this.add.image(x,RY,'r_h').setOrigin(0,0).setDisplaySize(T+0.8,T+0.8).setDepth(1);this.outside.push(t);}
+  for(let y=0;y<3000;y+=T){let t=this.add.image(RX,y,'r_v').setOrigin(0,0).setDisplaySize(T+0.8,T+0.8).setDepth(1);this.outside.push(t);}
+  let cross=this.add.image(RX,RY,'r_x_new').setOrigin(0,0).setDisplaySize(T+0.8,T+0.8).setDepth(2);this.outside.push(cross);
 
   let bImg=this.textures.get('buildings').getSourceImage(),bw=bImg.width/4,bh=bImg.height/2;
   let mkB=(k,c,r)=>{let cv=document.createElement('canvas');cv.width=bw;cv.height=bh;cv.getContext('2d').drawImage(bImg,c*bw,r*bh,bw,bh,0,0,bw,bh);cleanBuilding(cv);if(this.textures.exists(k))this.textures.remove(k);this.textures.addCanvas(k,cv);};
   mkB('school',0,0);mkB('office',1,0);mkB('canteen',2,0);mkB('library',3,0);mkB('gym',0,1);mkB('dorm',1,1);mkB('hospital',2,1);mkB('shop',3,1);
   this.builds=[];
-  let place=(x,y,k,n,idx)=>{let s=this.add.ellipse(x+32,y+58,72,18,0x000000).setAlpha(0.2).setDepth(1);let im=this.add.image(x+32,y+32,k).setDisplaySize(78,78).setDepth(3);let tx=this.add.text(x+32,y+76,n,{fontSize:'8px',backgroundColor:'#000c',color:'#fff',padding:{x:4,y:1}}).setOrigin(0.5).setDepth(4);this.outside.push(s,im,tx);this.builds.push({x:x+32,y:y+32,name:n,intIdx:idx});};
-  place(1472,832,'school','SCHOOL',0);place(1728,832,'office','OFFICE',1);place(832,1472,'canteen','CANTEEN',2);place(1728,1472,'library','LIBRARY',3);place(832,832,'gym','GYM',0);place(1472,1920,'dorm','DORM',1);place(1984,1728,'hospital','HOSPITAL',2);place(576,1728,'shop','SHOP',3);
+  // MALAKI BUILDINGS + MALAPIT SA ROAD!
+  let place=(x,y,k,n,idx)=>{let s=this.add.ellipse(x+40,y+82,110,26,0x000000).setAlpha(0.22).setDepth(1);let im=this.add.image(x+40,y+40,k).setDisplaySize(130,130).setDepth(3);let tx=this.add.text(x+40,y+112,n,{fontSize:'10px',backgroundColor:'#000e',color:'#fff',padding:{x:6,y:2},fontStyle:'bold'}).setOrigin(0.5).setDepth(4);this.outside.push(s,im,tx);this.builds.push({x:x+40,y:y+40,name:n,intIdx:idx});};
+  // malapit sa road (1280)
+  place(1360,700,'school','SCHOOL',0); place(1400,900,'office','OFFICE',1); place(700,1360,'canteen','CANTEEN',2); place(1500,1450,'library','LIBRARY',3); place(700,700,'gym','GYM',0); place(1360,1650,'dorm','DORM',1); place(1800,1360,'hospital','HOSPITAL',2); place(500,1650,'shop','SHOP',3);
 
   let cImg=this.textures.get('chars').getSourceImage(),cW=cImg.width/6,cH=cImg.height;
   let mkC=(k,i)=>{let cv=document.createElement('canvas');cv.width=cW;cv.height=cH;cv.getContext('2d').drawImage(cImg,i*cW,0,cW,cH,0,0,cW,cH);cleanChar(cv);if(this.textures.exists(k))this.textures.remove(k);this.textures.addCanvas(k,cv);};
   mkC('player',0);mkC('girl',1);mkC('teacher',2);mkC('chef',3);mkC('janitor',4);mkC('nurse',5);
 
   this.npcs=[];
-  [{k:'teacher',r:'Teacher',x:1504,y:960},{k:'chef',r:'Chef',x:864,y:1568},{k:'girl',r:'Student',x:1760,y:1568},{k:'nurse',r:'Nurse',x:2016,y:1824},{k:'janitor',r:'Janitor',x:608,y:1824}].forEach(o=>{let sp=this.add.image(o.x,o.y,o.k).setDisplaySize(38,38).setDepth(4);sp.role=o.r;sp.dirX=(Math.random()-0.5);sp.dirY=(Math.random()-0.5);sp.speed=0.6;sp.t=0;this.outside.push(sp);this.npcs.push(sp);});
+  // DAMI STUDENT NPCs!
+  let npcData=[
+   {k:'teacher',role:'Teacher',x:1420,y:720,dlg:["Good morning! Pasok ka sa SCHOOL para mag-test!","Mag-aral mabuti!"]},
+   {k:'girl',role:'Student',x:1500,y:760,dlg:STUDENT_DIALOGS},
+   {k:'girl',role:'Student',x:1460,y:800,dlg:STUDENT_DIALOGS},
+   {k:'girl',role:'Student',x:1350,y:820,dlg:STUDENT_DIALOGS},
+   {k:'girl',role:'Student',x:800,y:700,dlg:STUDENT_DIALOGS},
+   {k:'girl',role:'Student',x:760,y:1420,dlg:STUDENT_DIALOGS},
+   {k:'chef',role:'Chef',x:740,y:1400,dlg:["Gutom? Kain sa Canteen! No test dito!"]},
+   {k:'nurse',role:'Nurse',x:1860,y:1400,dlg:["Healthy ka ba? Walang test dito!"]},
+   {k:'janitor',role:'Janitor',x:560,y:1700,dlg:["Wag magkalat!"]},
+   {k:'girl',role:'Student',x:1550,y:1500,dlg:STUDENT_DIALOGS}
+  ];
+  npcData.forEach(o=>{
+   let sp=this.add.image(o.x,o.y,o.k).setDisplaySize(o.role==='Teacher'?44:38, o.role==='Teacher'?44:38).setDepth(4);
+   sp.role=o.role; sp.dialogs=o.dlg; sp.dIdx=0; sp.dirX=(Math.random()-0.5); sp.dirY=(Math.random()-0.5); sp.speed=o.role==='Student'?0.9:0.5; sp.t=0;
+   this.outside.push(sp); this.npcs.push(sp);
+  });
 
   let intImg=this.textures.get('interiors').getSourceImage(),iw=intImg.width/2,ih=intImg.height/2;
   ['int_school','int_office','int_canteen','int_library'].forEach((k,idx)=>{let c=idx%2,r=Math.floor(idx/2);let cv=document.createElement('canvas');cv.width=iw;cv.height=ih;cv.getContext('2d').drawImage(intImg,c*iw,r*ih,iw,ih,0,0,iw,ih);if(this.textures.exists(k))this.textures.remove(k);this.textures.addCanvas(k,cv);});
-  // LOOB - mas maliit para hindi sobrang laki ng desk!
   this.interiorBG=this.add.image(1500,1500,'int_school').setDisplaySize(640,640).setDepth(0).setVisible(false);
-  this.insideTeacher=null;
-  this.player=this.add.image(1500,1080,'player').setDisplaySize(40,40).setDepth(10);
+  this.insideTeacher=null; this.insideStudents=[];
+  this.player=this.add.image(1500,1080,'player').setDisplaySize(42,42).setDepth(10);
   this.cameras.main.setBounds(0,0,3000,3000);this.cameras.main.startFollow(this.player,true,0.14,0.14);
   this.keys=this.input.keyboard.addKeys('W,A,S,D');
+  updateQuests();
  }
  update(t,dt){
   if(document.getElementById('dialog').style.display==='block'||document.getElementById('quiz').style.display==='flex')return;
-  let sp=mode==='outside'?4.5:3.5,mx=joy.x,my=joy.y;
+  let sp=mode==='outside'?4.8:3.5,mx=joy.x,my=joy.y;
   if(this.keys.A.isDown)mx=-1;if(this.keys.D.isDown)mx=1;if(this.keys.W.isDown)my=-1;if(this.keys.S.isDown)my=1;
   if(Math.abs(mx)<0.2)mx=0;if(Math.abs(my)<0.2)my=0;
-  if(mx||my){let nx=this.player.x+mx*sp,ny=this.player.y+my*sp;if(mode==='outside'||(nx>1220&&nx<1780&&ny>1220&&ny<1780)){this.player.x=nx;this.player.y=ny;}}
-  if(mode==='outside'){this.npcs.forEach(n=>{n.t+=dt;if(n.t>2600){n.dirX=(Math.random()-0.5);n.dirY=(Math.random()-0.5);n.t=0;}let nx=n.x+n.dirX*n.speed,ny=n.y+n.dirY*n.speed;if(this.builds.some(b=>Phaser.Math.Distance.Between(nx,ny,b.x,b.y)<85)){n.dirX*=-1;n.dirY*=-1;}else{n.x=nx;n.y=ny;}if(n.x<80||n.x>2920)n.dirX*=-1;if(n.y<80||n.y>2920)n.dirY*=-1;});}
+  if(mx||my){let nx=this.player.x+mx*sp,ny=this.player.y+my*sp;if(mode==='outside'||(nx>1230&&nx<1770&&ny>1230&&ny<1770)){this.player.x=nx;this.player.y=ny;}}
+  if(mode==='outside'){
+   this.npcs.forEach(n=>{
+    if(n.role!=='Student')return;
+    n.t+=dt;if(n.t>2200+Math.random()*1000){n.dirX=(Math.random()-0.5)*1.2;n.dirY=(Math.random()-0.5)*1.2;n.t=0;}
+    let nx=n.x+n.dirX*n.speed, ny=n.y+n.dirY*n.speed;
+    if(this.builds.some(b=>Phaser.Math.Distance.Between(nx,ny,b.x,b.y)<95)){n.dirX*=-1;n.dirY*=-1;}else{n.x=nx;n.y=ny;}
+    if(n.x<100||n.x>2900)n.dirX*=-1;if(n.y<100||n.y>2900)n.dirY*=-1;
+   });
+  }
  }
 }
 game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#4a9a42',scene:Main,scale:{mode:Phaser.Scale.RESIZE},render:{antialias:false,pixelArt:true}});
@@ -99,33 +114,43 @@ stick.on('move',(e,d)=>{if(d&&d.vector){joy.x=d.vector.x;joy.y=-d.vector.y;}});s
 function enterBuilding(b){
  let sc=game.scene.getScene('Game');mode='inside';currentBuilding=b;
  sc.outside.forEach(o=>o.setVisible(false));sc.interiorBG.setVisible(true);sc.interiorBG.setTexture(['int_school','int_office','int_canteen','int_library'][b.intIdx]);
- if(sc.insideTeacher)sc.insideTeacher.destroy();
- // MALAKI NA CHARS SA LOOB!
- if(b.name==='SCHOOL'){sc.insideTeacher=sc.add.image(1500,1260,'teacher').setDisplaySize(52,52).setDepth(5);}
- else{let k=b.name==='CANTEEN'?'chef':b.name==='HOSPITAL'?'nurse':'janitor';sc.insideTeacher=sc.add.image(1500,1260,k).setDisplaySize(48,48).setDepth(5);}
- sc.player.x=1500;sc.player.y=1680;sc.player.setDisplaySize(52,52).setDepth(6);
+ if(sc.insideTeacher)sc.insideTeacher.destroy(); sc.insideStudents.forEach(s=>s.destroy()); sc.insideStudents=[];
+ if(b.name==='SCHOOL'){
+  // TEACHER NASA TAMA - sa sahig harap ng desk, hindi lumilipad!
+  sc.insideTeacher=sc.add.image(1500,1380,'teacher').setDisplaySize(56,56).setDepth(5);
+  // Students nakaupo sa classroom
+  sc.insideStudents.push(sc.add.image(1340,1480,'girl').setDisplaySize(40,40).setDepth(4));
+  sc.insideStudents.push(sc.add.image(1500,1480,'girl').setDisplaySize(40,40).setDepth(4));
+  sc.insideStudents.push(sc.add.image(1660,1480,'girl').setDisplaySize(40,40).setDepth(4));
+ } else if(b.name==='GYM'){
+  sc.insideTeacher=sc.add.image(1500,1380,'janitor').setDisplaySize(50,50).setDepth(5);
+ } else {
+  let k=b.name==='CANTEEN'?'chef':b.name==='HOSPITAL'?'nurse':'teacher';
+  sc.insideTeacher=sc.add.image(1500,1380,k).setDisplaySize(48,48).setDepth(5);
+ }
+ sc.player.x=1500;sc.player.y=1680;sc.player.setDisplaySize(56,56).setDepth(6);
  document.getElementById('btnB').style.display='block';document.getElementById('hudLoc').innerText='Inside: '+b.name;
 }
-function exitBuilding(){let sc=game.scene.getScene('Game');mode='outside';currentBuilding=null;sc.outside.forEach(o=>o.setVisible(true));sc.interiorBG.setVisible(false);if(sc.insideTeacher)sc.insideTeacher.destroy();sc.player.setDisplaySize(40,40);sc.player.x=1504;sc.player.y=960;document.getElementById('btnB').style.display='none';document.getElementById('hudLoc').innerText='V16 NO GRID';updateQuests();}
-function updateQuests(){let h='';h+=(quests.teacher?'✅':'⭕')+' Teacher<br>';h+=(quests.food?'✅':'⭕')+' Canteen<br>';h+=(quests.library?'✅':'⭕')+' Library<br>Score:'+score;document.getElementById('qList').innerHTML=h;document.getElementById('score').innerText='Score:'+score;}
-function showQuiz(){let q=TESTS[Math.floor(Math.random()*TESTS.length)];document.getElementById('qQ').innerText=q.q;let o=document.getElementById('qOpts');o.innerHTML='';q.a.forEach((txt,i)=>{let btn=document.createElement('button');btn.className='qBtn';btn.innerText=txt;btn.onclick=()=>{if(i===q.correct){score+=q.reward;quests.teacher=true;alert('Correct! +'+q.reward);}else alert('Mali!');closeQuiz();updateQuests();};o.appendChild(btn);});document.getElementById('quiz').style.display='flex';}
+function exitBuilding(){let sc=game.scene.getScene('Game');mode='outside';currentBuilding=null;sc.outside.forEach(o=>o.setVisible(true));sc.interiorBG.setVisible(false);if(sc.insideTeacher)sc.insideTeacher.destroy();sc.insideStudents.forEach(s=>s.destroy());sc.insideStudents=[];sc.player.setDisplaySize(42,42);sc.player.x=1420;sc.player.y=760;document.getElementById('btnB').style.display='none';document.getElementById('hudLoc').innerText='V17 BIG MAP';updateQuests();}
+function updateQuests(){let h='';h+=(quests.teacher?'✅':'⭕')+' Teacher<br>';h+=(quests.food?'✅':'⭕')+' Canteen<br>';h+=(quests.library?'✅':'⭕')+' Library<br>Score:'+score+'<br>'+game.scene.getScene('Game').npcs.filter(n=>n.role==='Student').length+' students';document.getElementById('qList').innerHTML=h;document.getElementById('score').innerText='Score:'+score;}
+function showQuiz(){let q=TESTS[Math.floor(Math.random()*TESTS.length)];document.getElementById('qQ').innerText=q.q;let o=document.getElementById('qOpts');o.innerHTML='';q.a.forEach((txt,i)=>{let b=document.createElement('button');b.className='qBtn';b.innerText=txt;b.onclick=()=>{if(i===q.correct){score+=q.reward;quests.teacher=true;alert('Correct! +'+q.reward);}else alert('Mali!');closeQuiz();updateQuests();};o.appendChild(b);});document.getElementById('quiz').style.display='flex';}
 function closeQuiz(){document.getElementById('quiz').style.display='none';}
 document.getElementById('btnA').onclick=()=>{
  let sc=game.scene.getScene('Game');
  if(mode==='inside'){
-  if(sc.insideTeacher&&Phaser.Math.Distance.Between(sc.player.x,sc.player.y,sc.insideTeacher.x,sc.insideTeacher.y)<90){
-   if(currentBuilding.name==='SCHOOL'){document.getElementById('dN').innerText='Teacher';document.getElementById('dT').innerText='Ready for English test?';document.getElementById('dBtns').innerHTML='<button onclick="showQuiz();document.getElementById(\'dialog\').style.display=\'none\'" style="padding:10px 18px;background:#22c55e;color:#fff;border-radius:10px;border:2px solid #fff;font-weight:900">TAKE TEST</button> <button onclick="document.getElementById(\'dialog\').style.display=\'none\'">Close</button>';}
-   else{document.getElementById('dN').innerText=currentBuilding.name;document.getElementById('dT').innerText='No test here! Only SCHOOL has test!';document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>';}
+  if(sc.insideTeacher&&Phaser.Math.Distance.Between(sc.player.x,sc.player.y,sc.insideTeacher.x,sc.insideTeacher.y)<95){
+   if(currentBuilding.name==='SCHOOL'){document.getElementById('dN').innerText='Teacher (Nasa sahig na!)';document.getElementById('dT').innerText='Good! Nasa tamang lugar na ako! Ready for test?';document.getElementById('dBtns').innerHTML='<button onclick="showQuiz();document.getElementById(\'dialog\').style.display=\'none\'" style="padding:10px 18px;background:#22c55e;color:#fff;border-radius:10px;border:2px solid #fff;font-weight:900">TAKE TEST</button> <button onclick="document.getElementById(\'dialog\').style.display=\'none\'">Close</button>';}
+   else{document.getElementById('dN').innerText=currentBuilding.name;document.getElementById('dT').innerText='No test here! Only SCHOOL!';document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>';}
    document.getElementById('dialog').style.display='block';
-  } else {document.getElementById('dN').innerText='Inside';document.getElementById('dT').innerText='Lapit ka sa teacher!';document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>';document.getElementById('dialog').style.display='block';}
+  } else {document.getElementById('dN').innerText='Inside';document.getElementById('dT').innerText='Lapit sa teacher - nasa sahig na sya hindi lumilipad!';document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>';document.getElementById('dialog').style.display='block';}
   return;
  }
- let npc=null;for(let n of sc.npcs){if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,n.x,n.y)<75){npc=n;break;}}
- if(npc){document.getElementById('dN').innerText=npc.role;document.getElementById('dT').innerText='Hi! Ako si '+npc.role+'!';document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>';document.getElementById('dialog').style.display='block';return;}
- let near=null;for(let b of sc.builds){if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<90){near=b;break;}}
- if(!near){document.getElementById('dN').innerText='Explore';document.getElementById('dT').innerText='Tiles dikit na, no white grid!';document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>';document.getElementById('dialog').style.display='block';return;}
+ let npc=null;for(let n of sc.npcs){if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,n.x,n.y)<80){npc=n;break;}}
+ if(npc){let txt=npc.dialogs[npc.dIdx%npc.dialogs.length];npc.dIdx++;document.getElementById('dN').innerText=npc.role;document.getElementById('dT').innerText=txt;document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>';document.getElementById('dialog').style.display='block';return;}
+ let near=null;for(let b of sc.builds){if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<100){near=b;break;}}
+ if(!near){document.getElementById('dN').innerText='Explore';document.getElementById('dT').innerText='Buildings malaki na at malapit sa road! 6 students naglalakad!';document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>';document.getElementById('dialog').style.display='block';return;}
  enterBuilding(near);
 };
 document.getElementById('btnB').onclick=exitBuilding;
-window.showQuiz=showQuiz;window.closeQuiz=closeQuiz;updateQuests();
+window.showQuiz=showQuiz;window.closeQuiz=closeQuiz;
 </script></body></html>
