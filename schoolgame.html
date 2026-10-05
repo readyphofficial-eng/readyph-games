@@ -1,26 +1,26 @@
 <!DOCTYPE html><html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>V56 WORLDBOX - MOVING ENTITIES</title>
+<title>V58 MOVABLE CAMERA - TRIANGLE</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <style>
-html,body{margin:0;padding:0;background:#2a2a2a;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
-#game{position:fixed;inset:0;image-rendering:crisp-edges}
-#top{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.7);color:#fff;padding:6px 12px;font-size:11px;font-weight:800;z-index:40;display:flex;justify-content:space-between;align-items:center}
-#toggle{position:fixed;bottom:15px;left:50%;transform:translateX(-50%);background:#4ade80;color:#000;border:none;border-radius:20px;padding:10px 22px;font-weight:900;font-size:13px;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.5);cursor:pointer}
-#shopWrap{position:fixed;bottom:0;left:0;right:0;height:150px;background:#111;border-top:3px solid #333;z-index:55;transition:transform .3s ease;overflow:hidden}
+html,body{margin:0;padding:0;background:#111;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
+#game{position:fixed;inset:0}
+#top{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.8);color:#fff;padding:6px 12px;font-size:10px;font-weight:800;z-index:40;display:flex;justify-content:space-between}
+#toggle{position:fixed;bottom:15px;left:50%;transform:translateX(-50%);background:#4ade80;color:#000;border:none;border-radius:20px;padding:10px 22px;font-weight:900;font-size:13px;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.5)}
+#shopWrap{position:fixed;bottom:0;left:0;right:0;height:150px;background:#111;border-top:3px solid #333;z-index:55;transition:transform .3s}
 #shopWrap.closed{transform:translateY(100%)}
-#shop{height:100%;display:flex;gap:8px;padding:8px;overflow-x:auto;align-items:flex-start}
+#shop{height:100%;display:flex;gap:8px;padding:8px;overflow-x:auto}
 .card{width:76px;min-width:76px;height:132px;background:#222;border:2px solid #444;border-radius:10px;display:flex;flex-direction:column;align-items:center;padding:4px;flex-shrink:0}
 .card img{width:40px;height:40px;object-fit:contain;background:#1a1a1a;border-radius:6px}
-.card b{font-size:7px;color:#fff;margin:2px 0;text-align:center;line-height:8px;height:16px;display:flex;align-items:center}
-.card button{background:#4ade80;color:#000;border:none;border-radius:6px;padding:3px;font-size:8px;font-weight:900;cursor:pointer;width:100%}
-#status{position:fixed;bottom:60px;left:10px;background:rgba(0,0,0,.6);color:#fff;padding:4px 10px;border-radius:12px;font-size:9px;font-weight:800;z-index:45}
+.card b{font-size:7px;color:#fff;margin:2px 0;text-align:center;height:16px;display:flex;align-items:center}
+.card button{background:#4ade80;color:#000;border:none;border-radius:6px;padding:3px;font-size:8px;font-weight:900;width:100%}
+#tip{position:fixed;bottom:60px;left:10px;background:rgba(0,0,0,.7);color:#fff;padding:5px 12px;border-radius:12px;font-size:10px;z-index:45}
 </style>
 </head><body>
 <div id="game"></div>
-<div id="top"><span>🏝️ TRIANGLE WORLD - FULL MAP VIEW</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | <span id="mode">MOVING</span></span></div>
-<div id="status">Shop closed → humans & animals moving | Open shop to buy & place</div>
+<div id="top"><span>🏝️ TRIANGLE V58 - DRAG CAMERA</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | <span id="zoom">52%</span></span></div>
+<div id="tip">🖐️ Drag map to move | 🤏 Pinch to zoom | 🛒 Open shop to place</div>
 <div id="shopWrap" class="closed"><div id="shop"></div></div>
 <button id="toggle">🛒 OPEN SHOP</button>
 <script>
@@ -28,82 +28,126 @@ const ANIMALS=['beaver','bee','bunny','cat','caterpillar','chick','cow','crab','
 const HUMANS=['female-a','female-b','female-c','female-d','female-e','female-f','male-a','male-b','male-c','male-d','male-e','male-f'];
 let coins=500, selected=null, isShopOpen=false;
 
-class FinalWorld extends Phaser.Scene{
- constructor(){super('FinalWorld'); this.ents=[]}
+class MovableWorld extends Phaser.Scene{
+ constructor(){super('MovableWorld'); this.ents=[]}
  preload(){
-  this.load.image('map4k','new/map-triangle-4k.png');
-  this.load.image('map','new/map-triangle.png');
-  ANIMALS.forEach(n=>this.load.image('a-'+n,'new/animal-'+n+'.png'));
-  HUMANS.forEach(n=>this.load.image('h-'+n,'new/character-'+n+'.png'));
+  // try both new and old folder
+  this.load.image('map4k','assets/maps/map-triangle-4k.png');
+  this.load.image('map4k-old','clean/map-triangle-4k.png');
+  this.load.image('map4k-new','new/map-triangle-4k.png');
+  ANIMALS.forEach(n=>{
+   this.load.image('a-'+n,'assets/animals/animal-'+n+'.png');
+   this.load.image('a-'+n+'-old','clean/animal-'+n+'.png');
+   this.load.image('a-'+n+'-new','new/animal-'+n+'.png');
+  });
+  HUMANS.forEach(n=>{
+   this.load.image('h-'+n,'assets/characters/character-'+n+'.png');
+   this.load.image('h-'+n+'-old','clean/character-'+n+'.png');
+   this.load.image('h-'+n+'-new','new/character-'+n+'.png');
+  });
  }
  create(){
   const W=3000,H=3000; this.W=W; this.H=H;
-  this.add.rectangle(W/2,H/2,W,H,0x2a2a2a).setDepth(0);
-  
-  let key=this.textures.exists('map4k')?'map4k':'map';
-  if(this.textures.exists(key)){
-   let tex=this.textures.get(key).getSourceImage();
-   let island=this.add.image(W/2,H/2,key).setDepth(1);
-   // BUONG MAP KITA - mas zoom out para kita lahat!
+  this.add.rectangle(W/2,H/2,W,H,0x111827).setDepth(0);
+
+  // FIND MAP - check any folder
+  let mapKey=null;
+  if(this.textures.exists('map4k')) mapKey='map4k';
+  else if(this.textures.exists('map4k-new')) mapKey='map4k-new';
+  else if(this.textures.exists('map4k-old')) mapKey='map4k-old';
+
+  if(mapKey){
+   let tex=this.textures.get(mapKey).getSourceImage();
+   this.island=this.add.image(W/2,H/2,mapKey).setDepth(1);
    let ratio=Math.min(2200/tex.width, 2200/tex.height);
-   island.setDisplaySize(tex.width*ratio, tex.height*ratio);
-   this.mapBounds={x:W/2-1100,y:H/2-1100,w:2200,h:2200};
+   this.island.setDisplaySize(tex.width*ratio, tex.height*ratio);
+   this.bounds={x:W/2-1100,y:H/2-1100,w:2200,h:2200};
   }else{
-   this.mapBounds={x:200,y:200,w:2600,h:2600};
+   this.bounds={x:200,y:200,w:2600,h:2600};
   }
 
-  // STEADY ZOOM OUT - 0.52 para kita BUONG TRIANGLE!
+  // CAMERA SETUP - MOVABLE!
   this.cameras.main.setBounds(0,0,W,H);
   this.cameras.main.centerOn(W/2,H/2);
   this.cameras.main.setZoom(0.52);
+  this.minZoom=0.25; this.maxZoom=1.5;
 
+  // DRAG TO MOVE CAMERA
+  this.isDraggingCam=false; this.dragStart=null;
   this.input.on('pointerdown', p=>{
-   if(isShopOpen){
-    if(p.y > window.innerHeight-150) return;
-    if(selected){
-     let wp=this.cameras.main.getWorldPoint(p.x,p.y);
-     this.spawn(wp.x,wp.y,selected);
-     selected=null;
-     document.getElementById('status').innerText='Placed! Buy more or close shop to make them move';
-    }
+   if(isShopOpen && p.y < window.innerHeight-150 && selected){
+    let wp=this.cameras.main.getWorldPoint(p.x,p.y);
+    this.spawn(wp.x,wp.y,selected);
+    selected=null;
+    return;
+   }
+   if(!isShopOpen){
+    this.isDraggingCam=true;
+    this.dragStart={x:p.x, y:p.y, scrollX:this.cameras.main.scrollX, scrollY:this.cameras.main.scrollY};
+   }
+  });
+  this.input.on('pointermove', p=>{
+   if(this.isDraggingCam && this.dragStart && !isShopOpen){
+    let dx=(p.x-this.dragStart.x)/this.cameras.main.zoom;
+    let dy=(p.y-this.dragStart.y)/this.cameras.main.zoom;
+    this.cameras.main.scrollX=this.dragStart.scrollX - dx;
+    this.cameras.main.scrollY=this.dragStart.scrollY - dy;
+   }
+  });
+  this.input.on('pointerup', ()=>{ this.isDraggingCam=false; this.dragStart=null; });
+
+  // WHEEL ZOOM FOR PC
+  this.input.on('wheel', (pointer, gameObjects, deltaX, deltaY)=>{
+   if(isShopOpen) return;
+   let newZoom=this.cameras.main.zoom - deltaY*0.001;
+   newZoom=Phaser.Math.Clamp(newZoom, this.minZoom, this.maxZoom);
+   this.cameras.main.setZoom(newZoom);
+   document.getElementById('zoom').innerText=Math.round(newZoom*100)+'%';
+  });
+
+  // PINCH ZOOM FOR MOBILE
+  this.pinchStartDist=0; this.pinchStartZoom=0;
+  this.input.addPointer(1);
+  this.input.on('pointerdown', p=>{
+   if(this.input.pointer1.isDown && this.input.pointer2.isDown){
+    this.pinchStartDist=Phaser.Math.Distance.Between(this.input.pointer1.x,this.input.pointer1.y,this.input.pointer2.x,this.input.pointer2.y);
+    this.pinchStartZoom=this.cameras.main.zoom;
    }
   });
 
   this.buildShop();
-  this.toggleShop(false);
-
-  // Shop toggle
   document.getElementById('toggle').onclick=()=>{
    isShopOpen=!isShopOpen;
-   this.toggleShop(isShopOpen);
+   document.getElementById('shopWrap').className=isShopOpen?'':'closed';
+   document.getElementById('toggle').innerText=isShopOpen?'❌ CLOSE SHOP':'🛒 OPEN SHOP';
+   this.isDraggingCam=false;
   };
- }
-
- toggleShop(open){
-  isShopOpen=open;
-  document.getElementById('shopWrap').className=open?'':'closed';
-  document.getElementById('toggle').innerText=open?'❌ CLOSE SHOP':'🛒 OPEN SHOP';
-  document.getElementById('mode').innerText=open?'SHOP OPEN - STOP':'MOVING';
-  document.getElementById('status').innerText=open?'Shop open → tap map to place | Drag to move':'Shop closed → humans & animals wandering!';
  }
 
  buildShop(){
   const shop=document.getElementById('shop');
   let items=[
-   ...HUMANS.map(n=>({id:'h-'+n,file:'clean/character-'+n+'.png',name:n,price:20, size:36})),
-   ...ANIMALS.map(n=>({id:'a-'+n,file:'clean/animal-'+n+'.png',name:n,price:10, size:28}))
+   ...HUMANS.map(n=>({id:'h-'+n,name:n,price:20})),
+   ...ANIMALS.map(n=>({id:'a-'+n,name:n,price:10}))
   ];
   items.forEach(it=>{
+   // find correct texture
+   let texId=it.id;
+   if(!this.textures.exists(texId)){
+    if(this.textures.exists(texId+'-new')) texId=texId+'-new';
+    else if(this.textures.exists(texId+'-old')) texId=texId+'-old';
+   }
+   let imgSrc='assets/characters/character-'+it.name+'.png';
+   if(it.id.startsWith('a-')) imgSrc='assets/animals/animal-'+it.name+'.png';
+   
    let c=document.createElement('div'); c.className='card';
-   c.innerHTML=`<img src="${it.file}"><b>${it.name.toUpperCase()}</b><button>🪙${it.price}</button>`;
-   let b=c.querySelector('button');
-   b.onclick=()=>{
-    if(coins<it.price){b.innerText='NO COINS'; setTimeout(()=>b.innerText='🪙'+it.price,600); return;}
+   c.innerHTML=`<img src="${imgSrc}" onerror="this.src='clean/animal-${it.name}.png'"><b>${it.name.toUpperCase()}</b><button>🪙${it.price}</button>`;
+   c.querySelector('button').onclick=()=>{
+    if(coins<it.price) return;
     coins-=it.price; document.getElementById('coins').innerText=coins;
-    selected=it.id;
+    selected=texId;
     document.querySelectorAll('.card').forEach(x=>x.style.borderColor='#444');
     c.style.borderColor='#4ade80';
-    document.getElementById('status').innerText='✅ '+it.name+' purchased → TAP MAP TO PLACE';
    };
    shop.appendChild(c);
   });
@@ -111,72 +155,40 @@ class FinalWorld extends Phaser.Scene{
 
  spawn(x,y,id){
   if(!this.textures.exists(id)) return;
-  let isHuman=id.startsWith('h-');
+  let isHuman=id.includes('female')||id.includes('male');
   let spr=this.add.image(x,y,id).setDepth(10).setInteractive({draggable:true});
-  // RESIZE MAAYOS - tao mas malaki konti sa hayop
-  if(isHuman) spr.setDisplaySize(32,42); // tao mas mataas
-  else{
-   // hayop resize base sa laki - malaki tulad ng elephant mas malaki
-   let bigAnimals=['elephant','giraffe','lion','tiger','polar','cow','hog'];
-   let isBig=bigAnimals.some(b=>id.includes(b));
-   spr.setDisplaySize(isBig?30:22, isBig?30:22);
-  }
-  
-  spr.vx=(Math.random()-0.5)*0.8;
-  spr.vy=(Math.random()-0.5)*0.8;
-  spr.isHuman=isHuman;
-  
+  spr.setDisplaySize(isHuman?32: id.includes('elephant')||id.includes('giraffe')?30:22, isHuman?42:22);
+  spr.vx=(Math.random()-0.5)*0.8; spr.vy=(Math.random()-0.5)*0.8;
   this.ents.push(spr);
   document.getElementById('cnt').innerText=this.ents.length;
-
   spr.on('drag', (p,dx,dy)=>{
-   if(!isShopOpen) return; // drag only when shop open
-   spr.x+=dx/this.cameras.main.zoom;
-   spr.y+=dy/this.cameras.main.zoom;
+   if(!isShopOpen) return;
+   spr.x+=dx/this.cameras.main.zoom; spr.y+=dy/this.cameras.main.zoom;
   });
  }
 
  update(){
-  if(isShopOpen) return; // pag shop open, hindi gumagalaw
+  // pinch zoom update
+  if(this.input.pointer1.isDown && this.input.pointer2.isDown && !isShopOpen){
+   let curDist=Phaser.Math.Distance.Between(this.input.pointer1.x,this.input.pointer1.y,this.input.pointer2.x,this.input.pointer2.y);
+   if(this.pinchStartDist>0){
+    let newZoom=this.pinchStartZoom * (curDist/this.pinchStartDist);
+    newZoom=Phaser.Math.Clamp(newZoom, this.minZoom, this.maxZoom);
+    this.cameras.main.setZoom(newZoom);
+    document.getElementById('zoom').innerText=Math.round(newZoom*100)+'%';
+   }
+  }else{
+   this.pinchStartDist=0;
+  }
 
-  // PAG CLOSE SHOP - GUMAGALAW LAHAT!
+  if(isShopOpen) return;
   this.ents.forEach(e=>{
-   if(!e.active) return;
-   e.x+=e.vx;
-   e.y+=e.vy;
-
-   // Bounce sa map bounds
-   if(e.x<this.mapBounds.x || e.x>this.mapBounds.x+this.mapBounds.w){
-    e.vx*=-1; e.setFlipX(e.vx<0);
-   }
-   if(e.y<this.mapBounds.y || e.y>this.mapBounds.y+this.mapBounds.h){
-    e.vy*=-1;
-   }
-
-   // Random change direction minsan
-   if(Math.random()<0.02){
-    e.vx+=(Math.random()-0.5)*0.3;
-    e.vy+=(Math.random()-0.5)*0.3;
-    e.vx=Phaser.Math.Clamp(e.vx,-1.2,1.2);
-    e.vy=Phaser.Math.Clamp(e.vy,-1.2,1.2);
-   }
-
-   // Small wiggle animation
-   if(e.isHuman && Math.random()<0.05){
-    e.y+=Math.sin(Date.now()*0.005+e.x)*0.2;
-   }
+   e.x+=e.vx; e.y+=e.vy;
+   if(e.x<this.bounds.x || e.x>this.bounds.x+this.bounds.w) e.vx*=-1;
+   if(e.y<this.bounds.y || e.y>this.bounds.y+this.bounds.h) e.vy*=-1;
+   if(Math.random()<0.02){ e.vx+=(Math.random()-0.5)*0.3; e.vy+=(Math.random()-0.5)*0.3; }
   });
  }
 }
-
-new Phaser.Game({
- type:Phaser.AUTO,
- parent:'game',
- width:innerWidth,
- height:innerHeight,
- backgroundColor:'#2a2a2a',
- scene:FinalWorld,
- scale:{mode:Phaser.Scale.RESIZE},
- render:{antialias:true}
-});
+new Phaser.Game({type:Phaser.AUTO, parent:'game', width:innerWidth, height:innerHeight, backgroundColor:'#111827', scene:MovableWorld, scale:{mode:Phaser.Scale.RESIZE}});
 </script></body></html>
