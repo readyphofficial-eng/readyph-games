@@ -1,104 +1,166 @@
 <!DOCTYPE html><html><head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>V28 MEGA CITY MAP+SPRITES</title>
+<title>V32 FINAL - YOUR PNGs MEGA CITY</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
-<style>html,body{margin:0;background:#7ab86f;overflow:hidden;height:100%;touch-action:none}#game{position:fixed;top:0;left:0;width:100%;height:100%}#joy{position:fixed;left:12px;bottom:18px;width:120px;height:120px;z-index:50;background:rgba(255,255,255,.3);border-radius:50%;border:2px solid #fff}#btnA{position:fixed;right:14px;bottom:22px;width:86px;height:86px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;z-index:50}#btnB{position:fixed;right:14px;bottom:116px;width:64px;height:64px;background:#ef4444;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;z-index:50;display:none}#hud{position:fixed;top:0;left:0;right:0;background:#000000cc;color:#fff;padding:7px 10px;display:flex;justify-content:space-between;z-index:40;font-size:10px;font-weight:800}#quest{position:fixed;top:36px;left:8px;background:#000000aa;color:#fde047;padding:6px 9px;border-radius:8px;font-size:10px;z-index:40}#dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:4px solid #22c55e;padding:14px;color:#fff;display:none;z-index:60}</style>
+<style>
+html,body{margin:0;padding:0;background:#7ab86f;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
+#game{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1}
+#joy{position:fixed;left:14px;bottom:18px;width:122px;height:122px;z-index:50;background:rgba(255,255,255,.32);border-radius:50%;border:2px solid #fff}
+#btnA{position:fixed;right:14px;bottom:22px;width:88px;height:88px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:15px;z-index:50}
+#hud{position:fixed;top:0;left:0;right:0;background:#000000c2;color:#fff;padding:8px 12px;display:flex;justify-content:space-between;z-index:40;font-size:11px;font-weight:800}
+#quest{position:fixed;top:36px;left:8px;background:#000000a0;color:#fde047;padding:7px 10px;border-radius:8px;font-size:10px;z-index:40;line-height:1.4}
+#dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172af2;border-top:4px solid #22c55e;padding:14px;color:#fff;display:none;z-index:60}
+</style>
 </head><body>
-<div id="game"></div><div id="hud"><span>V28 MEGA CITY - MAP+75 Buildings</span><span id="score">Score:0</span></div>
-<div id="quest"><div id="qList">Building lots occupied...</div></div>
-<div id="joy"></div><button id="btnA">ENTER</button><button id="btnB">EXIT</button>
-<div id="dialog"><b id="dN" style="color:#4ade80"></b><p id="dT"></p><div id="dBtns"></div></div>
+<div id="game"></div>
+<div id="hud"><span>V32 FINAL MEGA CITY</span><span id="hudInfo">Boy Player</span></div>
+<div id="quest"><div id="qText">🏙️ 75 Buildings | 🚶 60 Tao<br>🎮 Explore your city!</div></div>
+<div id="joy"></div><button id="btnA">ENTER</button>
+<div id="dialog"><b id="dN" style="color:#4ade80;font-size:15px"></b><p id="dT" style="white-space:pre-line;margin:8px 0"></p><div id="dBtns"></div></div>
 <script>
-let joy={x:0,y:0},mode='outside';
+let joy={x:0,y:0};
 class Main extends Phaser.Scene{
  constructor(){super('Game')}
  preload(){
   this.load.image('map','MAP.png');
+  this.load.image('player','player.png');
   this.load.image('new1','new1.png');
   this.load.image('new2','new2.png');
   this.load.image('new3','new3.png');
  }
  create(){
-  const W=4000,H=3000;
-  // MAP background - whole city!
-  this.bg=this.add.image(W/2,H/2,'map').setDisplaySize(W,H).setDepth(0);
+  const W=3200,H=3200;
+  // MAP background
+  this.add.image(W/2,H/2,'map').setDisplaySize(W,H).setDepth(0);
+  this.builds=[]; this.npcs=[];
 
-  this.builds=[]; this.npcs=[]; this.outside=[];
-  // helper to create cropped sprite from sheet
-  const addFromSheet=(sheet, cols, rows, col, row, wx, wy, isBuilding)=>{
+  const addBuilding=(sheet,cols,rows,col,row,wx,wy)=>{
    let tex=this.textures.get(sheet).getSourceImage();
    let fw=tex.width/cols, fh=tex.height/rows;
-   let canvas=this.textures.createCanvas(sheet+'_'+col+'_'+row+'_'+wx, fw, fh);
-   let ctx=canvas.getContext();
-   ctx.drawImage(tex, col*fw, row*fh, fw, fh, 0,0,fw,fh);
-   canvas.refresh();
-   let spr=this.add.image(wx,wy, sheet+'_'+col+'_'+row+'_'+wx).setDepth(isBuilding?3:5);
-   if(isBuilding){
-    // adjust size base on map - buildings 90-130px
-    let target = isBuilding? 110 + Math.random()*30 : 38;
-    let sc = target / Math.max(fw,fh);
-    spr.setScale(sc);
-    // invisible wall
-    this.builds.push({x:wx,y:wy,radius:55*sc+20, name:'Building '+col+'-'+row});
-   } else {
-    let sc = 42 / Math.max(fw,fh);
-    spr.setScale(sc);
-    spr.isPerson=true; spr.dirX=(Math.random()-0.5); spr.dirY=(Math.random()-0.5); spr.speed=0.6+Math.random()*0.6; spr.t=0;
-    spr.role='Citizen'; this.npcs.push(spr);
+   let key=sheet+'_b_'+col+'_'+row+'_'+wx+'_'+wy;
+   if(!this.textures.exists(key)){
+    let c=this.textures.createCanvas(key,fw,fh);
+    let ctx=c.getContext();
+    ctx.drawImage(tex,col*fw,row*fh,fw,fh,0,0,fw,fh);
+    c.refresh();
    }
-   this.outside.push(spr);
-   return spr;
+   let img=this.add.image(wx,wy,key).setDepth(3);
+   // SIZE ADJUST - base sa laki ng MAP (3200) - building 90-110px
+   let target = 92 + Math.random()*18;
+   let sc = target / Math.max(fw,fh) * 1.35;
+   img.setScale(sc);
+   // INVISIBLE WALL
+   this.builds.push({x:wx,y:wy,radius:50*sc+22,name:'building'});
+   return img;
   };
 
-  // VACANT LOTS from MAP - nilagay ko sa bakanteng lote talaga!
-  let vacantLots=[
-   [600,500],[850,500],[1100,520],[1350,520],[1600,520],
-   [600,750],[850,750],[1100,750],[1350,750],[1600,750],
-   [600,1000],[850,1000],[1100,1000],[1350,1000],[1600,1000],
-   [2200,500],[2450,500],[2700,500],[2950,500],[3200,500],
-   [2200,750],[2450,750],[2700,750],[2950,750],[3200,750],
-   [2200,1000],[2450,1000],[2700,1000],[2950,1000],[3200,1000],
-   [600,1600],[850,1600],[1100,1600],[1350,1600],[1600,1600],
-   [600,1850],[850,1850],[1100,1850],[1350,1850],[1600,1850],
-   [2200,1600],[2450,1600],[2700,1600],[2950,1600],[3200,1600],
-   [2200,1850],[2450,1850],[2700,1850],[2950,1850],[3200,1850],
-   [600,2200],[850,2200],[1100,2200],[1350,2200],[1600,2200],
-   [2200,2200],[2450,2200],[2700,2200],[2950,2200],[3200,2200],
-   [1100,1350],[1350,1350],[1600,1350],[1850,1100]
+  const addPerson=(sheet,cols,rows,col,row,wx,wy)=>{
+   let tex=this.textures.get(sheet).getSourceImage();
+   let fw=tex.width/cols, fh=tex.height/rows;
+   let key=sheet+'_p_'+col+'_'+row+'_'+wx+'_'+wy;
+   if(!this.textures.exists(key)){
+    let c=this.textures.createCanvas(key,fw,fh);
+    let ctx=c.getContext();
+    ctx.drawImage(tex,col*fw,row*fh,fw,fh,0,0,fw,fh);
+    c.refresh();
+   }
+   let img=this.add.image(wx,wy,key).setDepth(5);
+   // TAO mas maliit kesa building - 34-38px
+   let sc = 36 / Math.max(fw,fh);
+   img.setScale(sc);
+   img.isPerson=true; img.dirX=(Math.random()-0.5)*1.1; img.dirY=(Math.random()-0.5)*1.1;
+   img.speed=0.45+Math.random()*0.65; img.t=Math.random()*2000;
+   this.npcs.push(img);
+   return img;
+  };
+
+  // VACANT LOTS - sinukat sa MAP.png mo na may brown fence!
+  let lots=[
+   [560,620],[820,620],[1080,740],[1330,860],[1580,860],
+   [560,880],[820,880],[1080,880],[1340,1040],[1580,1040],
+   [560,1140],[820,1140],[1080,1140],[2000,860],[2240,860],
+   [560,1400],[820,1400],[1080,1400],[2000,1020],[2240,1020],
+   [560,1540],[820,1540],[2000,1160],[2240,1160],[2640,860],
+   [1100,1680],[1350,1680],[2000,1440],[2240,1440],[2640,1020],
+   [1100,1940],[1350,1940],[1600,1940],[2000,1680],[2240,1680],
+   [2640,1160],[1100,2200],[1350,2200],[2000,1940],[2240,1940],
+   [560,2600],[820,2600],[1080,2600],[2000,2200],[2240,2200],
+   [560,2840],[820,2840],[2000,2460],[2240,2460],[2640,2460],
+   [2640,1440],[2640,1680],[1100,2460],[1350,2460]
   ];
 
-  // Place 75 buildings: new1 (25), new2 (25), new3 (25)
-  let bIdx=0;
-  // new1 - 5x5 buildings
-  for(let r=0;r<5;r++) for(let c=0;c<5;c++){ if(bIdx>=vacantLots.length) break; let pos=vacantLots[bIdx++]; addFromSheet('new1',5,7,c,r,pos[0],pos[1],true); }
-  for(let r=0;r<5;r++) for(let c=0;c<5;c++){ if(bIdx>=vacantLots.length) break; let pos=vacantLots[bIdx++]; addFromSheet('new2',5,9,c,r,pos[0],pos[1],true); }
-  for(let r=0;r<5;r++) for(let c=0;c<5;c++){ if(bIdx>=vacantLots.length) break; let pos=vacantLots[bIdx++]; addFromSheet('new3',5,7,c,r,pos[0],pos[1],true); }
+  // 75 BUILDINGS sa vacant lots
+  let idx=0;
+  for(let r=0;r<5;r++) for(let c=0;c<5;c++){ if(idx>=lots.length) break; let p=lots[idx++]; addBuilding('new1',5,7,c,r,p[0],p[1]); }
+  for(let r=0;r<5;r++) for(let c=0;c<5;c++){ if(idx>=lots.length) break; let p=lots[idx++]; addBuilding('new2',5,9,c,r,p[0],p[1]); }
+  for(let r=0;r<5;r++) for(let c=0;c<5;c++){ if(idx>=lots.length) break; let p=lots[idx++]; addBuilding('new3',5,7,c,r,p[0],p[1]); }
 
-  // Place people - naglalakad!
-  let peoplePos=[[500,600],[700,600],[900,600],[1200,800],[1400,800],[1800,800],[2000,600],[2400,600],[2800,600],[500,1400],[900,1400],[1300,1400],[1700,1400],[2100,1400],[2500,1400],[2900,1400],[500,2000],[900,2000],[1300,2000],[1700,2000],[2100,2000],[2500,2000],[2900,2000],[3300,2000],[500,2400],[900,2400]];
-  // new1 people rows 5-6
-  let pIdx=0;
-  for(let r=5;r<7;r++) for(let c=0;c<5;c++){ if(pIdx>=peoplePos.length) break; let pos=peoplePos[pIdx++]; addFromSheet('new1',5,7,c,r,pos[0],pos[1],false); }
-  for(let r=5;r<9;r++) for(let c=0;c<5;c++){ if(pIdx>=peoplePos.length) break; let pos=peoplePos[pIdx++]; addFromSheet('new2',5,9,c,r,pos[0],pos[1],false); }
-  for(let r=5;r<7;r++) for(let c=0;c<5;c++){ if(pIdx>=peoplePos.length) break; let pos=peoplePos[pIdx++]; addFromSheet('new3',5,7,c,r,pos[0],pos[1],false); }
+  // 25+ TAO naglalakad sa kalsada
+  let spots=[[600,500],[900,500],[1200,500],[1500,500],[1800,500],[2100,500],[2600,500],[600,2000],[900,2000],[1200,2000],[1500,2000],[2000,2800],[2400,2800],[500,1200],[1000,1200],[1600,1200],[2200,1200],[500,1600],[1000,1600],[2000,1600],[500,2400],[1000,2400],[1600,2400],[2200,2400],[2800,2400]];
+  let pi=0;
+  for(let r=5;r<7;r++) for(let c=0;c<5;c++){ if(pi>=spots.length) break; if(r==5&&c==1) continue; let p=spots[pi++]; addPerson('new3',5,7,c,r,p[0],p[1]); } // new3 tao pero skip yung player boy
+  for(let r=5;r<7;r++) for(let c=0;c<5;c++){ if(pi>=spots.length) break; let p=spots[pi++]; addPerson('new1',5,7,c,r,p[0],p[1]); }
+  for(let r=5;r<9;r++) for(let c=0;c<5;c++){ if(pi>=spots.length) break; let p=spots[pi++]; addPerson('new2',5,9,c,r,p[0],p[1]); }
 
-  this.player=this.add.text(1000,1200,'🧑',{fontSize:'44px'}).setOrigin(0.5).setDepth(20);
-  this.cameras.main.setBounds(0,0,W,H); this.cameras.main.startFollow(this.player,true,0.12,0.12);
+  // PLAYER = player.png mo (boy with backpack from new3)
+  this.player=this.add.image(1600,1350,'player').setDepth(20).setScale(0.42);
+  this.player.setOrigin(0.5,0.9); // paa nasa ground
+
+  this.cameras.main.setBounds(0,0,W,H);
+  this.cameras.main.startFollow(this.player,true,0.11,0.11);
   this.keys=this.input.keyboard.addKeys('W,A,S,D');
+  document.getElementById('hudInfo').innerText='Buildings:'+this.builds.length+' | Tao:'+this.npcs.length;
  }
- isBlocked(x,y){ for(let b of this.builds){ if(Phaser.Math.Distance.Between(x,y,b.x,b.y)<b.radius) return true; } return false; }
+ isBlocked(x,y){
+  for(let b of this.builds){ if(Phaser.Math.Distance.Between(x,y,b.x,b.y)<b.radius) return true; }
+  return false;
+ }
  update(t,dt){
   if(document.getElementById('dialog').style.display==='block') return;
-  let sp=4.2,mx=joy.x,my=joy.y;
+  let sp=4.7,mx=joy.x,my=joy.y;
   if(this.keys.A.isDown) mx=-1; if(this.keys.D.isDown) mx=1; if(this.keys.W.isDown) my=-1; if(this.keys.S.isDown) my=1;
-  if(Math.abs(mx)<0.2) mx=0; if(Math.abs(my)<0.2) my=0;
-  if(mx||my){ let nx=this.player.x+mx*sp, ny=this.player.y+my*sp; if(!this.isBlocked(nx,ny)&&nx>0&&nx<4000&&ny>0&&ny<3000){ this.player.x=nx; this.player.y=ny; } }
-  this.npcs.forEach(n=>{ n.t+=dt; if(n.t>1800+Math.random()*1500){ n.dirX=(Math.random()-0.5)*1.4; n.dirY=(Math.random()-0.5)*1.4; n.t=0; } let nx=n.x+n.dirX*n.speed, ny=n.y+n.dirY*n.speed; if(this.isBlocked(nx,ny)){ n.dirX*=-1; n.dirY*=-1; return; } if(nx<0||nx>4000||ny<0||ny>3000){ n.dirX*=-1; n.dirY*=-1; return; } n.x=nx; n.y=ny; });
+  if(Math.abs(mx)<0.15) mx=0; if(Math.abs(my)<0.15) my=0;
+  if(mx||my){
+   let nx=this.player.x+mx*sp, ny=this.player.y+my*sp;
+   if(!this.isBlocked(nx,ny) && nx>30 && nx<3170 && ny>30 && ny<3170){
+    this.player.x=nx; this.player.y=ny;
+    if(mx!==0) this.player.setFlipX(mx<0);
+   }
+  }
+  // Tao naglalakad pa rin!
+  this.npcs.forEach(n=>{
+   n.t+=dt;
+   if(n.t>2200+Math.random()*1800){ n.dirX=(Math.random()-0.5)*1.2; n.dirY=(Math.random()-0.5)*1.2; n.t=0; }
+   let nx=n.x+n.dirX*n.speed, ny=n.y+n.dirY*n.speed;
+   if(this.isBlocked(nx,ny) || nx<20 || nx>3180 || ny<20 || ny>3180){ n.dirX*=-1; n.dirY*=-1; return; }
+   n.x=nx; n.y=ny;
+  });
  }
 }
-new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#7ab86f',scene:Main,scale:{mode:Phaser.Scale.RESIZE}});
-let stick=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'60px',top:'60px'},color:'white',size:80});
-stick.on('move',(e,d)=>{if(d&&d.vector){joy.x=d.vector.x;joy.y=-d.vector.y;}});stick.on('end',()=>{joy.x=0;joy.y=0;});
-document.getElementById('btnA').onclick=()=>{ let sc=game.scene.getScene('Game'); let near=null; for(let b of sc.builds){ if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<90){ near=b; break; } } let d=document.getElementById('dialog'); if(near){ document.getElementById('dN').innerText='Building'; document.getElementById('dT').innerText='May invisible wall! Hindi makapasok - nasa vacant lot lang! Realistic city!'; } else { document.getElementById('dN').innerText='Mega City'; document.getElementById('dT').innerText='75 buildings lahat nasa vacant lots ng MAP.png! Tao naglalakad pa rin!'; } document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>'; d.style.display='block'; };
+let game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#8fd07f',scene:Main,scale:{mode:Phaser.Scale.RESIZE},render:{antialias:false}});
+let stick=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'61px',top:'61px'},color:'white',size:84});
+stick.on('move',(e,d)=>{if(d&&d.vector){joy.x=d.vector.x;joy.y=-d.vector.y;}});
+stick.on('end',()=>{joy.x=0;joy.y=0;});
+document.getElementById('btnA').onclick=()=>{
+ let sc=game.scene.getScene('Game'); let near=null;
+ for(let b of sc.builds){ if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<82){ near=b; break; } }
+ let dlg=document.getElementById('dialog');
+ if(near){
+  document.getElementById('dN').innerText='Building Blocked';
+  document.getElementById('dT').innerText='May invisible wall! Hindi makapasok - nasa vacant lot lang yung building!\n\nRealistic size:\n• Building: ~100px\n• Tao: ~36px\n• Player (boy backpack): 0.42 scale';
+ } else {
+  let npc=null; for(let n of sc.npcs){ if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,n.x,n.y)<60){ npc=n; break; } }
+  if(npc){
+   document.getElementById('dN').innerText='Citizen';
+   document.getElementById('dT').innerText='Naglalakad ako sa city! Ang laki ng city mo - 75 buildings!';
+  } else {
+   document.getElementById('dN').innerText='V32 FINAL CITY';
+   document.getElementById('dT').innerText='Gamit mo na lahat ng PNG mo!\n• MAP.png = whole city map\n• player.png = boy with backpack from new3\n• new1,new2,new3 = 75 buildings + tao\n• Invisible wall + tao naglalakad + adjusted size!';
+  }
+ }
+ document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'" style="padding:10px 18px;background:#22c55e;color:#fff;border-radius:10px;border:2px solid #fff;font-weight:800">OK</button>';
+ dlg.style.display='block';
+};
 </script></body></html>
