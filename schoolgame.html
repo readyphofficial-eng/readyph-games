@@ -1,12 +1,12 @@
 <!DOCTYPE html><html><head>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>ReadyPH V22 FIX BUILDINGS</title>
+<title>ReadyPH V23 FIX WHITE BOX</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
 <style>html,body{margin:0;padding:0;background:#4a9a42;overflow:hidden;height:100%;font-family:Arial;touch-action:none}canvas{image-rendering:pixelated}#game{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1}#joy{position:fixed;left:12px;bottom:18px;width:120px;height:120px;z-index:50;background:rgba(255,255,255,.28);border-radius:50%;border:2px solid #fff}#btnA{position:fixed;right:14px;bottom:22px;width:86px;height:86px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:16px;z-index:50}#btnB{position:fixed;right:14px;bottom:116px;width:64px;height:64px;background:#ef4444;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:12px;z-index:50;display:none}#hud{position:fixed;top:0;left:0;right:0;background:#000000cc;color:#fff;padding:7px 10px;display:flex;justify-content:space-between;z-index:40;font-size:10px;font-weight:800}#quest{position:fixed;top:38px;left:8px;background:#000000aa;color:#fde047;padding:7px 9px;border-radius:8px;font-size:10px;z-index:40}#dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:4px solid #22c55e;padding:14px;color:#fff;display:none;z-index:60}#quiz{position:fixed;top:0;left:0;right:0;bottom:0;background:#000000f0;z-index:110;display:none;justify-content:center;align-items:center;flex-direction:column;padding:20px;color:#fff}.qBtn{width:92%;padding:12px;margin:6px;background:#fff;color:#000;border-radius:10px;font-weight:800;border:none}</style>
 </head><body>
 <div id="game"></div>
-<div id="hud"><span id="hudLoc">V22 FIX BUILDING WHITE + CHEF</span><span id="score">Score:0</span></div>
+<div id="hud"><span id="hudLoc">V23 FIXED WHITE BOX</span><span id="score">Score:0</span></div>
 <div id="quest"><div id="qList"></div></div>
 <div id="joy"></div><button id="btnA">ENTER</button><button id="btnB">EXIT</button>
 <div id="dialog"><b id="dN" style="color:#4ade80"></b><p id="dT" style="white-space:pre-line"></p><div id="dBtns"></div></div>
@@ -14,31 +14,47 @@
 <script>
 let joy={x:0,y:0},score=0,game,mode='outside',currentBuilding=null,quests={teacher:false,food:false,library:false};
 const TESTS=[{q:"Polite greeting?",a:["Good morning, ma'am!","Yo teach!"],correct:0,reward:150},{q:"She ___ to school.",a:["goes","go"],correct:0,reward:150},{q:"Past of study?",a:["studied","studyed"],correct:0,reward:150}];
-const SD=["Hi! Tara review!","Uy nag-test ka na?","Punta Canteen?","Library ako kanina!","Excited sa Gym!","Practice English!","May wall na!","Boy ako!","Girl ako!","Chef visible na!"];
+const SD=["Hi! Tara review!","Uy nag-test ka na?","Punta Canteen?","Library ako!","Excited sa Gym!","Practice English!","May wall na!","Boy ako!","Girl ako!"];
 function cleanBuilding(cv){
  let c=cv.getContext('2d'),d=c.getImageData(0,0,cv.width,cv.height);
  for(let i=0;i<d.data.length;i+=4){
-  let r=d.data[i],g=d.data[i+1],b=d.data[i+2],a=d.data[i+3];
-  // tanggal lahat ng maputi at light gray na background ng building, pati semi-transparent!
-  let isWhite = (r>230&&g>230&&b>230);
-  let isLightGray = (r>185&&g>185&&b>185&&Math.abs(r-g)<15&&Math.abs(r-b)<15);
-  let isSemiWhite = (a<200&&r>200&&g>200&&b>200);
-  if(isWhite||isLightGray||isSemiWhite) d.data[i+3]=0;
+  let r=d.data[i],g=d.data[i+1],b=d.data[i+2];
+  // tanggal lahat white/light gray na background ng building
+  if((r>225&&g>225&&b>225)||(r>185&&g>185&&b>185&&Math.abs(r-g)<12&&Math.abs(r-b)<12)){
+   d.data[i+3]=0;
+  }
  }
  c.putImageData(d,0,0);
 }
-function cleanChar(cv){
- let c=cv.getContext('2d'),d=c.getImageData(0,0,cv.width,cv.height);
- for(let i=0;i<d.data.length;i+=4){
-  let r=d.data[i],g=d.data[i+1],b=d.data[i+2],a=d.data[i+3];
-  // DITO DATI MALI - tinatanggal pati white uniform! Ngayon BLUE LANG tanggalin!
-  // Kenney chars blue background = around (0, 150, 200) or (40, 120, 200)
-  let isBlueBG = (b>150 && b>r+30 && r<100 && a>10);
-  let isTransparentEdge = (a<30);
-  if(isBlueBG||isTransparentEdge) d.data[i+3]=0;
-  // wag tanggalin white! para kita Chef hat at Nurse uniform!
+function cleanCharPro(cv){
+ let c=cv.getContext('2d'),w=cv.width,h=cv.height;
+ let img=c.getImageData(0,0,w,h),d=img.data;
+ // Step 1: tanggal blue BG ng Kenney
+ for(let i=0;i<d.length;i+=4){
+  let r=d[i],g=d[i+1],b=d[i+2];
+  if(b>130&&b>r+20&&r<120&&g>80) d[i+3]=0; // blue BG
  }
- c.putImageData(d,0,0);
+ // Step 2: tanggal white box sa gilid lang, hindi buong white uniform!
+ // flood fill white from edges
+ for(let loop=0;loop<12;loop++){
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+   let idx=(y*w+x)*4; if(d[idx+3]===0) continue;
+   let r=d[idx],g=d[idx+1],b=d[idx+2];
+   let isWhite = (r>235&&g>235&&b>235);
+   if(!isWhite) continue;
+   // check kung nasa border o katabi ng transparent
+   let nearTrans=false;
+   if(x<3||x>w-4||y<3||y>h-4) nearTrans=true;
+   else {
+    for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){
+     let nx=x+dx,ny=y+dy; if(nx<0||ny<0||nx>=w||ny>=h) continue;
+     let nidx=(ny*w+nx)*4; if(d[nidx+3]===0) nearTrans=true;
+    }
+   }
+   if(nearTrans) d[idx+3]=0;
+  }
+ }
+ c.putImageData(img,0,0);
 }
 class Main extends Phaser.Scene{
  constructor(){super('Game')}
@@ -49,7 +65,9 @@ class Main extends Phaser.Scene{
   this.load.image('interiors','assets/kenney/INTERIORS.png');
  }
  create(){
-  let gImg=this.textures.get('ground').getSourceImage(),gw=Math.floor(gImg.width/4),gh=Math.floor(gImg.height/2),insetGrass=10,insetRoad=4;
+  let gImg=this.textures.get('ground').getSourceImage(),gw=Math.floor(gImg.width/4),gh=Math.floor(gImg.height/2);
+  // mas malaki crop para wala white grid sa grass!
+  let insetGrass=12,insetRoad=6;
   let mk=(k,c,r,inset)=>{let cv=document.createElement('canvas');cv.width=gw-inset*2;cv.height=gh-inset*2;cv.getContext('2d').drawImage(gImg,c*gw+inset,r*gh+inset,gw-inset*2,gh-inset*2,0,0,gw-inset*2,gh-inset*2);if(this.textures.exists(k))this.textures.remove(k);this.textures.addCanvas(k,cv);this.textures.get(k).setFilter(Phaser.Textures.FilterMode.NEAREST);};
   mk('g1',0,0,insetGrass);mk('g2',1,0,insetGrass);mk('r_h',0,1,insetRoad);mk('r_v',1,1,insetRoad);
   let cvCross=document.createElement('canvas');cvCross.width=64;cvCross.height=64;let cc=cvCross.getContext('2d');cc.fillStyle='#5a5a5a';cc.fillRect(0,0,64,64);cc.fillStyle='#f7c948';for(let i=0;i<64;i+=10){cc.fillRect(30,i,4,4);}for(let j=0;j<64;j+=10){cc.fillRect(j,30,4,4);}if(this.textures.exists('r_x_new'))this.textures.remove('r_x_new');this.textures.addCanvas('r_x_new',cvCross);
@@ -65,19 +83,26 @@ class Main extends Phaser.Scene{
   let cross=this.add.image(RX,RY,'r_x_new').setOrigin(0,0).setDisplaySize(T,T).setDepth(2);this.outside.push(cross);
 
   let bImg=this.textures.get('buildings').getSourceImage(),bw=bImg.width/4,bh=bImg.height/2;
-  let mkB=(k,c,r)=>{let cv=document.createElement('canvas');cv.width=bw;cv.height=bh;let ctx=cv.getContext('2d');ctx.drawImage(bImg,c*bw,r*bh,bw,bh,0,0,bw,bh);cleanBuilding(cv);if(this.textures.exists(k))this.textures.remove(k);this.textures.addCanvas(k,cv);this.textures.get(k).setFilter(Phaser.Textures.FilterMode.NEAREST);};
+  let mkB=(k,c,r)=>{let cv=document.createElement('canvas');cv.width=bw;cv.height=bh;cv.getContext('2d').drawImage(bImg,c*bw,r*bh,bw,bh,0,0,bw,bh);cleanBuilding(cv);if(this.textures.exists(k))this.textures.remove(k);this.textures.addCanvas(k,cv);this.textures.get(k).setFilter(Phaser.Textures.FilterMode.NEAREST);};
   mkB('school',0,0);mkB('office',1,0);mkB('canteen',2,0);mkB('library',3,0);mkB('gym',0,1);mkB('dorm',1,1);mkB('hospital',2,1);mkB('shop',3,1);
   this.builds=[];
-  let place=(x,y,k,n,idx)=>{let s=this.add.ellipse(x+40,y+92,130,30,0x000000).setAlpha(0.22).setDepth(1);let im=this.add.image(x+40,y+40,k).setDisplaySize(140,140).setDepth(3);let tx=this.add.text(x+40,y+122,n,{fontSize:'11px',backgroundColor:'#000e',color:'#fff',padding:{x:6,y:2}}).setOrigin(0.5).setDepth(4);this.outside.push(s,im,tx);this.builds.push({x:x+40,y:y+40,name:n,intIdx:idx,radius:95});};
-  place(1360,700,'school','SCHOOL',0);place(1440,920,'office','OFFICE',1);place(700,1360,'canteen','CANTEEN',2);place(1520,1440,'library','LIBRARY',3);place(700,700,'gym','GYM',0);place(1360,1680,'dorm','DORM',1);place(1820,1360,'hospital','HOSPITAL',2);place(500,1680,'shop','SHOP',3);
+  let place=(x,y,k,n,idx,noEnter=false)=>{let s=this.add.ellipse(x+40,y+92,130,30,0x000000).setAlpha(0.22).setDepth(1);let im=this.add.image(x+40,y+40,k).setDisplaySize(140,140).setDepth(3);let tx=this.add.text(x+40,y+122,n,{fontSize:'11px',backgroundColor:'#000e',color:'#fff',padding:{x:6,y:2}}).setOrigin(0.5).setDepth(4);this.outside.push(s,im,tx);this.builds.push({x:x+40,y:y+40,name:n,intIdx:idx,radius:95,noEnter:noEnter});};
+  place(1360,700,'school','SCHOOL',0,false);
+  place(1440,920,'office','OFFICE',1,false);
+  place(700,1360,'canteen','CANTEEN',2,false);
+  place(1520,1440,'library','LIBRARY',3,false);
+  place(700,700,'gym','GYM',0,true); // NO INTERIOR
+  place(1360,1680,'dorm','HOUSE',1,true); // DORM -> HOUSE, NO INTERIOR
+  place(1820,1360,'hospital','HOSPITAL',2,false);
+  place(500,1680,'shop','SHOP',3,false);
 
   let decorPos=[{x:1100,y:600},{x:1100,y:800},{x:1100,y:1400},{x:1100,y:1600},{x:600,y:600},{x:900,y:600},{x:600,y:1250},{x:900,y:1250},{x:1600,y:600},{x:1700,y:900},{x:1900,y:1250},{x:400,y:1550},{x:400,y:1780},{x:1600,y:1350},{x:1700,y:1600}];
   decorPos.forEach(d=>{if(Math.abs(d.x-RX)<80||Math.abs(d.y-RY)<80) return; let k=Math.random()<0.6?'tree1':'bush1'; let t=this.add.image(d.x,d.y,k).setDisplaySize(k==='tree1'?52:30,k==='tree1'?68:24).setDepth(2); this.outside.push(t);});
 
   let cImg=this.textures.get('chars').getSourceImage(),cW=cImg.width/6,cH=cImg.height;
-  let mkC=(k,i)=>{let cv=document.createElement('canvas');cv.width=cW;cv.height=cH;cv.getContext('2d').drawImage(cImg,i*cW,0,cW,cH,0,0,cW,cH);cleanChar(cv);if(this.textures.exists(k))this.textures.remove(k);this.textures.addCanvas(k,cv);this.textures.get(k).setFilter(Phaser.Textures.FilterMode.NEAREST);};
+  let mkC=(k,i)=>{let cv=document.createElement('canvas');cv.width=cW;cv.height=cH;cv.getContext('2d').drawImage(cImg,i*cW,0,cW,cH,0,0,cW,cH);cleanCharPro(cv);if(this.textures.exists(k))this.textures.remove(k);this.textures.addCanvas(k,cv);this.textures.get(k).setFilter(Phaser.Textures.FilterMode.NEAREST);};
   mkC('player',0);mkC('girl',1);mkC('teacher',2);mkC('chef',3);mkC('janitor',4);mkC('nurse',5);
-  let boyCv=document.createElement('canvas');boyCv.width=cW;boyCv.height=cH;boyCv.getContext('2d').drawImage(cImg,0,0,cW,cH,0,0,cW,cH);cleanChar(boyCv);if(this.textures.exists('boy'))this.textures.remove('boy');this.textures.addCanvas('boy',boyCv);
+  let boyCv=document.createElement('canvas');boyCv.width=cW;boyCv.height=cH;boyCv.getContext('2d').drawImage(cImg,0,0,cW,cH,0,0,cW,cH);cleanCharPro(boyCv);if(this.textures.exists('boy'))this.textures.remove('boy');this.textures.addCanvas('boy',boyCv);
 
   this.npcs=[];
   let npcData=[
@@ -85,8 +110,8 @@ class Main extends Phaser.Scene{
    {k:'girl',r:'Girl',x:1750,y:700,d:SD},{k:'boy',r:'Boy',x:1800,y:760,d:SD},
    {k:'boy',r:'Boy',x:1000,y:650,d:SD},{k:'girl',r:'Girl',x:580,y:700,d:SD},
    {k:'girl',r:'Girl',x:580,y:1250,d:SD},{k:'boy',r:'Boy',x:950,y:1250,d:SD},
-   {k:'chef',r:'Chef',x:850,y:1500,d:["No test dito! Sarap pagkain!"]},
-   {k:'nurse',r:'Nurse',x:1950,y:1280,d:["No test! Health check lang!"]},
+   {k:'chef',r:'Chef',x:850,y:1500,d:["Chef here! No test!"]},
+   {k:'nurse',r:'Nurse',x:1950,y:1280,d:["Nurse here! No test!"]},
    {k:'janitor',r:'Janitor',x:450,y:1800,d:["Wag magkalat!"]},
    {k:'boy',r:'Boy',x:1700,y:1550,d:SD},{k:'girl',r:'Girl',x:1600,y:1550,d:SD}
   ];
@@ -120,6 +145,12 @@ game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:inn
 let stick=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'60px',top:'60px'},color:'white',size:80});
 stick.on('move',(e,d)=>{if(d&&d.vector){joy.x=d.vector.x;joy.y=-d.vector.y;}});stick.on('end',()=>{joy.x=0;joy.y=0;});
 function enterBuilding(b){
+ if(b.noEnter){
+  document.getElementById('dN').innerText=b.name;
+  document.getElementById('dT').innerText=b.name==='HOUSE'?'This is HOUSE - No interior yet! (bawal pumasok muna)':b.name+' is closed! No interior for now! Gym sarado muna!';
+  document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>';
+  document.getElementById('dialog').style.display='block'; return;
+ }
  let sc=game.scene.getScene('Game');mode='inside';currentBuilding=b;
  sc.outside.forEach(o=>o.setVisible(false));sc.interiorBG.setVisible(true);sc.interiorBG.setTexture(['int_school','int_office','int_canteen','int_library'][b.intIdx]);
  if(sc.insideTeacher)sc.insideTeacher.destroy();sc.insideStudents.forEach(s=>s.destroy());sc.insideStudents=[];
@@ -128,12 +159,11 @@ function enterBuilding(b){
   let s1=sc.add.image(1320,1520,'boy').setDisplaySize(40,40).setDepth(4).setTint(0x60a5fa); sc.insideStudents.push(s1);
   let s2=sc.add.image(1500,1520,'girl').setDisplaySize(40,40).setDepth(4).setTint(0xf9a8d4); sc.insideStudents.push(s2);
   let s3=sc.add.image(1680,1520,'boy').setDisplaySize(40,40).setDepth(4).setTint(0x60a5fa); sc.insideStudents.push(s3);
- }else if(b.name==='GYM'){sc.insideTeacher=sc.add.image(1500,1380,'janitor').setDisplaySize(52,52).setDepth(5);}
- else{let k=b.name==='CANTEEN'?'chef':b.name==='HOSPITAL'?'nurse':'teacher';sc.insideTeacher=sc.add.image(1500,1380,k).setDisplaySize(50,50).setDepth(5);}
+ }else{let k=b.name==='CANTEEN'?'chef':b.name==='HOSPITAL'?'nurse':'teacher';sc.insideTeacher=sc.add.image(1500,1380,k).setDisplaySize(50,50).setDepth(5);}
  sc.player.x=1500;sc.player.y=1700;sc.player.setDisplaySize(58,58).setDepth(6);
  document.getElementById('btnB').style.display='block';document.getElementById('hudLoc').innerText='Inside: '+b.name;
 }
-function exitBuilding(){let sc=game.scene.getScene('Game');mode='outside';currentBuilding=null;sc.outside.forEach(o=>o.setVisible(true));sc.interiorBG.setVisible(false);if(sc.insideTeacher)sc.insideTeacher.destroy();sc.insideStudents.forEach(s=>s.destroy());sc.insideStudents=[];sc.player.setDisplaySize(44,44);sc.player.x=1400;sc.player.y=620;document.getElementById('btnB').style.display='none';document.getElementById('hudLoc').innerText='V22 CLEAN';updateQuests();}
+function exitBuilding(){let sc=game.scene.getScene('Game');mode='outside';currentBuilding=null;sc.outside.forEach(o=>o.setVisible(true));sc.interiorBG.setVisible(false);if(sc.insideTeacher)sc.insideTeacher.destroy();sc.insideStudents.forEach(s=>s.destroy());sc.insideStudents=[];sc.player.setDisplaySize(44,44);sc.player.x=1400;sc.player.y=620;document.getElementById('btnB').style.display='none';document.getElementById('hudLoc').innerText='V23 FIXED';updateQuests();}
 function updateQuests(){let h='';h+=(quests.teacher?'✅':'⭕')+' Teacher<br>';h+=(quests.food?'✅':'⭕')+' Canteen<br>';h+=(quests.library?'✅':'⭕')+' Library<br>Score:'+score;document.getElementById('qList').innerHTML=h;document.getElementById('score').innerText='Score:'+score;}
 function showQuiz(){let q=TESTS[Math.floor(Math.random()*TESTS.length)];document.getElementById('qQ').innerText=q.q;let o=document.getElementById('qOpts');o.innerHTML='';q.a.forEach((txt,i)=>{let b=document.createElement('button');b.className='qBtn';b.innerText=txt;b.onclick=()=>{if(i===q.correct){score+=q.reward;quests.teacher=true;alert('Correct! +'+q.reward);}else alert('Mali!');closeQuiz();updateQuests();};o.appendChild(b);});document.getElementById('quiz').style.display='flex';}
 function closeQuiz(){document.getElementById('quiz').style.display='none';}
@@ -151,7 +181,7 @@ document.getElementById('btnA').onclick=()=>{
  if(near){enterBuilding(near);return;}
  let npc=null;for(let n of sc.npcs){if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,n.x,n.y)<75){npc=n;break;}}
  if(npc){let txt=npc.dialogs[npc.dIdx%npc.dialogs.length];npc.dIdx++;document.getElementById('dN').innerText=npc.role;document.getElementById('dT').innerText=txt;document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>';document.getElementById('dialog').style.display='block';return;}
- document.getElementById('dN').innerText='Explore';document.getElementById('dT').innerText='No white sa buildings! Chef/Nurse visible na!';document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>';document.getElementById('dialog').style.display='block';
+ document.getElementById('dN').innerText='Explore';document.getElementById('dT').innerText='No white box na! House at Gym closed!';document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>';document.getElementById('dialog').style.display='block';
 };
 document.getElementById('btnB').onclick=exitBuilding;
 window.showQuiz=showQuiz;window.closeQuiz=closeQuiz;
