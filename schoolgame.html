@@ -1,78 +1,126 @@
 <!DOCTYPE html><html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>V35 - ASSETS KENNEY PATH FIXED</title>
+<title>V37 CROP + CLEAN + RESIZE</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
 <style>html,body{margin:0;background:#6ebf6b;overflow:hidden;height:100%;touch-action:none;font-family:Arial}#game{position:fixed;inset:0}#joy{position:fixed;left:12px;bottom:18px;width:120px;height:120px;background:rgba(255,255,255,.35);border-radius:50%;border:2px solid #fff;z-index:50}#btnA{position:fixed;right:14px;bottom:22px;width:86px;height:86px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;z-index:50}#hud{position:fixed;top:0;left:0;right:0;background:#000c;color:#fff;padding:8px 12px;display:flex;justify-content:space-between;z-index:40;font-size:11px;font-weight:800}#dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172aee;border-top:4px solid #22c55e;padding:12px;color:#fff;display:none;z-index:60}</style>
 </head><body>
 <div id="game"></div>
-<div id="hud"><span>V35 FIXED PATH - assets/kenney/</span><span id="info">Loading...</span></div>
+<div id="hud"><span>V37 CLEAN SPRITES</span><span id="info">Cleaning...</span></div>
 <div id="joy"></div><button id="btnA">ENTER</button>
 <div id="dialog"><b id="dN" style="color:#4ade80"></b><p id="dT" style="white-space:pre-line"></p><div id="dBtns"></div></div>
 <script>
 let joy={x:0,y:0};
+// PLAYER FRONT POSITION SA SPRITE SHEET - palitan mo kung hindi pa harap!
+const PLAYER_COL=0, PLAYER_ROW=5; // row 5 col 0 = front facing (0,1,2,3,4 top buildings, 5-6 tao)
+// Kung side pa rin, try: COL=1 ROW=5, o COL=2 ROW=5
+
+let game;
 class Main extends Phaser.Scene{
  constructor(){super('Main')}
  preload(){
-  // TAMA NA PATH - nasa assets/kenney/ folder!
-  let base='assets/kenney/';
-  this.load.image('map',base+'MAP.png');
-  this.load.image('player',base+'player.png');
-  this.load.image('new1',base+'new1.png');
-  this.load.image('new2',base+'new2.png');
-  this.load.image('new3',base+'new3.png');
+  let b='assets/kenney/';
+  this.load.image('map',b+'MAP.png');
+  this.load.image('player_sheet',b+'player.png');
+  this.load.image('new1',b+'new1.png');
+  this.load.image('new2',b+'new2.png');
+  this.load.image('new3',b+'new3.png');
  }
  create(){
   const W=3200,H=3200;
   this.add.image(W/2,H/2,'map').setDisplaySize(W,H).setDepth(0);
+
+  // AUTO REMOVE BACKGROUND - linisin lahat ng sheets!
+  const cleanSheet=(key)=>{
+   let tex=this.textures.get(key);
+   let img=tex.getSourceImage();
+   let c=document.createElement('canvas');
+   c.width=img.width; c.height=img.height;
+   let ctx=c.getContext('2d');
+   ctx.drawImage(img,0,0);
+   let data=ctx.getImageData(0,0,c.width,c.height);
+   for(let i=0;i<data.data.length;i+=4){
+    let r=data.data[i], g=data.data[i+1], b=data.data[i+2];
+    // remove black (<30) and white (>240)
+    if((r<30&&g<30&&b<30) || (r>240&&g>240&&b>240)){
+     data.data[i+3]=0; // transparent
+    }
+   }
+   ctx.putImageData(data,0,0);
+   let cleanKey=key+'_clean';
+   if(this.textures.exists(cleanKey)) this.textures.remove(cleanKey);
+   this.textures.addCanvas(cleanKey,c);
+   return cleanKey;
+  };
+
+  let playerClean=cleanSheet('player_sheet');
+  let n1Clean=cleanSheet('new1');
+  let n2Clean=cleanSheet('new2');
+  let n3Clean=cleanSheet('new3');
+
   this.builds=[]; this.npcs=[];
 
-  const addBuilding=(sheet,cols,rows,col,row,wx,wy)=>{
-   let tex=this.textures.get(sheet).getSourceImage();
+  const addBuilding=(cleanKey,origKey,cols,rows,col,row,wx,wy)=>{
+   let tex=this.textures.get(origKey).getSourceImage();
    let fw=tex.width/cols, fh=tex.height/rows;
-   let img=this.add.image(wx,wy,sheet).setDepth(3);
+   let img=this.add.image(wx,wy,cleanKey).setDepth(3);
    img.setCrop(col*fw,row*fh,fw,fh);
-   let sc=(90+Math.random()*18)/Math.max(fw,fh)*1.4;
+   // TAMANG SIZE BUILDINGS - 88-94px lang!
+   let target=88+Math.random()*6;
+   let sc=target/Math.max(fw,fh)*1.2;
    img.setScale(sc);
-   this.builds.push({x:wx,y:wy,radius:48*sc+22});
+   this.builds.push({x:wx,y:wy,radius:42*sc+18});
   };
-  const addPerson=(sheet,cols,rows,col,row,wx,wy)=>{
-   let tex=this.textures.get(sheet).getSourceImage();
+  const addPerson=(cleanKey,origKey,cols,rows,col,row,wx,wy)=>{
+   let tex=this.textures.get(origKey).getSourceImage();
    let fw=tex.width/cols, fh=tex.height/rows;
-   let img=this.add.image(wx,wy,sheet).setDepth(5);
+   let img=this.add.image(wx,wy,cleanKey).setDepth(5);
    img.setCrop(col*fw,row*fh,fw,fh);
-   img.setScale(36/Math.max(fw,fh));
+   // TAMANG SIZE TAO - 32-36px mas maliit!
+   let target=32+Math.random()*4;
+   let sc=target/Math.max(fw,fh);
+   img.setScale(sc);
    img.dirX=(Math.random()-0.5); img.dirY=(Math.random()-0.5);
-   img.speed=0.5+Math.random()*0.6; img.t=Math.random()*2000;
+   img.speed=0.45+Math.random()*0.5; img.t=Math.random()*2000;
    this.npcs.push(img);
   };
 
+  // VACANT LOTS - dun lang buildings
   let lots=[[560,620],[820,620],[1080,740],[1330,860],[1580,860],[560,880],[820,880],[1080,880],[1340,1040],[1580,1040],[560,1140],[820,1140],[1080,1140],[2000,860],[2240,860],[560,1400],[820,1400],[1080,1400],[2000,1020],[2240,1020],[560,1540],[820,1540],[2000,1160],[2240,1160],[2640,860],[1100,1680],[1350,1680],[2000,1440],[2240,1440],[2640,1020],[1100,1940],[1350,1940],[1600,1940],[2000,1680],[2240,1680],[2640,1160],[1100,2200],[1350,2200],[2000,1940],[2240,1940],[560,2600],[820,2600],[1080,2600],[2000,2200],[2240,2200]];
 
   let idx=0;
-  for(let r=0;r<5;r++) for(let c=0;c<5;c++){ if(idx>=lots.length) break; let p=lots[idx++]; addBuilding('new1',5,7,c,r,p[0],p[1]); }
-  for(let r=0;r<5;r++) for(let c=0;c<5;c++){ if(idx>=lots.length) break; let p=lots[idx++]; addBuilding('new2',5,9,c,r,p[0],p[1]); }
-  for(let r=0;r<5;r++) for(let c=0;c<5;c++){ if(idx>=lots.length) break; let p=lots[idx++]; addBuilding('new3',5,7,c,r,p[0],p[1]); }
+  for(let r=0;r<5;r++) for(let c=0;c<5;c++){ if(idx>=lots.length) break; let p=lots[idx++]; addBuilding(n1Clean,'new1',5,7,c,r,p[0],p[1]); }
+  for(let r=0;r<5;r++) for(let c=0;c<5;c++){ if(idx>=lots.length) break; let p=lots[idx++]; addBuilding(n2Clean,'new2',5,9,c,r,p[0],p[1]); }
+  for(let r=0;r<5;r++) for(let c=0;c<5;c++){ if(idx>=lots.length) break; let p=lots[idx++]; addBuilding(n3Clean,'new3',5,7,c,r,p[0],p[1]); }
 
+  // Tao sa kalsada
   let spots=[[600,500],[900,500],[1200,500],[1500,500],[1800,500],[2100,500],[2600,500],[600,2000],[900,2000],[1200,2000],[1500,2000],[2000,2800],[2400,2800],[500,1200],[1000,1200],[1600,1200],[2200,1200],[500,1600],[1000,1600],[2000,1600],[500,2400],[1000,2400],[1600,2400],[2200,2400],[2800,2400]];
   let pi=0;
-  for(let r=5;r<7;r++) for(let c=0;c<5;c++){ if(pi>=spots.length) break; if(r==5&&c==1) continue; let p=spots[pi++]; addPerson('new3',5,7,c,r,p[0],p[1]); }
-  for(let r=5;r<7;r++) for(let c=0;c<5;c++){ if(pi>=spots.length) break; let p=spots[pi++]; addPerson('new1',5,7,c,r,p[0],p[1]); }
-  for(let r=5;r<9;r++) for(let c=0;c<5;c++){ if(pi>=spots.length) break; let p=spots[pi++]; addPerson('new2',5,9,c,r,p[0],p[1]); }
+  // new3 tao (skip yung player pos kung same)
+  for(let r=5;r<7;r++) for(let c=0;c<5;c++){ if(pi>=spots.length) break; if(r==PLAYER_ROW&&c==PLAYER_COL) continue; let p=spots[pi++]; addPerson(n3Clean,'new3',5,7,c,r,p[0],p[1]); }
+  for(let r=5;r<7;r++) for(let c=0;c<5;c++){ if(pi>=spots.length) break; let p=spots[pi++]; addPerson(n1Clean,'new1',5,7,c,r,p[0],p[1]); }
+  for(let r=5;r<9;r++) for(let c=0;c<5;c++){ if(pi>=spots.length) break; let p=spots[pi++]; addPerson(n2Clean,'new2',5,9,c,r,p[0],p[1]); }
 
-  // PLAYER = player.png from assets/kenney/ - boy with backpack!
-  this.player=this.add.image(1600,1350,'player').setDepth(20).setScale(0.85).setOrigin(0.5,0.85);
+  // PLAYER - FRONT FACING EXTRACT!
+  let texP=this.textures.get('player_sheet').getSourceImage();
+  let fwP=texP.width/5, fhP=texP.height/7;
+  // kung player.png ay 5x7 din
+  this.player=this.add.image(1600,1350,playerClean).setDepth(20).setOrigin(0.5,0.85);
+  this.player.setCrop(PLAYER_COL*fwP,PLAYER_ROW*fhP,fwP,fhP);
+  // PLAYER SIZE - 95px tall, mas malaki konti kesa ibang tao!
+  let pScale=95/Math.max(fwP,fhP);
+  this.player.setScale(pScale);
 
   this.cameras.main.setBounds(0,0,W,H);
   this.cameras.main.startFollow(this.player,true,0.12,0.12);
   this.keys=this.input.keyboard.addKeys('W,A,S,D');
-  document.getElementById('info').innerText='Buildings:'+this.builds.length+' | Tao:'+this.npcs.length+' | PATH FIXED!';
+  document.getElementById('info').innerText='Buildings:'+this.builds.length+' Tao:'+this.npcs.length+' CLEAN OK';
  }
  isBlocked(x,y){ for(let b of this.builds){ if(Phaser.Math.Distance.Between(x,y,b.x,b.y)<b.radius) return true; } return false; }
  update(){
   if(document.getElementById('dialog').style.display==='block') return;
-  let sp=4.8,mx=joy.x,my=joy.y;
+  let sp=4.6,mx=joy.x,my=joy.y;
   if(this.keys.A.isDown) mx=-1; if(this.keys.D.isDown) mx=1; if(this.keys.W.isDown) my=-1; if(this.keys.S.isDown) my=1;
   if(Math.abs(mx)<0.15) mx=0; if(Math.abs(my)<0.15) my=0;
   if(mx||my){
@@ -90,14 +138,16 @@ class Main extends Phaser.Scene{
   });
  }
 }
-new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#7ab86f',scene:Main,scale:{mode:Phaser.Scale.RESIZE}});
+game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#7ab86f',scene:Main,scale:{mode:Phaser.Scale.RESIZE}});
+
 let stick=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'60px',top:'60px'},color:'white',size:84});
 stick.on('move',(e,d)=>{if(d&&d.vector){joy.x=d.vector.x;joy.y=-d.vector.y;}});
 stick.on('end',()=>{joy.x=0;joy.y=0;});
+
 document.getElementById('btnA').onclick=()=>{
  let dlg=document.getElementById('dialog');
- document.getElementById('dN').innerText='V35 PATH FIXED!';
- document.getElementById('dT').innerText='Naayos na!\n• Path = assets/kenney/MAP.png (hindi root)\n• Player = assets/kenney/player.png (boy backpack from new3)\n• Buildings = nasa vacant lots + invisible wall\n• Tao naglalakad pa rin + adjusted size!';
+ document.getElementById('dN').innerText='V37 CLEAN + CROP';
+ document.getElementById('dT').innerText='• Background removed (black/white → transparent)\n• Buildings 88px, Tao 32px, Player 95px front-facing\n• Kung side pa rin player, palitan sa taas:\n const PLAYER_COL=1 o 2\n const PLAYER_ROW=5 o 6';
  document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'" style="padding:10px 18px;background:#22c55e;color:#fff;border-radius:10px;border:2px solid #fff">OK</button>';
  dlg.style.display='block';
 };
