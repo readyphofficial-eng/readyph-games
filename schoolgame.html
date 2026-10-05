@@ -1,172 +1,125 @@
 <!DOCTYPE html><html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>V51 HQ - NO LOW-QUALITY</title>
+<title>V52 TRIANGLE ISLAND GAME</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
 <style>
-html,body{margin:0;padding:0;background:#3d3d3d;overflow:hidden;height:100%;touch-action:none;image-rendering:-webkit-optimize-contrast}
+html,body{margin:0;padding:0;background:#3d3d3d;overflow:hidden;height:100%;touch-action:none}
 #game{position:fixed;inset:0}
 #joy{position:fixed;left:12px;bottom:18px;width:110px;height:110px;background:rgba(255,255,255,.25);border-radius:50%;border:2px solid #fff;z-index:50}
-#hud{position:fixed;top:0;left:0;right:0;background:#000;color:#fff;padding:6px 10px;font-size:10px;font-weight:800;z-index:40;display:flex;justify-content:space-between}
+#hud{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.85);color:#fff;padding:8px 12px;font-size:11px;font-weight:800;z-index:40;display:flex;justify-content:space-between}
 #load{position:fixed;inset:0;background:#0f172a;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99;font-weight:800}
+#areas{position:fixed;top:40px;left:10px;background:rgba(0,0,0,.7);color:#fff;padding:6px 8px;font-size:9px;font-weight:800;border-radius:6px;z-index:30}
 </style>
 </head><body>
-<div id="load"><div>🔥 V51 HIGH QUALITY FIX</div><div id="l1" style="color:#4ade80;margin-top:8px">Loading HQ assets only...</div><div id="l2" style="font-size:10px;opacity:.6"></div></div>
+<div id="load"><div>🏝️ LOADING TRIANGLE ISLAND</div><div id="l1" style="color:#4ade80;margin-top:8px">Triangle: Medieval | Castle | City | Grassland</div></div>
 <div id="game"></div>
-<div id="hud"><span>V51 HQ | HIGH-QUALITY BUILDINGS | NO LOW-DETAIL</span><span id="info"></span></div>
+<div id="hud"><span>TRIANGLE ISLAND - 3 AREAS + GRASSLAND</span><span id="info">Loading...</span></div>
+<div id="areas">
+🔺 TOP: Medieval Village<br>
+🏰 BOTTOM-LEFT: Large Castle<br>
+🏙️ BOTTOM-RIGHT: City<br>
+🌿 ALL AROUND: Grassland + Paths
+</div>
 <div id="joy"></div>
 <script>
-let joy={x:0,y:0}, ALL=[];
-async function getAssets(){
- let list=[];
- try{
-  for(let p=1;p<=4;p++){
-   let r=await fetch(`https://api.github.com/repos/social-eng/readyph-games/contents/clean?per_page=100&page=${p}`);
-   if(!r.ok) break;
-   let d=await r.json();
-   if(!Array.isArray(d)||d.length==0) break;
-   // HQ ONLY - wag low-detail!
-   let f=d.filter(x=>{
-    let n=x.name.toLowerCase();
-    return x.name.endsWith('.png') &&!n.includes('low-detail') &&!n.includes('character') &&!n.includes('animal') && n.length<40;
-   }).map(x=>x.name);
-   list.push(...f);
-   if(d.length<100) break;
-  }
- }catch(e){}
- if(list.length<15){
-  list=["building-a.png","building-b.png","building-c.png","building-d.png","building-e.png","building-f.png","building-skyscraper-a.png","building-skyscraper-b.png","windmill.png","watermill.png","castle-wall.png","castle-wall-straight.png","castle-tower.png","tower.png","tree.png","tree-large.png","tree-pine.png","rock.png","ground-grass.png","fence-wood.png"];
- }
- ALL=list;
- document.getElementById('l1').innerText=`${list.length} HQ assets (no low-detail)`;
- document.getElementById('l2').innerText=`High quality only: building-a, skyscraper, etc`;
- return list;
-}
-function find(keys){
- if(!Array.isArray(keys)) keys=[keys];
- for(let k of keys){
-  let f=ALL.find(x=>x.toLowerCase().includes(k.toLowerCase())&&!x.toLowerCase().includes('low-detail'));
-  if(f) return f.replace('.png','');
- }
- return null;
-}
+let joy={x:0,y:0};
 
-class HQMap extends Phaser.Scene{
- constructor(){super('HQMap')}
+class TriangleGame extends Phaser.Scene{
+ constructor(){super('TriangleGame')}
  preload(){
-  ALL.forEach(f=>{ this.load.image(f.replace('.png',''), 'clean/'+f); });
+  // Load yung triangle map mo - upload mo yung image as map-triangle.png
+  this.load.image('island', 'clean/map-triangle.png');
+  // Fallback - kung wala pa yung image, gagamit ng placeholder
+  this.load.image('ground', 'clean/ground-grass.png');
  }
  create(){
-  const W=1800,H=1800;
+  const W=2200,H=2200;
   this.W=W; this.H=H;
+
+  // Background
   this.add.rectangle(W/2,H/2,W,H,0x3d3d3d).setDepth(0);
 
-  // HQ ground
-  if(this.textures.exists('ground-grass')){
-   for(let y=0;y<H;y+=100){ for(let x=0;x<W;x+=100){ this.add.image(x,y,'ground-grass').setDepth(0).setScale(0.9).setAlpha(0.3); }}
+  // Try to show island map
+  if(this.textures.exists('island')){
+   let island=this.add.image(W/2,H/2,'island').setDepth(1);
+   island.setDisplaySize(W-100,H-100);
+   island.setOrigin(0.5,0.5);
+   document.getElementById('l1').innerText='Triangle map loaded! HQ';
+  }else{
+   // Fallback: simple 3 areas with colors
+   this.add.rectangle(1100,500,2000,800,0x6a8a4a).setDepth(1).setAlpha(0.3); // medieval
+   this.add.rectangle(600,1650,900,900,0x7a7a8a).setDepth(1).setAlpha(0.3); // castle
+   this.add.rectangle(1650,1650,900,900,0x8a8a9a).setDepth(1).setAlpha(0.3); // city
+   this.add.text(W/2,100,'UPLOAD map-triangle.png TO clean/', {font:'bold 20px Arial',color:'#ff0000'}).setDepth(10).setOrigin(0.5);
+   document.getElementById('l1').innerText='Upload map-triangle.png first!';
   }
 
-  const S=(n)=>{
-   if(!n) return 1.0;
-   n=n.toLowerCase();
-   // HQ - wag na mag x2.4, 1.0 lang para malinaw!
-   if(n.includes('windmill')||n.includes('watermill')) return 1.2;
-   if(n.includes('skyscraper')) return 1.1;
-   if(n.includes('building')) return 1.0; // 1.0 = original HQ quality!
-   if(n.includes('tower')) return 1.0;
-   if(n.includes('wall')) return 0.9;
-   if(n.includes('tree')) return 0.7;
-   if(n.includes('rock')) return 0.6;
-   return 0.8;
-  };
-  const place=(key,x,y)=>{
-   if(!key||!this.textures.exists(key)) return null;
-   let img=this.add.image(x,y,key).setDepth(y);
-   img.setScale(S(key));
-   img.setOrigin(0.5,0.85);
-   // crisp, hindi blurry
-   img.setTexture(key);
-   return img;
-  };
+  // Player - small red dot sa gitna
+  this.player=this.add.rectangle(W/2,H/2,14,14,0xff4444).setDepth(20);
+  this.player.setStrokeStyle(2,0xffffff);
 
-  // === MEDIEVAL - HQ BUILDINGS ===
-  place(find(['windmill']), 180, 220);
-  place(find(['tree-pine']), 260, 280);
-  place(find(['tree-pine']), 300, 300);
-  place(find(['building-a']), 120, 450);
-  place(find(['building-b']), 280, 470);
-  place(find(['building-c']), 150, 600);
-  place(find(['watermill','building-d']), 450, 550);
-  place(find(['building-e']), 620, 500);
-  place(find(['fence-wood']), 500, 700);
-
-  // === CASTLE - STRAIGHT WALLS HQ ===
-  let wall=find(['castle-wall-straight','wall-straight','castle-wall-a']);
-  let tower=find(['castle-tower','tower']);
-  if(wall){
-   [950,1100,1250].forEach(x=>place(wall,x,220));
-   [220,360,500].forEach(y=>place(wall,1250,y));
-   [950,1100].forEach(x=>place(wall,x,500));
-   [640,780].forEach(y=>place(wall,950,y));
-   [1100,1250,1400].forEach(x=>place(wall,x,780));
-  }
-  if(tower){
-   place(tower,950,220);
-   place(tower,1400,220);
-   place(tower,950,780);
-   place(tower,1400,780);
-  }
-
-  // === CITY - HQ SKYSCRAPERS, DIKIT PERO MALINAW ===
-  let city=ALL.filter(f=>f.includes('building-')||f.includes('skyscraper')).map(f=>f.replace('.png',''));
-  if(city.length<6) city=ALL.filter(f=>f.includes('building')).map(f=>f.replace('.png',''));
-
-  let startX=80,startY=1050,gap=110; // 110px gap para dikit pero di patong
-  for(let row=0;row<4;row++){
-   for(let col=0;col<4;col++){
-    let k=city[(row*4+col)%city.length];
-    if(!this.textures.exists(k)) continue;
-    let x=startX+col*gap;
-    let y=startY+row*gap;
-    place(k,x,y);
-   }
-  }
-  // Roads
-  this.add.rectangle(300,1200,600,16,0x2a2a2a).setDepth(900);
-  this.add.rectangle(300,1350,600,16,0x2a2a2a).setDepth(1050);
-
-  // Grassland
-  let gTrees=ALL.filter(f=>f.includes('tree')).map(f=>f.replace('.png','')).slice(0,4);
-  for(let i=0;i<10;i++){
-   let k=gTrees[i%gTrees.length];
-   place(k, 1100+Math.random()*600, 1100+Math.random()*600);
-  }
+  // Camera
+  this.cameras.main.setBounds(0,0,W,H);
+  this.cameras.main.startFollow(this.player,true,0.1,0.1);
+  this.cameras.main.setZoom(1.3);
+  this.cameras.main.centerOn(W/2,H/2);
 
   document.getElementById('load').style.display='none';
-  this.cameras.main.setBounds(0,0,W,H);
-  this.cameras.main.centerOn(900,900);
-  this.cameras.main.setZoom(1.2); // mas malapit para malinaw!
+  document.getElementById('info').innerText='Triangle Island | Use joystick or WASD | Zoom: mouse wheel';
 
   this.keys=this.input.keyboard.addKeys('W,A,S,D');
-  document.getElementById('info').innerText=`${ALL.length} HQ | Scale 1.0 (no blur) | Filter: no low-detail`;
+  
+  // Mouse wheel zoom
+  this.input.on('wheel',(p,dx,dy,dz)=>{
+   let cam=this.cameras.main;
+   let nz=Phaser.Math.Clamp(cam.zoom - dy*0.001, 0.5, 2.5);
+   cam.setZoom(nz);
+  });
 
-  this.input.on('pointermove', p=>{ if(p.isDown&&p.prevPosition){ this.cameras.main.scrollX-=(p.x-p.prevPosition.x)/this.cameras.main.zoom; this.cameras.main.scrollY-=(p.y-p.prevPosition.y)/this.cameras.main.zoom; }});
+  // Drag to pan
+  this.input.on('pointermove', p=>{
+   if(p.isDown&&!this.playerMoving){
+    this.cameras.main.scrollX-=(p.x-p.prevPosition.x)/this.cameras.main.zoom;
+    this.cameras.main.scrollY-=(p.y-p.prevPosition.y)/this.cameras.main.zoom;
+   }
+  });
  }
+
  update(){
-  let sp=18, mx=joy.x, my=joy.y;
-  if(this.keys.A.isDown) mx=-1; if(this.keys.D.isDown) mx=1;
-  if(this.keys.W.isDown) my=-1; if(this.keys.S.isDown) my=1;
-  if(Math.abs(mx)<0.1) mx=0; if(Math.abs(my)<0.1) my=0;
-  if(mx||my){ this.cameras.main.scrollX+=mx*sp; this.cameras.main.scrollY+=my*sp; }
+  let sp=5, mx=joy.x, my=joy.y;
+  if(this.keys.A.isDown) mx=-1;
+  if(this.keys.D.isDown) mx=1;
+  if(this.keys.W.isDown) my=-1;
+  if(this.keys.S.isDown) my=1;
+  if(Math.abs(mx)<0.1) mx=0;
+  if(Math.abs(my)<0.1) my=0;
+  
+  if(mx||my){
+   this.playerMoving=true;
+   this.player.x+=mx*sp;
+   this.player.y+=my*sp;
+   // Keep inside map
+   this.player.x=Phaser.Math.Clamp(this.player.x, 50, this.W-50);
+   this.player.y=Phaser.Math.Clamp(this.player.y, 50, this.H-50);
+  }else{
+   this.playerMoving=false;
+  }
  }
 }
 
-(async()=>{
- await getAssets();
- new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#3d3d3d',scene:HQMap,scale:{mode:Phaser.Scale.RESIZE}});
- let s=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'60px',top:'60px'},color:'white',size:90});
- s.on('move',(e,d)=>{if(d&&d.vector){joy.x=d.vector.x; joy.y=-d.vector.y;}});
- s.on('end',()=>{joy.x=0;joy.y=0;});
-})();
+new Phaser.Game({
+ type:Phaser.AUTO,
+ parent:'game',
+ width:innerWidth,
+ height:innerHeight,
+ backgroundColor:'#3d3d3d',
+ scene:TriangleGame,
+ scale:{mode:Phaser.Scale.RESIZE}
+});
+
+let s=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'60px',top:'60px'},color:'white',size:90});
+s.on('move',(e,d)=>{if(d&&d.vector){joy.x=d.vector.x; joy.y=-d.vector.y;}});
+s.on('end',()=>{joy.x=0;joy.y=0;});
 </script></body></html>
