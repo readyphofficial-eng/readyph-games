@@ -1,26 +1,26 @@
 <!DOCTYPE html><html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>V71 FIX SIZE PET</title>
+<title>V72 FIX BLACK AGAIN</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <style>
 html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
 #game{position:fixed;inset:0}
-#top{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.95);color:#fff;padding:8px 10px;font-size:11px;font-weight:900;z-index:40;display:flex;justify-content:space-between}
+#top{position:fixed;top:0;left:0;right:0;background:#000;color:#fff;padding:8px 10px;font-size:11px;font-weight:900;z-index:40;display:flex;justify-content:space-between}
 #toggle{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:#4ade80;color:#000;border:none;border-radius:22px;padding:14px 28px;font-weight:900;font-size:14px;z-index:80}
 #shopWrap{position:fixed;bottom:0;left:0;right:0;height:155px;background:#111;border-top:3px solid #333;z-index:60;transition:transform.3s}
 #shopWrap.closed{transform:translateY(100%)}
 #shop{height:100%;display:flex;gap:8px;padding:10px;overflow-x:auto}
 .card{width:82px;min-width:82px;height:132px;background:#222;border:2px solid #444;border-radius:10px;display:flex;flex-direction:column;align-items:center;padding:6px;flex-shrink:0}
 .card img{width:48px;height:48px;object-fit:contain;background:#1a1a1a;border-radius:8px}
-.card b{font-size:7px;color:#fff;margin:4px 0;text-align:center}
+.card b{font-size:7px;color:#fff;margin:4px 0}
 .card button{background:#4ade80;color:#000;border:none;border-radius:6px;padding:5px;font-size:8px;font-weight:900;width:100%}
 #ownedTab{position:fixed;top:42px;left:0;bottom:165px;width:62px;background:rgba(0,0,0,.92);border-right:2px solid #333;z-index:55;display:flex;flex-direction:column;align-items:center;padding:6px 0;transition:transform.3s}
 #ownedTab.minimized{transform:translateX(-52px)}
 #ownedList{flex:1;width:100%;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:0 5px;align-items:center}
 .ownedItem{width:46px;height:46px;background:#222;border:2px solid #555;border-radius:10px;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer}
 .ownedItem img{width:34px;height:34px;object-fit:contain}
-.ownedItem.highlight{border-color:#facc15;box-shadow:0 0 12px #facc15}
-.ownedItem.hasLover{border-color:#ff69b4!important;box-shadow:0 0 8px #ff69b4}
+.ownedItem.highlight{border-color:#facc15}
+.ownedItem.hasLover{border-color:#ff69b4!important}
 .ownedItem.hasPet{border-color:#7dd3fc!important}
 #minBtn{position:absolute;top:50%;right:-16px;width:16px;height:50px;background:#4ade80;border:none;border-radius:0 10px 10px 0;font-weight:900;font-size:12px;cursor:pointer}
 #statWin{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:#1e1e1e;border:3px solid #4ade80;border-radius:16px;padding:12px;width:310px;z-index:90;transition:transform.2s;max-height:85vh;overflow-y:auto}
@@ -31,10 +31,12 @@ html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%;touc
 .statRow b{color:#4ade80}
 #msg{position:fixed;top:50px;left:50%;transform:translateX(-50%) scale(0);background:linear-gradient(90deg,#f472b6,#a78bfa);color:#fff;padding:9px 18px;border-radius:20px;font-weight:900;font-size:11px;z-index:70;transition:transform.3s;pointer-events:none;max-width:90vw;text-align:center}
 #msg.show{transform:translateX(-50%) scale(1)}
+#debugTxt{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);color:#ff5555;font-size:14px;font-weight:900;text-align:center;z-index:100;pointer-events:none;display:none;background:rgba(0,0,0,.8);padding:12px;border-radius:10px}
 </style>
 </head><body>
 <div id="game"></div>
-<div id="top"><span>🏝️ V71 FIX SIZE</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span></span></div>
+<div id="top"><span>🏝️ V72 MAP FIX</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span></span></div>
+<div id="debugTxt"></div>
 <div id="ownedTab"><b>OWNED</b><div id="ownedList"></div><button id="minBtn" onclick="toggleTab()">◀</button></div>
 <div id="msg"></div>
 <div id="statWin">
@@ -52,25 +54,47 @@ function toggleTab(){ isTabMin=!isTabMin; document.getElementById('ownedTab').cl
 function getGender(id){ return id.includes('female')?'female':id.includes('male')?'male':'animal'; }
 function isHumanId(id){ return id.includes('female')||id.includes('male'); }
 
-class WorldV71 extends Phaser.Scene{
- constructor(){super('WorldV71'); this.ents=[]}
+class WorldV72 extends Phaser.Scene{
+ constructor(){super('WorldV72'); this.ents=[]}
  preload(){
-  this.load.image('map','./new/map-triangle-4k.png');
-  ANIMALS.forEach(n=>{ this.load.image('a-'+n,'./new/animal-'+n+'.png'); });
-  HUMANS.forEach(n=>{ this.load.image('h-'+n,'./new/character-'+n+'.png'); });
+  // CACHE BUSTER para sure new version lagi!
+  let v='?v=72_'+Date.now();
+  console.log('Loading map with cache buster');
+  this.load.image('map','./new/map-triangle-4k.png'+v);
+  ANIMALS.forEach(n=>{ this.load.image('a-'+n,'./new/animal-'+n+'.png'+v); });
+  HUMANS.forEach(n=>{ this.load.image('h-'+n,'./new/character-'+n+'.png'+v); });
+  this.load.on('loaderror',(f)=>{ console.error('FAILED TO LOAD:',f.src); document.getElementById('debugTxt').style.display='block'; document.getElementById('debugTxt').innerText='FAILED: '+f.src.split('/').pop()+'\nCheck new/ folder!'; });
  }
  create(){
-  const W=3500,H=3500; this.add.rectangle(W/2,H/2,W,H,0x0a0a0a).setDepth(0);
+  const W=3500,H=3500;
+  // Green background para hindi pure black pag fail map
+  this.add.rectangle(W/2,H/2,W,H,0x1a3a2a).setDepth(0);
+
   if(this.textures.exists('map')){
-   let tex=this.textures.get('map').getSourceImage();
-   this.island=this.add.image(W/2,H/2,'map').setDepth(1);
-   let r=Math.min(2400/tex.width,2400/tex.height); this.island.setDisplaySize(tex.width*r,tex.height*r);
-   this.bounds={x:W/2-1100,y:H/2-900,w:2200,h:1800};
-  } else this.bounds={x:W/2-900,y:H/2-900,w:1800,h:1800};
-  this.cameras.main.setBounds(0,0,W,H); this.cameras.main.centerOn(W/2,H/2); this.cameras.main.setZoom(0.40);
+   try{
+    let tex=this.textures.get('map').getSourceImage();
+    console.log('MAP LOADED OK:',tex.width,tex.height);
+    this.island=this.add.image(W/2,H/2,'map').setDepth(1);
+    // FIX: fixed 2000px para hindi masyado malaki
+    this.island.setDisplaySize(2000,2000);
+    this.bounds={x:W/2-900,y:H/2-750,w:1800,h:1500};
+    document.getElementById('debugTxt').style.display='none';
+   }catch(e){
+    console.error('MAP DISPLAY ERROR',e);
+    document.getElementById('debugTxt').style.display='block';
+    document.getElementById('debugTxt').innerText='MAP ERROR: '+e;
+    this.bounds={x:W/2-900,y:H/2-750,w:1800,h:1500};
+   }
+  } else {
+   console.error('MAP TEXTURE NOT EXISTS');
+   document.getElementById('debugTxt').style.display='block';
+   document.getElementById('debugTxt').innerText='MAP NOT FOUND\n./new/map-triangle-4k.png\nRefresh after 2 mins';
+   this.bounds={x:W/2-900,y:H/2-750,w:1800,h:1500};
+  }
+  this.cameras.main.setBounds(0,0,W,H); this.cameras.main.centerOn(W/2,H/2); this.cameras.main.setZoom(0.45);
   this.isDragging=false;
   this.input.on('pointerdown',p=>{ if(isShopOpen&&p.y<innerHeight-155&&selected){ let wp=this.cameras.main.getWorldPoint(p.x,p.y); this.spawn(wp.x,wp.y,selected,false); selected=null; return; } if(p.x<62&&p.y>42&&p.y<innerHeight-165) return; if(document.getElementById('statWin').classList.contains('open')) return; if(!isShopOpen){ this.isDragging=true; this.dragStart={x:p.x,y:p.y,sx:this.cameras.main.scrollX,sy:this.cameras.main.scrollY}; } });
-  this.input.on('pointermove',p=>{ if(this.isDragging&&this.dragStart&&!isShopOpen){ this.cameras.main.scrollX=this.dragStart.sx-(p.x-this.dragStart.x)/0.40; this.cameras.main.scrollY=this.dragStart.sy-(p.y-this.dragStart.y)/0.40; } });
+  this.input.on('pointermove',p=>{ if(this.isDragging&&this.dragStart&&!isShopOpen){ this.cameras.main.scrollX=this.dragStart.sx-(p.x-this.dragStart.x)/0.45; this.cameras.main.scrollY=this.dragStart.sy-(p.y-this.dragStart.y)/0.45; } });
   this.input.on('pointerup',()=>this.isDragging=false);
   this.buildShop();
   document.getElementById('toggle').onclick=()=>{ isShopOpen=!isShopOpen; document.getElementById('shopWrap').className=isShopOpen?'':'closed'; document.getElementById('toggle').innerHTML=isShopOpen?'❌ CLOSE':'🛒 SHOP'; };
@@ -79,27 +103,25 @@ class WorldV71 extends Phaser.Scene{
   const shop=document.getElementById('shop');
   [...HUMANS.map(n=>({id:'h-'+n,name:n,price:20,t:'human'})),...ANIMALS.map(n=>({id:'a-'+n,name:n,price:10,t:'animal'}))].forEach(it=>{
    let key=it.id; let c=document.createElement('div'); c.className='card';
-   c.innerHTML=`<img src="./new/${it.t=='human'?'character':'animal'}-${it.name}.png"><b>${it.name.toUpperCase()}</b><button>🪙${it.price}</button>`;
+   c.innerHTML=`<img src="./new/${it.t=='human'?'character':'animal'}-${it.name}.png?v=72"><b>${it.name.toUpperCase()}</b><button>🪙${it.price}</button>`;
    c.querySelector('button').onclick=()=>{ if(coins<it.price) return; if(!this.textures.exists(key)) return; coins-=it.price; document.getElementById('coins').innerText=coins; selected=key; document.querySelectorAll('.card').forEach(x=>x.style.borderColor='#444'); c.style.borderColor='#4ade80'; };
    shop.appendChild(c);
   });
  }
  spawn(x,y,id,isBaby=false){
   if(!this.textures.exists(id)) return; let human=isHumanId(id);
-  // FIXED CONSISTENT SIZE - STORE BASE
-  let baseW=human?72:58, baseH=human?92:58;
+  let baseW=human?68:52, baseH=human?88:52;
   let spr=this.add.image(x,y,id).setDepth(10).setInteractive();
-  spr.setDisplaySize(baseW,baseH);
-  spr.baseW=baseW; spr.baseH=baseH; // save for reset
+  spr.setDisplaySize(baseW,baseH); spr.baseW=baseW; spr.baseH=baseH;
   spr.stats={name:(isBaby?'Baby ':'')+NAMES[Math.floor(Math.random()*NAMES.length)]+' #'+Math.floor(Math.random()*99),type:id.replace('a-','').replace('h-','').toUpperCase(),gender:getGender(id),isHuman:human,lvl:1,happiness:72+Math.floor(Math.random()*20),friends:0,friendsList:[],lover:null,loverName:null,familyTime:0,isBaby:isBaby,owner:null,ownerRef:null,pets:[],id:id};
-  spr.animState='idle'; spr.baseSpeed=human?1.3:1.6; spr.moveTimer=0; spr.lastMeet=0; spr.isPetFollowing=false;
+  spr.animState='idle'; spr.baseSpeed=human?1.2:1.5; spr.moveTimer=0; spr.lastMeet=0;
   this.ents.push(spr); document.getElementById('cnt').innerText=this.ents.length; this.addOwned(spr); this.playAnimOn(spr,'idle');
   spr.on('pointerdown',()=>this.showStats(spr));
   if(isBaby) this.showMsg('👶 Baby Born! '+spr.stats.name);
  }
- addOwned(spr){ const list=document.getElementById('ownedList'); let div=document.createElement('div'); div.className='ownedItem'; div.innerHTML=`<img src="./new/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png"><span style="position:absolute;bottom:-4px;right:-4px;background:#4ade80;color:#000;font-size:6px;font-weight:900;padding:1px 4px;border-radius:6px">LVL${spr.stats.lvl}</span>`; div.onclick=()=>{ selectedEnt=spr; this.focusOn(spr); this.showStats(spr); }; spr._tab=div; spr._tabUpdate=()=>{ let b=div.querySelector('span'); if(b) b.innerText='LVL'+spr.stats.lvl; if(spr.stats.lover) div.classList.add('hasLover'); if(spr.stats.owner) div.classList.add('hasPet'); }; list.appendChild(div); }
+ addOwned(spr){ const list=document.getElementById('ownedList'); let div=document.createElement('div'); div.className='ownedItem'; div.innerHTML=`<img src="./new/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png?v=72"><span style="position:absolute;bottom:-4px;right:-4px;background:#4ade80;color:#000;font-size:6px;font-weight:900;padding:1px 4px;border-radius:6px">LVL${spr.stats.lvl}</span>`; div.onclick=()=>{ selectedEnt=spr; this.focusOn(spr); this.showStats(spr); }; spr._tab=div; spr._tabUpdate=()=>{ let b=div.querySelector('span'); if(b) b.innerText='LVL'+spr.stats.lvl; if(spr.stats.lover) div.classList.add('hasLover'); if(spr.stats.owner) div.classList.add('hasPet'); }; list.appendChild(div); }
  focusOn(spr){ this.cameras.main.pan(spr.x,spr.y,400,'Power2'); document.querySelectorAll('.ownedItem').forEach(e=>e.classList.remove('highlight')); if(spr._tab) spr._tab.classList.add('highlight'); setTimeout(()=>spr._tab&&spr._tab.classList.remove('highlight'),2000); }
- showStats(spr){ selectedEnt=spr; document.getElementById('sImg').src='./new/'+(spr.stats.isHuman?'character':'animal')+'-'+spr.stats.type.toLowerCase()+'.png'; document.getElementById('sName').innerText=spr.stats.name+(spr.stats.isBaby?' 👶':''); document.getElementById('sType').innerText=spr.stats.type+' • '+spr.stats.gender.toUpperCase(); document.getElementById('sAnim').innerText='LVL'+spr.stats.lvl+' | '+spr.animState.toUpperCase(); let loverTxt=spr.stats.lover?'💕 '+spr.stats.loverName:'Single'; let ownerTxt=spr.stats.owner?'🐾 Pet of '+spr.stats.owner:'Wild'; let petsTxt=spr.stats.pets.length?spr.stats.pets.slice(0,2).join(', '):'None'; document.getElementById('sStats').innerHTML=`<div class="statRow"><span>📶 LEVEL</span><b>${spr.stats.lvl} ${spr.stats.lvl<5?'('+({1:'1f+75%',2:'3f+80%',3:'5f+85%',4:'8f+90%'}[spr.stats.lvl])+')':'MAX!'}</b></div><div class="statRow"><span>😊 HAPPY</span><b>${spr.stats.happiness}%</b></div><div class="statRow"><span>👫 FRIENDS</span><b>${spr.stats.friends}</b></div>${spr.stats.isHuman?`<div class="statRow"><span>💕 LOVER</span><b style="font-size:9px">${loverTxt}</b></div><div class="statRow"><span>👶 FAMILY</span><b>${Math.floor(spr.stats.familyTime/1000)}s/30s</b></div><div class="statRow"><span>🐾 PETS</span><b style="font-size:8px">${petsTxt}</b></div>`:`<div class="statRow"><span>🐾 OWNER</span><b style="font-size:8px">${ownerTxt}</b></div>`}`; document.getElementById('statWin').classList.add('open'); }
+ showStats(spr){ selectedEnt=spr; document.getElementById('sImg').src='./new/'+(spr.stats.isHuman?'character':'animal')+'-'+spr.stats.type.toLowerCase()+'.png?v=72'; document.getElementById('sName').innerText=spr.stats.name+(spr.stats.isBaby?' 👶':''); document.getElementById('sType').innerText=spr.stats.type+' • '+spr.stats.gender.toUpperCase(); document.getElementById('sAnim').innerText='LVL'+spr.stats.lvl+' | '+spr.animState.toUpperCase(); let loverTxt=spr.stats.lover?'💕 '+spr.stats.loverName:'Single'; let ownerTxt=spr.stats.owner?'🐾 Pet of '+spr.stats.owner:'Wild'; let petsTxt=spr.stats.pets.length?spr.stats.pets.slice(0,2).join(', '):'None'; document.getElementById('sStats').innerHTML=`<div class="statRow"><span>📶 LEVEL</span><b>${spr.stats.lvl}</b></div><div class="statRow"><span>😊 HAPPY</span><b>${spr.stats.happiness}%</b></div><div class="statRow"><span>👫 FRIENDS</span><b>${spr.stats.friends}</b></div>${spr.stats.isHuman?`<div class="statRow"><span>💕 LOVER</span><b style="font-size:9px">${loverTxt}</b></div><div class="statRow"><span>👶 FAMILY</span><b>${Math.floor(spr.stats.familyTime/1000)}s/30s</b></div><div class="statRow"><span>🐾 PETS</span><b style="font-size:8px">${petsTxt}</b></div>`:`<div class="statRow"><span>🐾 OWNER</span><b style="font-size:8px">${ownerTxt}</b></div>`}`; document.getElementById('statWin').classList.add('open'); }
  checkLevelUp(spr){ if(spr.stats.lvl>=5) return; let f=spr.stats.friends,h=spr.stats.happiness,can=false; if(spr.stats.lvl==1&&f>=1&&h>=75) can=true; if(spr.stats.lvl==2&&f>=3&&h>=80) can=true; if(spr.stats.lvl==3&&f>=5&&h>=85) can=true; if(spr.stats.lvl==4&&f>=8&&h>=90) can=true; if(can){ spr.stats.lvl++; this.showMsg('⬆️ LVL UP! '+spr.stats.name+' LVL'+spr.stats.lvl); if(spr._tabUpdate) spr._tabUpdate(); this.tweens.add({targets:spr,scaleX:1.15,scaleY:1.15,duration:150,yoyo:true,repeat:1,onComplete:()=>{ spr.setScale(1); spr.setDisplaySize(spr.baseW,spr.baseH); }}); } }
  makeFriends(a,b){
   if(a==b||Date.now()-a.lastMeet<2500) return;
@@ -117,7 +139,7 @@ class WorldV71 extends Phaser.Scene{
  showHeart(spr){ let h=this.add.text(spr.x,spr.y-65,spr.stats.lover?'💕':'❤️',{fontSize:'22px'}).setDepth(50).setOrigin(0.5); this.tweens.add({targets:h,y:h.y-55,alpha:0,duration:1200,onComplete:()=>h.destroy()}); }
  showMsg(t){ let el=document.getElementById('msg'); el.innerText=t; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2500); }
  playAnimOn(spr,anim){
-  if(!spr.active) return; if(spr.currentTween){ spr.currentTween.stop(); this.tweens.killTweensOf(spr); } spr.setAngle(0); spr.setAlpha(1); spr.setScale(1); spr.setDisplaySize(spr.baseW,spr.baseH); // RESET SIZE PALAGI!
+  if(!spr.active) return; if(spr.currentTween){ spr.currentTween.stop(); this.tweens.killTweensOf(spr); } spr.setAngle(0); spr.setAlpha(1); spr.setScale(1); spr.setDisplaySize(spr.baseW,spr.baseH);
   spr.animState=anim; if(selectedEnt==spr) document.getElementById('sAnim').innerText='LVL'+spr.stats.lvl+' | '+anim.toUpperCase();
   if(anim=='idle'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-2, duration:700, yoyo:true, repeat:-1}); }
   else if(anim=='walk'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-2, duration:220, yoyo:true, repeat:-1}); }
@@ -136,29 +158,9 @@ class WorldV71 extends Phaser.Scene{
   if(isShopOpen) return;
   for(let i=0;i<this.ents.length;i++) for(let j=i+1;j<this.ents.length;j++){ let a=this.ents[i],b=this.ents[j]; if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)<65) this.makeFriends(a,b); }
   this.ents.forEach(e=>{
-   // PET FOLLOW LOGIC - 150px max distance!
    if(e.stats.ownerRef && e.stats.ownerRef.active){
     let dist=Phaser.Math.Distance.Between(e.x,e.y,e.stats.ownerRef.x,e.stats.ownerRef.y);
-    if(dist>150){
-     // follow owner
-     let ang=Math.atan2(e.stats.ownerRef.y-e.y, e.stats.ownerRef.x-e.x);
-     e.vx=Math.cos(ang)*e.baseSpeed*1.5; e.vy=Math.sin(ang)*e.baseSpeed*1.5;
-     e.setFlipX(e.vx<0); // harap tama
-     this.playAnimOn(e,'run');
-     e.x+=e.vx; e.y+=e.vy; return;
-    }
+    if(dist>150){ let ang=Math.atan2(e.stats.ownerRef.y-e.y, e.stats.ownerRef.x-e.x); e.vx=Math.cos(ang)*e.baseSpeed*1.5; e.vy=Math.sin(ang)*e.baseSpeed*1.5; e.setFlipX(e.vx<0); this.playAnimOn(e,'run'); e.x+=e.vx; e.y+=e.vy; return; }
    }
    if(['sleep','sit','eat','jump','wave','cheer','spin','bounce'].includes(e.animState)) return;
-   e.moveTimer-=d;
-   if(e.moveTimer<=0){
-    // RANDOM ANIM POOL - hindi lang walk/run/idle
-    let r=Math.random();
-    if(r<0.30){ this.playAnimOn(e,'walk'); e.moveTimer=1800+Math.random()*2000; }
-    else if(r<0.38){ this.playAnimOn(e,'run'); e.moveTimer=1200+Math.random()*1000; }
-    else if(r<0.50){ this.playAnimOn(e,'idle'); e.moveTimer=1000+Math.random()*1500; e.vx=0; e.vy=0; return; }
-    else if(r<0.58){ this.playAnimOn(e,'dance'); e.moveTimer=2000; e.vx=0; e.vy=0; return; }
-    else if(r<0.65){ this.playAnimOn(e,'eat'); e.moveTimer=1500; e.vx=0; e.vy=0; return; }
-    else if(r<0.72){ this.playAnimOn(e,'wave'); e.moveTimer=1200; e.vx=0; e.vy=0; return; }
-    else if(r<0.78){ this.playAnimOn(e,'sit'); e.moveTimer=2000; e.vx=0; e.vy=0; return; }
-    else if(r<0.85){ this.playAnimOn(e,'bounce'); e.moveTimer=1300; e.vx=0; e.vy=0; return; }
-    else { this.playAnimOn(e,'jump'); e.moveTimer=1000;
+   e.mo
