@@ -31,10 +31,10 @@ let coins=500, selected=null, isShopOpen=false;
 class FinalWorld extends Phaser.Scene{
  constructor(){super('FinalWorld'); this.ents=[]}
  preload(){
-  this.load.image('map4k','clean/map-triangle-4k.png');
-  this.load.image('map','clean/map-triangle.png');
-  ANIMALS.forEach(n=>this.load.image('a-'+n,'clean/animal-'+n+'.png'));
-  HUMANS.forEach(n=>this.load.image('h-'+n,'clean/character-'+n+'.png'));
+  this.load.image('map4k','new/map-triangle-4k.png');
+  this.load.image('map','new/map-triangle.png');
+  ANIMALS.forEach(n=>this.load.image('a-'+n,'new/animal-'+n+'.png'));
+  HUMANS.forEach(n=>this.load.image('h-'+n,'new/character-'+n+'.png'));
  }
  create(){
   const W=3000,H=3000; this.W=W; this.H=H;
