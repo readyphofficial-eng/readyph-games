@@ -1,242 +1,203 @@
 <!DOCTYPE html><html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>V60 OWNED TAB + STATS</title>
+<title>V65 FRIENDSHIP</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <style>
 html,body{margin:0;padding:0;background:#0f0f0f;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
 #game{position:fixed;inset:0}
 #top{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.9);color:#fff;padding:7px 10px;font-size:10px;font-weight:900;z-index:40;display:flex;justify-content:space-between}
-#toggle{position:fixed;bottom:15px;left:50%;transform:translateX(-50%);background:#4ade80;color:#000;border:none;border-radius:22px;padding:12px 26px;font-weight:900;font-size:14px;z-index:80}
-#shopWrap{position:fixed;bottom:0;left:0;right:0;height:160px;background:#0a0a0a;border-top:3px solid #333;z-index:60;transition:transform.3s}
+#toggle{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:#4ade80;color:#000;border:none;border-radius:22px;padding:12px 24px;font-weight:900;font-size:13px;z-index:80}
+#shopWrap{position:fixed;bottom:0;left:0;right:0;height:150px;background:#0a0a0a;border-top:3px solid #333;z-index:60;transition:transform.3s}
 #shopWrap.closed{transform:translateY(100%)}
-#shop{height:100%;display:flex;gap:10px;padding:10px;overflow-x:auto}
-.card{width:84px;min-width:84px;height:138px;background:#222;border:2px solid #444;border-radius:12px;display:flex;flex-direction:column;align-items:center;padding:6px;flex-shrink:0}
-.card img{width:48px;height:48px;object-fit:contain;background:#1a1a1a;border-radius:8px}
-.card b{font-size:8px;color:#fff;margin:4px 0;text-align:center;height:18px;display:flex;align-items:center}
-.card button{background:#4ade80;color:#000;border:none;border-radius:8px;padding:5px;font-size:9px;font-weight:900;width:100%}
-
-/* LEFT TAB - OWNED LIST */
-#ownedTab{position:fixed;top:40px;left:0;bottom:170px;width:54px;background:rgba(0,0,0,.85);border-right:2px solid #333;z-index:55;display:flex;flex-direction:column;align-items:center;padding:6px 0}
-#ownedTab b{color:#4ade80;font-size:8px;margin-bottom:6px}
-#ownedList{flex:1;width:100%;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:0 4px}
-.ownedItem{width:44px;height:44px;background:#222;border:2px solid #555;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;flex-shrink:0}
-.ownedItem img{width:32px;height:32px;object-fit:contain}
-.ownedItem.highlight{border-color:#facc15;box-shadow:0 0 10px #facc15;animation:pulse.8s infinite}
-.ownedItem.lvl{position:absolute;bottom:-4px;right:-4px;background:#4ade80;color:#000;font-size:7px;font-weight:900;padding:1px 4px;border-radius:8px}
-@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
-#ownedCount{color:#fff;font-size:9px;margin-top:4px;font-weight:800}
-
-/* STATS WINDOW */
-#statWin{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:#1e1e1e;border:3px solid #4ade80;border-radius:16px;padding:14px;width:260px;z-index:90;transition:transform.2s;box-shadow:0 10px 30px rgba(0,0,0,.8)}
+#shop{height:100%;display:flex;gap:8px;padding:8px;overflow-x:auto}
+.card{width:80px;min-width:80px;height:130px;background:#222;border:2px solid #444;border-radius:10px;display:flex;flex-direction:column;align-items:center;padding:5px;flex-shrink:0}
+.card img{width:44px;height:44px;object-fit:contain;background:#1a1a1a;border-radius:6px}
+.card b{font-size:7px;color:#fff}
+.card button{background:#4ade80;color:#000;border:none;border-radius:6px;padding:4px;font-size:8px;font-weight:900;width:100%}
+#ownedTab{position:fixed;top:40px;left:0;bottom:160px;width:54px;background:rgba(0,0,0,.85);border-right:2px solid #333;z-index:55;display:flex;flex-direction:column;align-items:center;padding:5px 0}
+#ownedTab b{color:#4ade80;font-size:7px}
+#ownedList{flex:1;width:100%;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding:0 4px}
+.ownedItem{width:42px;height:42px;background:#222;border:2px solid #555;border-radius:9px;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer}
+.ownedItem.highlight{border-color:#facc15;box-shadow:0 0 12px #facc15}
+#statWin{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:#1e1e1e;border:3px solid #4ade80;border-radius:16px;padding:12px;width:300px;z-index:90;transition:transform.2s;max-height:85vh;overflow-y:auto}
 #statWin.open{transform:translate(-50%,-50%) scale(1)}
-#statWin.head{display:flex;gap:10px;align-items:center;margin-bottom:10px}
-#statWin.head img{width:52px;height:52px;background:#111;border-radius:10px;object-fit:contain}
-#statWin h3{margin:0;color:#fff;font-size:14px}
-#statWin.sub{color:#aaa;font-size:10px}
+.animGrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin:8px 0}
+.animGrid button{padding:7px 2px;border:none;border-radius:8px;font-size:9px;font-weight:900;color:#000}
 .statRow{display:flex;justify-content:space-between;background:#2a2a2a;margin:3px 0;padding:5px 8px;border-radius:6px;font-size:10px;color:#ddd}
 .statRow b{color:#4ade80}
-#statWin button{width:100%;margin-top:10px;padding:8px;border:none;border-radius:8px;font-weight:900;cursor:pointer}
-.btnClose{background:#333;color:#fff}
-.btnFollow{background:#facc15;color:#000;margin-top:6px!important}
-#tip{position:fixed;bottom:70px;left:62px;background:rgba(0,0,0,.7);color:#fff;padding:5px 10px;border-radius:12px;font-size:9px;z-index:50}
+#partyMsg{position:fixed;top:50px;left:50%;transform:translateX(-50%) scale(0);background:linear-gradient(90deg,#f472b6,#a78bfa);color:#fff;padding:8px 18px;border-radius:20px;font-weight:900;font-size:12px;z-index:70;transition:transform.3s;pointer-events:none}
+#partyMsg.show{transform:translateX(-50%) scale(1)}
 </style>
 </head><body>
 <div id="game"></div>
-<div id="top"><span>🏝️ V60 - OWNED + STATS</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | 40% FIXED</span></div>
-
-<div id="ownedTab">
-<b>OWNED</b>
-<div id="ownedList"></div>
-<div id="ownedCount">0</div>
-</div>
-
-<div id="tip">🖐️ Drag map | Left tab = click to find</div>
-
+<div id="top"><span>🏝️ V65 FRIENDS</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span> friends made</span></div>
+<div id="ownedTab"><b>OWNED</b><div id="ownedList"></div></div>
+<div id="partyMsg">🎉 PARTY TIME! 💃</div>
 <div id="statWin">
-<div class="head"><img id="sImg"><div><h3 id="sName">Name</h3><div class="sub" id="sType">type</div></div></div>
-<div id="sStats"></div>
-<button class="btnFollow" onclick="followSelected()">📍 GO TO LOCATION</button>
-<button class="btnClose" onclick="closeStat()">❌ CLOSE</button>
+<div style="display:flex;gap:10px;align-items:center"><img id="sImg" style="width:50px;height:50px;background:#111;border-radius:10px"><div><h3 id="sName" style="margin:0;color:#fff;font-size:13px">Name</h3><div id="sType" style="color:#aaa;font-size:9px"></div><div id="sAnim" style="color:#4ade80;font-size:10px;font-weight:900">IDLE</div></div></div>
+<div class="animGrid">
+<button style="background:#60a5fa" onclick="playAnim('walk')">🚶 WALK</button>
+<button style="background:#fb7185" onclick="playAnim('run')">🏃 RUN</button>
+<button style="background:#a7f3d0" onclick="playAnim('idle')">😴 IDLE</button>
+<button style="background:#fde68a" onclick="playAnim('jump')">🤾 JUMP</button>
+<button style="background:#fbbf24" onclick="playAnim('eat')">😋 EAT</button>
+<button style="background:#c4b5fd" onclick="playAnim('sleep')">💤 SLEEP</button>
+<button style="background:#f472b6" onclick="playAnim('dance')">💃 DANCE</button>
+<button style="background:#6ee7b7" onclick="playAnim('sit')">🪑 SIT</button>
+<button style="background:#93c5fd" onclick="playAnim('wave')">👋 WAVE</button>
+<button style="background:#facc15" onclick="playAnim('cheer')">🎉 CHEER</button>
+<button style="background:#a5b4fc" onclick="playAnim('spin')">🌀 SPIN</button>
+<button style="background:#fdba74" onclick="playAnim('bounce')">⚽ BOUNCE</button>
+<button style="background:#86efac" onclick="playAnim('stretch')">🙆 STRETCH</button>
+<button style="background:#d8b4fe" onclick="playAnim('yawn')">🥱 YAWN</button>
+<button style="background:#7dd3fc" onclick="playAnim('swim')">🏊 SWIM</button>
+<button style="background:#f9a8d4" onclick="playAnim('clap')">👏 CLAP</button>
 </div>
-
+<div id="sStats"></div>
+<button onclick="closeStat()" style="width:100%;margin-top:8px;padding:8px;background:#333;color:#fff;border:none;border-radius:8px;font-weight:900">❌ CLOSE</button>
+</div>
 <div id="shopWrap" class="closed"><div id="shop"></div></div>
 <button id="toggle">🛒 SHOP</button>
-
 <script>
 const ANIMALS=['beaver','bee','bunny','cat','caterpillar','chick','cow','crab','deer','dog','elephant','fox','giraffe','hog','koala','lion','monkey','panda','parrot','penguin','pig','polar','tiger'];
 const HUMANS=['female-a','female-b','female-c','female-d','female-e','female-f','male-a','male-b','male-c','male-d','male-e','male-f'];
-const FIRST_NAMES=['Juan','Maria','Pedro','Ana','Luna','Bata','Milo','Kiko','Bebe','Tigre','Lio','Momo','Chuchu','Browny','Putol','Kulit','Bilog','Ampon','Liit','Brave','Lakas','Ganda','Talon','Bilis'];
-const LAST_NAMES=['de la Cruz','Santos','Reyes','Mabait','Malakas','Makulit','Matapang','Mabagal','Mabilis','Tahimik','Maingay','Matalino','Bibo','Tamad','Sipag'];
-const JOBS=['Farmer','Hunter','Builder','Idle','Wanderer','Guard','Gatherer','Explorer','Sleepy','Hungry'];
-const MOODS=['😊 Happy','😋 Hungry','😴 Sleepy','😡 Angry','🤩 Excited','😢 Sad','😎 Cool','🤔 Curious'];
+const NAMES=['Luna','Milo','Kiko','Bilog','Kulit','Ganda','Bebe','Momo','Chuchu','Bata','Brave','Lakas'];
+const JOBS=['Explorer','Gatherer','Builder','Farmer','Helper','Friend','Dancer','Singer','Dreamer'];
+const MOODS=['😊 Happy','🤩 Excited','😋 Yummy','🥰 Loved','😎 Cool','🤗 Cuddly'];
+let coins=500, selected=null, isShopOpen=false, selectedEnt=null, totalFriends=0;
 
-let coins=500, selected=null, isShopOpen=false, selectedEnt=null;
-let NAMES_USED=[];
-
-function randName(){
- let f=FIRST_NAMES[Math.floor(Math.random()*FIRST_NAMES.length)];
- let l=LAST_NAMES[Math.floor(Math.random()*LAST_NAMES.length)];
- return f+' '+l;
-}
-
-class WorldV60 extends Phaser.Scene{
- constructor(){super('WorldV60'); this.ents=[]}
+class WorldV65 extends Phaser.Scene{
+ constructor(){super('WorldV65'); this.ents=[]}
  preload(){
-  this.load.image('map','new/map-triangle-4k.png');
-  this.load.image('map2','assets/maps/map-triangle-4k.png');
-  this.load.image('map3','clean/map-triangle-4k.png');
-  ANIMALS.forEach(n=>{this.load.image('a-'+n,'new/animal-'+n+'.png'); this.load.image('a2-'+n,'assets/animals/animal-'+n+'.png'); this.load.image('a3-'+n,'clean/animal-'+n+'.png');});
-  HUMANS.forEach(n=>{this.load.image('h-'+n,'new/character-'+n+'.png'); this.load.image('h2-'+n,'assets/characters/character-'+n+'.png'); this.load.image('h3-'+n,'clean/character-'+n+'.png');});
+  this.load.image('map','new/map-triangle-4k.png'); this.load.image('map2','clean/map-triangle-4k.png');
+  ANIMALS.forEach(n=>{this.load.image('a-'+n,'new/animal-'+n+'.png'); this.load.image('a2-'+n,'clean/animal-'+n+'.png');});
+  HUMANS.forEach(n=>{this.load.image('h-'+n,'new/character-'+n+'.png'); this.load.image('h2-'+n,'clean/character-'+n+'.png');});
  }
  create(){
-  const W=3500,H=3500;
-  this.add.rectangle(W/2,H/2,W,H,0x1a2a1a).setDepth(0);
-  let mapKey=this.textures.exists('map')?'map':this.textures.exists('map2')?'map2':'map3';
-  if(this.textures.exists(mapKey)){
-   let tex=this.textures.get(mapKey).getSourceImage();
-   this.island=this.add.image(W/2,H/2,mapKey).setDepth(1);
-   let r=Math.min(2400/tex.width,2400/tex.height);
-   this.island.setDisplaySize(tex.width*r, tex.height*r);
-   this.bounds={x:W/2-1200,y:H/2-1200,w:2400,h:2400};
-  }else this.bounds={x:300,y:300,w:2900,h:2900};
-
-  this.cameras.main.setBounds(0,0,W,H);
-  this.cameras.main.centerOn(W/2,H/2);
-  this.cameras.main.setZoom(0.40);
-
-  this.isDragging=false; this.dragStart=null;
+  const W=3500,H=3500; this.add.rectangle(W/2,H/2,W,H,0x1a2a1a).setDepth(0);
+  let mk=this.textures.exists('map')?'map':'map2';
+  if(this.textures.exists(mk)){ let t=this.textures.get(mk).getSourceImage(); this.island=this.add.image(W/2,H/2,mk).setDepth(1); let r=Math.min(2400/t.width,2400/t.height); this.island.setDisplaySize(t.width*r,t.height*r); this.bounds={x:W/2-1200,y:H/2-1200,w:2400,h:2400}; } else this.bounds={x:300,y:300,w:2900,h:2900};
+  this.cameras.main.setBounds(0,0,W,H); this.cameras.main.centerOn(W/2,H/2); this.cameras.main.setZoom(0.40);
+  this.isDragging=false;
   this.input.on('pointerdown', p=>{
-   if(isShopOpen && p.y<window.innerHeight-160 && selected){
-    let wp=this.cameras.main.getWorldPoint(p.x,p.y);
-    this.spawn(wp.x,wp.y,selected); selected=null; return;
-   }
-   if(p.x<54 && p.y>40 && p.y<window.innerHeight-170) return; // left tab area
-   if(document.getElementById('statWin').classList.contains('open')) return;
+   if(isShopOpen && p.y<innerHeight-150 && selected){ let wp=this.cameras.main.getWorldPoint(p.x,p.y); this.spawn(wp.x,wp.y,selected); selected=null; return; }
+   if(p.x<54) return; if(document.getElementById('statWin').classList.contains('open')) return;
    if(!isShopOpen){ this.isDragging=true; this.dragStart={x:p.x,y:p.y,sx:this.cameras.main.scrollX,sy:this.cameras.main.scrollY}; }
   });
-  this.input.on('pointermove', p=>{
-   if(this.isDragging && this.dragStart &&!isShopOpen){
-    this.cameras.main.scrollX=this.dragStart.sx - (p.x-this.dragStart.x)/0.40;
-    this.cameras.main.scrollY=this.dragStart.sy - (p.y-this.dragStart.y)/0.40;
-   }
-  });
-  this.input.on('pointerup', ()=>{this.isDragging=false;});
-
+  this.input.on('pointermove', p=>{ if(this.isDragging&&this.dragStart&&!isShopOpen){ this.cameras.main.scrollX=this.dragStart.sx-(p.x-this.dragStart.x)/0.40; this.cameras.main.scrollY=this.dragStart.sy-(p.y-this.dragStart.y)/0.40; } });
+  this.input.on('pointerup', ()=>this.isDragging=false);
   this.buildShop();
-  document.getElementById('toggle').onclick=()=>{
-   isShopOpen=!isShopOpen;
-   document.getElementById('shopWrap').className=isShopOpen?'':'closed';
-   document.getElementById('toggle').innerHTML=isShopOpen?'❌ CLOSE':'🛒 SHOP';
-  };
+  document.getElementById('toggle').onclick=()=>{ isShopOpen=!isShopOpen; document.getElementById('shopWrap').className=isShopOpen?'':'closed'; document.getElementById('toggle').innerHTML=isShopOpen?'❌ CLOSE':'🛒 SHOP'; };
  }
  buildShop(){
   const shop=document.getElementById('shop');
   [...HUMANS.map(n=>({id:'h-'+n,name:n,price:20,t:'human'})),...ANIMALS.map(n=>({id:'a-'+n,name:n,price:10,t:'animal'}))].forEach(it=>{
-   let real=it.id;
-   if(!this.textures.exists(real)){ if(this.textures.exists('h2-'+it.name)||this.textures.exists('a2-'+it.name)) real=it.t=='human'?'h2-'+it.name:'a2-'+it.name; else if(this.textures.exists('h3-'+it.name)||this.textures.exists('a3-'+it.name)) real=it.t=='human'?'h3-'+it.name:'a3-'+it.name; }
-   let path=`new/${it.t=='human'?'character':'animal'}-${it.name}.png`;
-   let c=document.createElement('div'); c.className='card';
-   c.innerHTML=`<img src="${path}" onerror="this.src='assets/${it.t=='human'?'characters/character':'animals/animal'}-${it.name}.png'"><b>${it.name.toUpperCase()}</b><button>🪙${it.price}</button>`;
-   c.querySelector('button').onclick=()=>{
-    if(coins<it.price) return; coins-=it.price; document.getElementById('coins').innerText=coins;
-    selected=real; document.querySelectorAll('.card').forEach(x=>x.style.borderColor='#444'); c.style.borderColor='#4ade80';
-   };
+   let real=it.id; if(!this.textures.exists(real)) real=it.t=='human'?'h2-'+it.name:'a2-'+it.name;
+   let c=document.createElement('div'); c.className='card'; c.innerHTML=`<img src="new/${it.t=='human'?'character':'animal'}-${it.name}.png" onerror="this.src='clean/${it.t=='human'?'character':'animal'}-${it.name}.png'"><b>${it.name.toUpperCase()}</b><button>🪙${it.price}</button>`;
+   c.querySelector('button').onclick=()=>{ if(coins<it.price) return; coins-=it.price; document.getElementById('coins').innerText=coins; selected=real; document.querySelectorAll('.card').forEach(x=>x.style.borderColor='#444'); c.style.borderColor='#4ade80'; };
    shop.appendChild(c);
   });
  }
  spawn(x,y,id){
-  if(!this.textures.exists(id)) return;
-  let isHuman=id.includes('female')||id.includes('male');
-  let w=isHuman?110: id.includes('elephant')||id.includes('giraffe')?120: id.includes('bee')||id.includes('crab')?70:90;
-  let h=isHuman?140:w;
-  let spr=this.add.image(x,y,id).setDepth(10).setInteractive();
-  spr.setDisplaySize(w,h);
-  // STATS!
-  spr.stats={
-   id: 'ID-'+Math.random().toString(36).substr(2,5).toUpperCase(),
-   name: randName(),
-   type: id.replace('a-','').replace('h-','').replace('a2-','').replace('h2-','').replace('a3-','').replace('h3-','').toUpperCase(),
-   isHuman: isHuman,
-   lvl: Math.floor(Math.random()*10)+1,
-   age: Math.floor(Math.random()*30)+1 + (isHuman?' years':' months'),
-   health: Math.floor(Math.random()*40)+60,
-   hunger: Math.floor(Math.random()*100),
-   energy: Math.floor(Math.random()*100),
-   speed: (Math.random()*2+0.5).toFixed(1),
-   job: JOBS[Math.floor(Math.random()*JOBS.length)],
-   mood: MOODS[Math.floor(Math.random()*MOODS.length)],
-   kills: Math.floor(Math.random()*5),
-   born: new Date().toLocaleTimeString()
-  };
-  spr.vx=(Math.random()-0.5)*1.2; spr.vy=(Math.random()-0.5)*1.2;
-  spr.on('pointerdown', ()=>{ this.showStats(spr); });
-  this.ents.push(spr);
-  document.getElementById('cnt').innerText=this.ents.length;
-  this.addToOwnedTab(spr);
+  let isHuman=id.includes('female')||id.includes('male'); let w=isHuman?110: id.includes('bee')?65:90; let h=isHuman?140:w;
+  let spr=this.add.image(x,y,id).setDepth(10).setInteractive(); spr.setDisplaySize(w,h);
+  spr.stats={name:NAMES[Math.floor(Math.random()*NAMES.length)]+' #'+Math.floor(Math.random()*99), type:id.replace('a-','').replace('h-','').replace('a2-','').replace('h2-','').toUpperCase(), lvl:Math.floor(Math.random()*10)+1, happiness:70+Math.floor(Math.random()*30), energy:70+Math.floor(Math.random()*30), friends:0, friendsList:[], favFood:['Apple','Berry','Fish','Honey','Carrot'][Math.floor(Math.random()*5)], job:JOBS[Math.floor(Math.random()*JOBS.length)], mood:MOODS[Math.floor(Math.random()*MOODS.length)], isHuman:isHuman};
+  spr.animState='idle'; spr.baseSpeed=isHuman?1.6:2.2; spr.moveTimer=0; spr.lastMeet=0;
+  this.ents.push(spr); document.getElementById('cnt').innerText=this.ents.length; this.addOwned(spr); this.playAnimOn(spr,'walk'); spr.on('pointerdown', ()=>this.showStats(spr));
  }
-
- addToOwnedTab(spr){
-  const list=document.getElementById('ownedList');
-  let div=document.createElement('div'); div.className='ownedItem';
-  div.innerHTML=`<img src="${spr.texture.key=='map'?'':''}" style="display:none"><img src="${spr.frame.texture.source[0].image.currentSrc || ''}" onerror="this.src='new/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png'"><span class="lvl">${spr.stats.lvl}</span>`;
-  // fix img
-  let img=div.querySelectorAll('img')[1];
-  img.src=`new/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png`;
-  img.onerror=()=>{ img.src=`clean/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png`; };
-
-  div.onclick=()=>{
-   selectedEnt=spr;
-   this.focusOn(spr);
-   this.showStats(spr);
-  };
-  div._spr=spr;
-  spr._tabEl=div;
-  list.appendChild(div);
-  document.getElementById('ownedCount').innerText=this.ents.length;
- }
-
- focusOn(spr){
-  // center camera
-  this.cameras.main.pan(spr.x, spr.y, 400, 'Power2');
-  // highlight
-  document.querySelectorAll('.ownedItem').forEach(e=>e.classList.remove('highlight'));
-  if(spr._tabEl) spr._tabEl.classList.add('highlight');
-  // glow effect on map
-  this.tweens.add({targets:spr, scaleX:spr.scaleX*1.4, scaleY:spr.scaleY*1.4, yoyo:true, duration:200, repeat:2});
-  setTimeout(()=>{ if(spr._tabEl) spr._tabEl.classList.remove('highlight'); }, 2000);
- }
-
+ addOwned(spr){ const list=document.getElementById('ownedList'); let div=document.createElement('div'); div.className='ownedItem'; div.innerHTML=`<img src="new/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png" onerror="this.src='clean/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png'" style="width:30px;height:30px;object-fit:contain"><span style="position:absolute;bottom:-4px;right:-4px;background:#4ade80;color:#000;font-size:6px;font-weight:900;padding:1px 3px;border-radius:6px">${spr.stats.lvl}</span>`; div.onclick=()=>{ selectedEnt=spr; this.focusOn(spr); this.showStats(spr); }; spr._tab=div; list.appendChild(div); }
+ focusOn(spr){ this.cameras.main.pan(spr.x,spr.y,400,'Power2'); document.querySelectorAll('.ownedItem').forEach(e=>e.classList.remove('highlight')); if(spr._tab) spr._tab.classList.add('highlight'); setTimeout(()=>spr._tab&&spr._tab.classList.remove('highlight'),2000); }
  showStats(spr){
-  selectedEnt=spr;
-  document.getElementById('sImg').src=spr.frame.texture.source[0].image.currentSrc || `new/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png`;
-  document.getElementById('sName').innerText=spr.stats.name;
-  document.getElementById('sType').innerText=spr.stats.type+' • '+spr.stats.id;
+  selectedEnt=spr; document.getElementById('sImg').src=`new/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png`; document.getElementById('sName').innerText=spr.stats.name; document.getElementById('sType').innerText=spr.stats.type+' • LVL '+spr.stats.lvl; document.getElementById('sAnim').innerText='❤️ '+spr.animState.toUpperCase()+' | 👫 '+spr.stats.friends+' friends';
+  let friendsNames=spr.stats.friendsList.length?spr.stats.friendsList.slice(-3).join(', '):'Wala pa';
   document.getElementById('sStats').innerHTML=`
-   <div class="statRow"><span>📶 LEVEL</span><b>${spr.stats.lvl}</b></div>
-   <div class="statRow"><span>🎂 AGE</span><b>${spr.stats.age}</b></div>
-   <div class="statRow"><span>❤️ HEALTH</span><b>${spr.stats.health}%</b></div>
-   <div class="statRow"><span>🍖 HUNGER</span><b>${spr.stats.hunger}%</b></div>
+   <div class="statRow"><span>📶 LVL</span><b>${spr.stats.lvl}</b></div>
+   <div class="statRow"><span>😊 HAPPY</span><b>${spr.stats.happiness}%</b></div>
    <div class="statRow"><span>⚡ ENERGY</span><b>${spr.stats.energy}%</b></div>
-   <div class="statRow"><span>💨 SPEED</span><b>${spr.stats.speed}</b></div>
+   <div class="statRow"><span>👫 FRIENDS</span><b>${spr.stats.friends}</b></div>
+   <div class="statRow"><span>💖 BFFs</span><b style="font-size:8px">${friendsNames}</b></div>
+   <div class="statRow"><span>🍎 FAV</span><b>${spr.stats.favFood}</b></div>
    <div class="statRow"><span>💼 JOB</span><b>${spr.stats.job}</b></div>
-   <div class="statRow"><span>💭 MOOD</span><b>${spr.stats.mood}</b></div>
-   <div class="statRow"><span>☠️ KILLS</span><b>${spr.stats.kills}</b></div>
-   <div class="statRow"><span>📍 POS</span><b>${Math.round(spr.x)},${Math.round(spr.y)}</b></div>
-   <div class="statRow"><span>🕒 BORN</span><b>${spr.stats.born}</b></div>
-  `;
+   <div class="statRow"><span>💭 MOOD</span><b>${spr.stats.mood}</b></div>`;
   document.getElementById('statWin').classList.add('open');
  }
+ playAnimOn(spr, anim){
+  if(!spr.active) return;
+  if(spr.currentTween){ spr.currentTween.stop(); this.tweens.killTweensOf(spr); spr.setAngle(0); spr.setAlpha(1); }
+  spr.animState=anim; if(selectedEnt==spr) document.getElementById('sAnim').innerText='❤️ '+anim.toUpperCase()+' | 👫 '+spr.stats.friends+' friends';
+  let baseSX=spr.scaleX, baseSY=spr.scaleY;
+  if(anim=='idle'){ spr.currentTween=this.tweens.add({targets:spr, scaleY:baseSY*1.08, scaleX:baseSX*0.96, duration:800, yoyo:true, repeat:-1}); }
+  else if(anim=='walk'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-4, duration:200, yoyo:true, repeat:-1}); }
+  else if(anim=='run'){ this.tweens.add({targets:spr, angle:-10, duration:90, yoyo:true, repeat:-1}); spr.currentTween=this.tweens.add({targets:spr, y:spr.y-7, duration:110, yoyo:true, repeat:-1}); }
+  else if(anim=='jump'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-75, scaleY:baseSY*0.75, scaleX:baseSX*1.25, duration:260, yoyo:true, onComplete:()=>this.playAnimOn(spr,'idle')}); }
+  else if(anim=='eat'){ spr.currentTween=this.tweens.add({targets:spr, scaleY:baseSY*0.6, y:spr.y+10, duration:160, yoyo:true, repeat:3, onComplete:()=>this.playAnimOn(spr,'idle')}); }
+  else if(anim=='sleep'){ spr.currentTween=this.tweens.add({targets:spr, angle:90, alpha:0.75, duration:600}); }
+  else if(anim=='dance'){ spr.currentTween=this.tweens.add({targets:spr, angle:18, scaleX:baseSX*1.25, duration:140, yoyo:true, repeat:-1}); this.tweens.add({targets:spr, y:spr.y-10, duration:140, yoyo:true, repeat:-1}); }
+  else if(anim=='sit'){ spr.currentTween=this.tweens.add({targets:spr, scaleY:baseSY*0.6, y:spr.y+18, duration:300}); }
+  else if(anim=='wave'){ spr.currentTween=this.tweens.add({targets:spr, angle:12, duration:120, yoyo:true, repeat:5, onComplete:()=>this.playAnimOn(spr,'idle')}); this.showHeart(spr); }
+  else if(anim=='cheer'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-18, scaleY:baseSY*1.3, duration:140, yoyo:true, repeat:4, onComplete:()=>this.playAnimOn(spr,'dance')}); }
+  else if(anim=='spin'){ spr.currentTween=this.tweens.add({targets:spr, angle:360, duration:600, repeat:1, onComplete:()=>{ spr.setAngle(0); this.playAnimOn(spr,'idle'); }}); }
+  else if(anim=='bounce'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-40, scaleY:baseSY*1.2, duration:180, yoyo:true, repeat:2, onComplete:()=>this.playAnimOn(spr,'idle')}); }
+  else if(anim=='stretch'){ spr.currentTween=this.tweens.add({targets:spr, scaleY:baseSY*1.45, duration:400, yoyo:true, onComplete:()=>this.playAnimOn(spr,'idle')}); }
+  else if(anim=='yawn'){ spr.currentTween=this.tweens.add({targets:spr, scaleY:baseSY*1.3, alpha:0.8, duration:500, yoyo:true, onComplete:()=>{ spr.setAlpha(1); this.playAnimOn(spr,'sleep'); }}); }
+  else if(anim=='swim'){ spr.currentTween=this.tweens.add({targets:spr, x:spr.x+30, duration:250, yoyo:true, repeat:3, onComplete:()=>this.playAnimOn(spr,'idle')}); }
+  else if(anim=='clap'){ spr.currentTween=this.tweens.add({targets:spr, scaleX:baseSX*1.3, duration:100, yoyo:true, repeat:5, onComplete:()=>this.playAnimOn(spr,'cheer')}); }
+ }
 
- update(){
+ showHeart(spr){
+  let heart=this.add.text(spr.x, spr.y-60, '❤️', {fontSize:'24px'}).setDepth(50).setOrigin(0.5);
+  this.tweens.add({targets:heart, y:heart.y-50, alpha:0, duration:1000, onComplete:()=>heart.destroy()});
+ }
+
+ makeFriends(a,b){
+  if(a==b) return; if(Date.now()-a.lastMeet<3000) return; if(a.stats.friendsList.includes(b.stats.name)) return;
+  // di na kilala -> maging friends!
+  a.stats.friendsList.push(b.stats.name); b.stats.friendsList.push(a.stats.name);
+  a.stats.friends++; b.stats.friends++; totalFriends++; document.getElementById('fCount').innerText=totalFriends;
+  a.stats.happiness=Math.min(100,a.stats.happiness+10); b.stats.happiness=Math.min(100,b.stats.happiness+10);
+  a.lastMeet=Date.now(); b.lastMeet=Date.now();
+  this.playAnimOn(a,'wave'); this.playAnimOn(b,'wave');
+  this.showHeart(a); this.showHeart(b);
+  // check party
+  let nearby=this.ents.filter(e=>Phaser.Math.Distance.Between(e.x,e.y,a.x,a.y)<120).length;
+  if(nearby>=3){ this.partyTime(a.x,a.y); }
+ }
+
+ partyTime(x,y){
+  document.getElementById('partyMsg').classList.add('show');
+  setTimeout(()=>document.getElementById('partyMsg').classList.remove('show'),2000);
+  this.ents.forEach(e=>{ if(Phaser.Math.Distance.Between(e.x,e.y,x,y)<150){ this.playAnimOn(e,'dance'); } });
+ }
+
+ update(time,delta){
   if(isShopOpen) return;
-  this.ents.forEach(e=>{ e.x+=e.vx; e.y+=e.vy; if(e.x<this.bounds.x||e.x>this.bounds.x+this.bounds.w) e.vx*=-1; if(e.y<this.bounds.y||e.y>this.bounds.y+this.bounds.h) e.vy*=-1; if(Math.random()<0.03){e.vx+=(Math.random()-0.5)*0.4; e.vy+=(Math.random()-0.5)*0.4;} });
+  // FRIENDSHIP CHECK - every 500ms
+  for(let i=0;i<this.ents.length;i++){
+   for(let j=i+1;j<this.ents.length;j++){
+    let a=this.ents[i], b=this.ents[j];
+    let d=Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y);
+    if(d<75){ this.makeFriends(a,b); }
+   }
+  }
+  this.ents.forEach(e=>{
+   if(['sleep','sit','eat','jump','wave','cheer','spin','bounce','stretch','yawn','swim','clap','dance'].includes(e.animState) && e.animState!='dance' && e.animState!='walk' && e.animState!='run' && e.animState!='idle') {
+    // if manual anim, don't move, pero allow dance to still have timer
+    if(['dance'].includes(e.animState) && e.moveTimer<=0) { /* keep dancing */ }
+    else if(!['dance'].includes(e.animState)) return;
+   }
+   e.moveTimer-=delta;
+   if(e.moveTimer<=0){
+    if(Math.random()<0.18){ this.playAnimOn(e,'idle'); e.moveTimer=1500+Math.random()*2000; e.vx=0; e.vy=0; }
+    else{ let isRun=Math.random()<0.18; this.playAnimOn(e, isRun?'run':'walk'); e.targetX=this.bounds.x+Math.random()*this.bounds.w; e.targetY=this.bounds.y+Math.random()*this.bounds.h; e.moveTimer=2200+Math.random()*3000; let ang=Math.atan2(e.targetY-e.y,e.targetX-e.x); let sp=isRun?e.baseSpeed*2.2:e.baseSpeed; e.vx=Math.cos(ang)*sp; e.vy=Math.sin(ang)*sp; e.setFlipX(e.vx<0); }
+   }
+   e.x+=(e.vx||0); e.y+=(e.vy||0);
+   if(e.x<this.bounds.x||e.x>this.bounds.x+this.bounds.w) e.vx*=-1; if(e.y<this.bounds.y||e.y>this.bounds.y+this.bounds.h) e.vy*=-1;
+  });
  }
 }
-
-function closeStat(){ document.getElementById('statWin').classList.remove('open'); }
-function followSelected(){ if(selectedEnt){ window.game.scene.scenes[0].focusOn(selectedEnt); } }
-
-let game=new Phaser.Game({type:Phaser.AUTO, parent:'game', width:innerWidth, height:innerHeight, backgroundColor:'#0f0f0f', scene:WorldV60, scale:{mode:Phaser.Scale.RESIZE}});
+function closeStat(){document.getElementById('statWin').classList.remove('open');}
+function playAnim(a){ if(selectedEnt) window.game.scene.scenes[0].playAnimOn(selectedEnt,a); }
+let game=new Phaser.Game({type:Phaser.AUTO, parent:'game', width:innerWidth, height:innerHeight, backgroundColor:'#0f0f0f', scene:WorldV65, scale:{mode:Phaser.Scale.RESIZE}});
 window.game=game;
 </script></body></html>
