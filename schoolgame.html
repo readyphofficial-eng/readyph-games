@@ -1,129 +1,169 @@
 <!DOCTYPE html><html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>V55 STEADY WORLDBOX SHOP</title>
+<title>V56 WORLDBOX - MOVING ENTITIES</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <style>
-html,body{margin:0;padding:0;background:#2e2e2e;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
-#game{position:fixed;top:0;left:0;right:0;bottom:140px;image-rendering:crisp-edges}
-#top{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.75);color:#fff;padding:6px 12px;font-size:11px;font-weight:800;z-index:40;display:flex;justify-content:space-between}
-#shop{position:fixed;bottom:0;left:0;right:0;height:140px;background:#121212;border-top:3px solid #333;display:flex;gap:8px;padding:8px;overflow-x:auto;z-index:50;align-items:flex-start}
-.shop-card{width:80px;min-width:80px;height:120px;background:#222;border:2px solid #444;border-radius:10px;display:flex;flex-direction:column;align-items:center;padding:4px;flex-shrink:0}
-.shop-card img{width:48px;height:48px;object-fit:contain;background:#1a1a1a;border-radius:6px}
-.shop-card b{font-size:8px;color:#fff;margin:3px 0;text-align:center;line-height:9px;height:18px;display:flex;align-items:center}
-.shop-card button{background:#4ade80;color:#000;border:none;border-radius:6px;padding:4px 6px;font-size:9px;font-weight:900;cursor:pointer;width:100%}
-.shop-card button:disabled{background:#555;color:#777}
-#coins{color:#facc15}
-#placed{position:fixed;bottom:145px;left:8px;background:rgba(0,0,0,.6);color:#fff;padding:4px 8px;border-radius:12px;font-size:9px;font-weight:800;z-index:45}
+html,body{margin:0;padding:0;background:#2a2a2a;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
+#game{position:fixed;inset:0;image-rendering:crisp-edges}
+#top{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.7);color:#fff;padding:6px 12px;font-size:11px;font-weight:800;z-index:40;display:flex;justify-content:space-between;align-items:center}
+#toggle{position:fixed;bottom:15px;left:50%;transform:translateX(-50%);background:#4ade80;color:#000;border:none;border-radius:20px;padding:10px 22px;font-weight:900;font-size:13px;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.5);cursor:pointer}
+#shopWrap{position:fixed;bottom:0;left:0;right:0;height:150px;background:#111;border-top:3px solid #333;z-index:55;transition:transform .3s ease;overflow:hidden}
+#shopWrap.closed{transform:translateY(100%)}
+#shop{height:100%;display:flex;gap:8px;padding:8px;overflow-x:auto;align-items:flex-start}
+.card{width:76px;min-width:76px;height:132px;background:#222;border:2px solid #444;border-radius:10px;display:flex;flex-direction:column;align-items:center;padding:4px;flex-shrink:0}
+.card img{width:40px;height:40px;object-fit:contain;background:#1a1a1a;border-radius:6px}
+.card b{font-size:7px;color:#fff;margin:2px 0;text-align:center;line-height:8px;height:16px;display:flex;align-items:center}
+.card button{background:#4ade80;color:#000;border:none;border-radius:6px;padding:3px;font-size:8px;font-weight:900;cursor:pointer;width:100%}
+#status{position:fixed;bottom:60px;left:10px;background:rgba(0,0,0,.6);color:#fff;padding:4px 10px;border-radius:12px;font-size:9px;font-weight:800;z-index:45}
 </style>
 </head><body>
 <div id="game"></div>
-<div id="top"><span>🏝️ TRIANGLE ISLAND - STEADY ZOOM OUT - WORLDBOX</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0 placed</span></span></div>
-<div id="placed">Tap shop to purchase → tap map to place | Drag placed to move</div>
-<div id="shop"></div>
+<div id="top"><span>🏝️ TRIANGLE WORLD - FULL MAP VIEW</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | <span id="mode">MOVING</span></span></div>
+<div id="status">Shop closed → humans & animals moving | Open shop to buy & place</div>
+<div id="shopWrap" class="closed"><div id="shop"></div></div>
+<button id="toggle">🛒 OPEN SHOP</button>
 <script>
-const ANIMALS=[
-'beaver','bee','bunny','cat','caterpillar','chick','cow','crab','deer','dog','elephant','fox','giraffe','hog','koala','lion','monkey','panda','parrot','penguin','pig','polar','tiger'
-];
-const HUMANS=[
-'female-a','female-b','female-c','female-d','female-e','female-f','male-a','male-b','male-c','male-d','male-e','male-f'
-];
+const ANIMALS=['beaver','bee','bunny','cat','caterpillar','chick','cow','crab','deer','dog','elephant','fox','giraffe','hog','koala','lion','monkey','panda','parrot','penguin','pig','polar','tiger'];
+const HUMANS=['female-a','female-b','female-c','female-d','female-e','female-f','male-a','male-b','male-c','male-d','male-e','male-f'];
+let coins=500, selected=null, isShopOpen=false;
 
-let coins=500;
-let selectedToPlace=null;
-let entities=[];
-
-class SteadyShop extends Phaser.Scene{
- constructor(){super('SteadyShop')}
+class FinalWorld extends Phaser.Scene{
+ constructor(){super('FinalWorld'); this.ents=[]}
  preload(){
-  this.load.image('island4k','clean/map-triangle-4k.png');
-  this.load.image('island','clean/map-triangle.png');
-  ANIMALS.forEach(n=>this.load.image('animal-'+n,'clean/animal-'+n+'.png'));
-  HUMANS.forEach(n=>this.load.image('char-'+n,'clean/character-'+n+'.png'));
+  this.load.image('map4k','clean/map-triangle-4k.png');
+  this.load.image('map','clean/map-triangle.png');
+  ANIMALS.forEach(n=>this.load.image('a-'+n,'clean/animal-'+n+'.png'));
+  HUMANS.forEach(n=>this.load.image('h-'+n,'clean/character-'+n+'.png'));
  }
  create(){
   const W=3000,H=3000; this.W=W; this.H=H;
-  this.add.rectangle(W/2,H/2,W,H,0x2e2e2e).setDepth(0);
+  this.add.rectangle(W/2,H/2,W,H,0x2a2a2a).setDepth(0);
   
-  let key=this.textures.exists('island4k')?'island4k':(this.textures.exists('island')?'island':null);
-  if(key){
+  let key=this.textures.exists('map4k')?'map4k':'map';
+  if(this.textures.exists(key)){
    let tex=this.textures.get(key).getSourceImage();
    let island=this.add.image(W/2,H/2,key).setDepth(1);
-   let ratio=Math.min(2600/tex.width, 2600/tex.height);
+   // BUONG MAP KITA - mas zoom out para kita lahat!
+   let ratio=Math.min(2200/tex.width, 2200/tex.height);
    island.setDisplaySize(tex.width*ratio, tex.height*ratio);
+   this.mapBounds={x:W/2-1100,y:H/2-1100,w:2200,h:2200};
+  }else{
+   this.mapBounds={x:200,y:200,w:2600,h:2600};
   }
 
-  // STEADY - FIXED CAMERA, NO MOVEMENT, NO ZOOM
+  // STEADY ZOOM OUT - 0.52 para kita BUONG TRIANGLE!
   this.cameras.main.setBounds(0,0,W,H);
   this.cameras.main.centerOn(W/2,H/2);
-  this.cameras.main.setZoom(0.75); // steady zoom out - kita buo
-  
-  // Walang drag, walang wheel zoom - steady lang!
-  
-  // Tap map to place purchased
+  this.cameras.main.setZoom(0.52);
+
   this.input.on('pointerdown', p=>{
-   if(p.y > window.innerHeight-140) return; // nasa shop
-   if(selectedToPlace){
-    let world=this.cameras.main.getWorldPoint(p.x,p.y);
-    this.placeEntity(world.x, world.y, selectedToPlace);
-    selectedToPlace=null;
-    document.getElementById('placed').innerText='Tap shop to purchase → tap map to place';
+   if(isShopOpen){
+    if(p.y > window.innerHeight-150) return;
+    if(selected){
+     let wp=this.cameras.main.getWorldPoint(p.x,p.y);
+     this.spawn(wp.x,wp.y,selected);
+     selected=null;
+     document.getElementById('status').innerText='Placed! Buy more or close shop to make them move';
+    }
    }
   });
 
   this.buildShop();
+  this.toggleShop(false);
+
+  // Shop toggle
+  document.getElementById('toggle').onclick=()=>{
+   isShopOpen=!isShopOpen;
+   this.toggleShop(isShopOpen);
+  };
+ }
+
+ toggleShop(open){
+  isShopOpen=open;
+  document.getElementById('shopWrap').className=open?'':'closed';
+  document.getElementById('toggle').innerText=open?'❌ CLOSE SHOP':'🛒 OPEN SHOP';
+  document.getElementById('mode').innerText=open?'SHOP OPEN - STOP':'MOVING';
+  document.getElementById('status').innerText=open?'Shop open → tap map to place | Drag to move':'Shop closed → humans & animals wandering!';
  }
 
  buildShop(){
   const shop=document.getElementById('shop');
-  shop.innerHTML='';
-  const all=[...HUMANS.map(n=>({id:'char-'+n, file:'clean/character-'+n+'.png', name:n, price:20, type:'human'})), 
-             ...ANIMALS.map(n=>({id:'animal-'+n, file:'clean/animal-'+n+'.png', name:n, price:10, type:'animal'}))];
-  
-  all.forEach(item=>{
-   let card=document.createElement('div');
-   card.className='shop-card';
-   card.innerHTML=`
-    <img src="${item.file}" onerror="this.style.background='#333'">
-    <b>${item.name.toUpperCase()}</b>
-    <button>🪙${item.price} BUY</button>
-   `;
-   let btn=card.querySelector('button');
-   btn.onclick=()=>{
-    if(coins < item.price){
-     btn.innerText='NO COINS'; setTimeout(()=>btn.innerText='🪙'+item.price+' BUY',800); return;
-    }
-    coins-=item.price;
-    document.getElementById('coins').innerText=coins;
-    selectedToPlace=item.id;
-    document.getElementById('placed').innerText='✅ Purchased '+item.name+' → TAP MAP TO PLACE!';
-    // highlight
-    document.querySelectorAll('.shop-card').forEach(c=>c.style.borderColor='#444');
-    card.style.borderColor='#4ade80';
+  let items=[
+   ...HUMANS.map(n=>({id:'h-'+n,file:'clean/character-'+n+'.png',name:n,price:20, size:36})),
+   ...ANIMALS.map(n=>({id:'a-'+n,file:'clean/animal-'+n+'.png',name:n,price:10, size:28}))
+  ];
+  items.forEach(it=>{
+   let c=document.createElement('div'); c.className='card';
+   c.innerHTML=`<img src="${it.file}"><b>${it.name.toUpperCase()}</b><button>🪙${it.price}</button>`;
+   let b=c.querySelector('button');
+   b.onclick=()=>{
+    if(coins<it.price){b.innerText='NO COINS'; setTimeout(()=>b.innerText='🪙'+it.price,600); return;}
+    coins-=it.price; document.getElementById('coins').innerText=coins;
+    selected=it.id;
+    document.querySelectorAll('.card').forEach(x=>x.style.borderColor='#444');
+    c.style.borderColor='#4ade80';
+    document.getElementById('status').innerText='✅ '+it.name+' purchased → TAP MAP TO PLACE';
    };
-   shop.appendChild(card);
+   shop.appendChild(c);
   });
  }
 
- placeEntity(x,y,id){
+ spawn(x,y,id){
   if(!this.textures.exists(id)) return;
+  let isHuman=id.startsWith('h-');
   let spr=this.add.image(x,y,id).setDepth(10).setInteractive({draggable:true});
-  let isAnimal=id.startsWith('animal-');
-  spr.setDisplaySize(isAnimal?26:32, isAnimal?26:32);
-  entities.push(spr);
-  document.getElementById('cnt').innerText=entities.length+' placed';
+  // RESIZE MAAYOS - tao mas malaki konti sa hayop
+  if(isHuman) spr.setDisplaySize(32,42); // tao mas mataas
+  else{
+   // hayop resize base sa laki - malaki tulad ng elephant mas malaki
+   let bigAnimals=['elephant','giraffe','lion','tiger','polar','cow','hog'];
+   let isBig=bigAnimals.some(b=>id.includes(b));
+   spr.setDisplaySize(isBig?30:22, isBig?30:22);
+  }
   
-  // Drag to move placed entity - map steady pa rin
+  spr.vx=(Math.random()-0.5)*0.8;
+  spr.vy=(Math.random()-0.5)*0.8;
+  spr.isHuman=isHuman;
+  
+  this.ents.push(spr);
+  document.getElementById('cnt').innerText=this.ents.length;
+
   spr.on('drag', (p,dx,dy)=>{
+   if(!isShopOpen) return; // drag only when shop open
    spr.x+=dx/this.cameras.main.zoom;
    spr.y+=dy/this.cameras.main.zoom;
   });
-  spr.on('pointerdown', (p)=>{
-   // Right click / long press to delete
-   if(p.rightButtonDown()){
-    spr.destroy();
-    entities=entities.filter(e=>e!==spr);
-    document.getElementById('cnt').innerText=entities.length+' placed';
+ }
+
+ update(){
+  if(isShopOpen) return; // pag shop open, hindi gumagalaw
+
+  // PAG CLOSE SHOP - GUMAGALAW LAHAT!
+  this.ents.forEach(e=>{
+   if(!e.active) return;
+   e.x+=e.vx;
+   e.y+=e.vy;
+
+   // Bounce sa map bounds
+   if(e.x<this.mapBounds.x || e.x>this.mapBounds.x+this.mapBounds.w){
+    e.vx*=-1; e.setFlipX(e.vx<0);
+   }
+   if(e.y<this.mapBounds.y || e.y>this.mapBounds.y+this.mapBounds.h){
+    e.vy*=-1;
+   }
+
+   // Random change direction minsan
+   if(Math.random()<0.02){
+    e.vx+=(Math.random()-0.5)*0.3;
+    e.vy+=(Math.random()-0.5)*0.3;
+    e.vx=Phaser.Math.Clamp(e.vx,-1.2,1.2);
+    e.vy=Phaser.Math.Clamp(e.vy,-1.2,1.2);
+   }
+
+   // Small wiggle animation
+   if(e.isHuman && Math.random()<0.05){
+    e.y+=Math.sin(Date.now()*0.005+e.x)*0.2;
    }
   });
  }
@@ -133,9 +173,9 @@ new Phaser.Game({
  type:Phaser.AUTO,
  parent:'game',
  width:innerWidth,
- height:window.innerHeight-140,
- backgroundColor:'#2e2e2e',
- scene:SteadyShop,
+ height:innerHeight,
+ backgroundColor:'#2a2a2a',
+ scene:FinalWorld,
  scale:{mode:Phaser.Scale.RESIZE},
  render:{antialias:true}
 });
