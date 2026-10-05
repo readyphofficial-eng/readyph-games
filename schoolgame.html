@@ -1,7 +1,7 @@
 <!DOCTYPE html><html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>V65 FRIENDSHIP</title>
+<title>V66 FAMILY PET LVL</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <style>
 html,body{margin:0;padding:0;background:#0f0f0f;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
@@ -15,27 +15,43 @@ html,body{margin:0;padding:0;background:#0f0f0f;overflow:hidden;height:100%;touc
 .card img{width:44px;height:44px;object-fit:contain;background:#1a1a1a;border-radius:6px}
 .card b{font-size:7px;color:#fff}
 .card button{background:#4ade80;color:#000;border:none;border-radius:6px;padding:4px;font-size:8px;font-weight:900;width:100%}
-#ownedTab{position:fixed;top:40px;left:0;bottom:160px;width:54px;background:rgba(0,0,0,.85);border-right:2px solid #333;z-index:55;display:flex;flex-direction:column;align-items:center;padding:5px 0}
+
+/* LEFT TAB MINIMIZE */
+#ownedTab{position:fixed;top:40px;left:0;bottom:160px;width:58px;background:rgba(0,0,0,.9);border-right:2px solid #333;z-index:55;display:flex;flex-direction:column;align-items:center;padding:5px 0;transition:transform.3s}
+#ownedTab.minimized{transform:translateX(-48px)}
 #ownedTab b{color:#4ade80;font-size:7px}
 #ownedList{flex:1;width:100%;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding:0 4px}
-.ownedItem{width:42px;height:42px;background:#222;border:2px solid #555;border-radius:9px;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer}
-.ownedItem.highlight{border-color:#facc15;box-shadow:0 0 12px #facc15}
-#statWin{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:#1e1e1e;border:3px solid #4ade80;border-radius:16px;padding:12px;width:300px;z-index:90;transition:transform.2s;max-height:85vh;overflow-y:auto}
+.ownedItem{width:42px;height:42px;background:#222;border:2px solid #555;border-radius:9px;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;flex-shrink:0}
+.ownedItem img{width:30px;height:30px;object-fit:contain}
+.ownedItem.highlight{border-color:#facc15;box-shadow:0 0 10px #facc15}
+.ownedItem.hasLover{border-color:#ff69b4}
+.ownedItem.hasPet{border-color:#7dd3fc}
+#minBtn{position:absolute;top:50%;right:-14px;width:14px;height:40px;background:#4ade80;border:none;border-radius:0 8px 8px 0;font-size:10px;font-weight:900;z-index:56;cursor:pointer}
+
+#statWin{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:#1e1e1e;border:3px solid #4ade80;border-radius:16px;padding:12px;width:310px;z-index:90;transition:transform.2s;max-height:85vh;overflow-y:auto}
 #statWin.open{transform:translate(-50%,-50%) scale(1)}
 .animGrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin:8px 0}
-.animGrid button{padding:7px 2px;border:none;border-radius:8px;font-size:9px;font-weight:900;color:#000}
+.animGrid button{padding:6px 2px;border:none;border-radius:8px;font-size:9px;font-weight:900;color:#000}
 .statRow{display:flex;justify-content:space-between;background:#2a2a2a;margin:3px 0;padding:5px 8px;border-radius:6px;font-size:10px;color:#ddd}
 .statRow b{color:#4ade80}
 #partyMsg{position:fixed;top:50px;left:50%;transform:translateX(-50%) scale(0);background:linear-gradient(90deg,#f472b6,#a78bfa);color:#fff;padding:8px 18px;border-radius:20px;font-weight:900;font-size:12px;z-index:70;transition:transform.3s;pointer-events:none}
 #partyMsg.show{transform:translateX(-50%) scale(1)}
+.badge{position:absolute;font-size:7px;font-weight:900;padding:1px 3px;border-radius:6px;bottom:-4px;right:-4px}
 </style>
 </head><body>
 <div id="game"></div>
-<div id="top"><span>🏝️ V65 FRIENDS</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span> friends made</span></div>
-<div id="ownedTab"><b>OWNED</b><div id="ownedList"></div></div>
-<div id="partyMsg">🎉 PARTY TIME! 💃</div>
+<div id="top"><span>🏝️ V66 FAMILY</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span></span></div>
+
+<div id="ownedTab">
+<b id="tabTitle">OWNED</b>
+<div id="ownedList"></div>
+<button id="minBtn" onclick="toggleTab()">◀</button>
+</div>
+
+<div id="partyMsg"></div>
+
 <div id="statWin">
-<div style="display:flex;gap:10px;align-items:center"><img id="sImg" style="width:50px;height:50px;background:#111;border-radius:10px"><div><h3 id="sName" style="margin:0;color:#fff;font-size:13px">Name</h3><div id="sType" style="color:#aaa;font-size:9px"></div><div id="sAnim" style="color:#4ade80;font-size:10px;font-weight:900">IDLE</div></div></div>
+<div style="display:flex;gap:10px;align-items:center"><img id="sImg" style="width:52px;height:52px;background:#111;border-radius:10px"><div><h3 id="sName" style="margin:0;color:#fff;font-size:13px">Name</h3><div id="sType" style="color:#aaa;font-size:9px"></div><div id="sAnim" style="color:#4ade80;font-size:10px;font-weight:900"></div></div></div>
 <div class="animGrid">
 <button style="background:#60a5fa" onclick="playAnim('walk')">🚶 WALK</button>
 <button style="background:#fb7185" onclick="playAnim('run')">🏃 RUN</button>
@@ -49,26 +65,31 @@ html,body{margin:0;padding:0;background:#0f0f0f;overflow:hidden;height:100%;touc
 <button style="background:#facc15" onclick="playAnim('cheer')">🎉 CHEER</button>
 <button style="background:#a5b4fc" onclick="playAnim('spin')">🌀 SPIN</button>
 <button style="background:#fdba74" onclick="playAnim('bounce')">⚽ BOUNCE</button>
-<button style="background:#86efac" onclick="playAnim('stretch')">🙆 STRETCH</button>
-<button style="background:#d8b4fe" onclick="playAnim('yawn')">🥱 YAWN</button>
-<button style="background:#7dd3fc" onclick="playAnim('swim')">🏊 SWIM</button>
-<button style="background:#f9a8d4" onclick="playAnim('clap')">👏 CLAP</button>
 </div>
 <div id="sStats"></div>
 <button onclick="closeStat()" style="width:100%;margin-top:8px;padding:8px;background:#333;color:#fff;border:none;border-radius:8px;font-weight:900">❌ CLOSE</button>
 </div>
+
 <div id="shopWrap" class="closed"><div id="shop"></div></div>
 <button id="toggle">🛒 SHOP</button>
 <script>
 const ANIMALS=['beaver','bee','bunny','cat','caterpillar','chick','cow','crab','deer','dog','elephant','fox','giraffe','hog','koala','lion','monkey','panda','parrot','penguin','pig','polar','tiger'];
 const HUMANS=['female-a','female-b','female-c','female-d','female-e','female-f','male-a','male-b','male-c','male-d','male-e','male-f'];
-const NAMES=['Luna','Milo','Kiko','Bilog','Kulit','Ganda','Bebe','Momo','Chuchu','Bata','Brave','Lakas'];
-const JOBS=['Explorer','Gatherer','Builder','Farmer','Helper','Friend','Dancer','Singer','Dreamer'];
-const MOODS=['😊 Happy','🤩 Excited','😋 Yummy','🥰 Loved','😎 Cool','🤗 Cuddly'];
-let coins=500, selected=null, isShopOpen=false, selectedEnt=null, totalFriends=0;
+const NAMES=['Luna','Milo','Kiko','Bilog','Kulit','Ganda','Bebe','Momo','Chuchu','Bata','Brave','Lakas','Juan','Maria'];
+const JOBS=['Explorer','Helper','Dancer','Dreamer','Farmer'];
+let coins=500, selected=null, isShopOpen=false, selectedEnt=null, totalFriends=0, isTabMin=false;
 
-class WorldV65 extends Phaser.Scene{
- constructor(){super('WorldV65'); this.ents=[]}
+function toggleTab(){
+ isTabMin=!isTabMin;
+ document.getElementById('ownedTab').classList.toggle('minimized', isTabMin);
+ document.getElementById('minBtn').innerHTML=isTabMin?'▶':'◀';
+}
+
+function getGender(id){ if(id.includes('female')) return 'female'; if(id.includes('male')) return 'male'; return 'animal'; }
+function isHumanId(id){ return id.includes('female')||id.includes('male'); }
+
+class WorldV66 extends Phaser.Scene{
+ constructor(){super('WorldV66'); this.ents=[]}
  preload(){
   this.load.image('map','new/map-triangle-4k.png'); this.load.image('map2','clean/map-triangle-4k.png');
   ANIMALS.forEach(n=>{this.load.image('a-'+n,'new/animal-'+n+'.png'); this.load.image('a2-'+n,'clean/animal-'+n+'.png');});
@@ -81,8 +102,9 @@ class WorldV65 extends Phaser.Scene{
   this.cameras.main.setBounds(0,0,W,H); this.cameras.main.centerOn(W/2,H/2); this.cameras.main.setZoom(0.40);
   this.isDragging=false;
   this.input.on('pointerdown', p=>{
-   if(isShopOpen && p.y<innerHeight-150 && selected){ let wp=this.cameras.main.getWorldPoint(p.x,p.y); this.spawn(wp.x,wp.y,selected); selected=null; return; }
-   if(p.x<54) return; if(document.getElementById('statWin').classList.contains('open')) return;
+   if(isShopOpen && p.y<innerHeight-150 && selected){ let wp=this.cameras.main.getWorldPoint(p.x,p.y); this.spawn(wp.x,wp.y,selected,false); selected=null; return; }
+   if(p.x<58 && p.y>40 && p.y<innerHeight-160) return;
+   if(document.getElementById('statWin').classList.contains('open')) return;
    if(!isShopOpen){ this.isDragging=true; this.dragStart={x:p.x,y:p.y,sx:this.cameras.main.scrollX,sy:this.cameras.main.scrollY}; }
   });
   this.input.on('pointermove', p=>{ if(this.isDragging&&this.dragStart&&!isShopOpen){ this.cameras.main.scrollX=this.dragStart.sx-(p.x-this.dragStart.x)/0.40; this.cameras.main.scrollY=this.dragStart.sy-(p.y-this.dragStart.y)/0.40; } });
@@ -99,105 +121,150 @@ class WorldV65 extends Phaser.Scene{
    shop.appendChild(c);
   });
  }
- spawn(x,y,id){
-  let isHuman=id.includes('female')||id.includes('male'); let w=isHuman?110: id.includes('bee')?65:90; let h=isHuman?140:w;
+ spawn(x,y,id,isBaby=false){
+  let gender=getGender(id); let human=isHumanId(id);
+  // CONSISTENT SIZE - lahat same!
+  let w=human?100:85, h=human?130:85;
   let spr=this.add.image(x,y,id).setDepth(10).setInteractive(); spr.setDisplaySize(w,h);
-  spr.stats={name:NAMES[Math.floor(Math.random()*NAMES.length)]+' #'+Math.floor(Math.random()*99), type:id.replace('a-','').replace('h-','').replace('a2-','').replace('h2-','').toUpperCase(), lvl:Math.floor(Math.random()*10)+1, happiness:70+Math.floor(Math.random()*30), energy:70+Math.floor(Math.random()*30), friends:0, friendsList:[], favFood:['Apple','Berry','Fish','Honey','Carrot'][Math.floor(Math.random()*5)], job:JOBS[Math.floor(Math.random()*JOBS.length)], mood:MOODS[Math.floor(Math.random()*MOODS.length)], isHuman:isHuman};
-  spr.animState='idle'; spr.baseSpeed=isHuman?1.6:2.2; spr.moveTimer=0; spr.lastMeet=0;
+  spr.stats={
+   name: isBaby?'Baby '+(NAMES[Math.floor(Math.random()*NAMES.length)]): NAMES[Math.floor(Math.random()*NAMES.length)]+' #'+Math.floor(Math.random()*99),
+   type:id.replace('a-','').replace('h-','').replace('a2-','').replace('h2-','').toUpperCase(),
+   gender:gender, isHuman:human, lvl: isBaby?1:1, happiness:70+Math.floor(Math.random()*20), energy:80, friends:0, friendsList:[], lover:null, loverName:null, familyTime:0, isBaby:isBaby, owner:null, petName:null, pets:[], favFood:['Apple','Berry'][Math.floor(Math.random()*2)], job:JOBS[Math.floor(Math.random()*JOBS.length)], id:id
+  };
+  spr.animState='idle'; spr.baseSpeed=human?1.6:2.0; spr.moveTimer=0; spr.lastMeet=0;
   this.ents.push(spr); document.getElementById('cnt').innerText=this.ents.length; this.addOwned(spr); this.playAnimOn(spr,'walk'); spr.on('pointerdown', ()=>this.showStats(spr));
- }
- addOwned(spr){ const list=document.getElementById('ownedList'); let div=document.createElement('div'); div.className='ownedItem'; div.innerHTML=`<img src="new/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png" onerror="this.src='clean/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png'" style="width:30px;height:30px;object-fit:contain"><span style="position:absolute;bottom:-4px;right:-4px;background:#4ade80;color:#000;font-size:6px;font-weight:900;padding:1px 3px;border-radius:6px">${spr.stats.lvl}</span>`; div.onclick=()=>{ selectedEnt=spr; this.focusOn(spr); this.showStats(spr); }; spr._tab=div; list.appendChild(div); }
- focusOn(spr){ this.cameras.main.pan(spr.x,spr.y,400,'Power2'); document.querySelectorAll('.ownedItem').forEach(e=>e.classList.remove('highlight')); if(spr._tab) spr._tab.classList.add('highlight'); setTimeout(()=>spr._tab&&spr._tab.classList.remove('highlight'),2000); }
- showStats(spr){
-  selectedEnt=spr; document.getElementById('sImg').src=`new/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png`; document.getElementById('sName').innerText=spr.stats.name; document.getElementById('sType').innerText=spr.stats.type+' • LVL '+spr.stats.lvl; document.getElementById('sAnim').innerText='❤️ '+spr.animState.toUpperCase()+' | 👫 '+spr.stats.friends+' friends';
-  let friendsNames=spr.stats.friendsList.length?spr.stats.friendsList.slice(-3).join(', '):'Wala pa';
-  document.getElementById('sStats').innerHTML=`
-   <div class="statRow"><span>📶 LVL</span><b>${spr.stats.lvl}</b></div>
-   <div class="statRow"><span>😊 HAPPY</span><b>${spr.stats.happiness}%</b></div>
-   <div class="statRow"><span>⚡ ENERGY</span><b>${spr.stats.energy}%</b></div>
-   <div class="statRow"><span>👫 FRIENDS</span><b>${spr.stats.friends}</b></div>
-   <div class="statRow"><span>💖 BFFs</span><b style="font-size:8px">${friendsNames}</b></div>
-   <div class="statRow"><span>🍎 FAV</span><b>${spr.stats.favFood}</b></div>
-   <div class="statRow"><span>💼 JOB</span><b>${spr.stats.job}</b></div>
-   <div class="statRow"><span>💭 MOOD</span><b>${spr.stats.mood}</b></div>`;
-  document.getElementById('statWin').classList.add('open');
- }
- playAnimOn(spr, anim){
-  if(!spr.active) return;
-  if(spr.currentTween){ spr.currentTween.stop(); this.tweens.killTweensOf(spr); spr.setAngle(0); spr.setAlpha(1); }
-  spr.animState=anim; if(selectedEnt==spr) document.getElementById('sAnim').innerText='❤️ '+anim.toUpperCase()+' | 👫 '+spr.stats.friends+' friends';
-  let baseSX=spr.scaleX, baseSY=spr.scaleY;
-  if(anim=='idle'){ spr.currentTween=this.tweens.add({targets:spr, scaleY:baseSY*1.08, scaleX:baseSX*0.96, duration:800, yoyo:true, repeat:-1}); }
-  else if(anim=='walk'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-4, duration:200, yoyo:true, repeat:-1}); }
-  else if(anim=='run'){ this.tweens.add({targets:spr, angle:-10, duration:90, yoyo:true, repeat:-1}); spr.currentTween=this.tweens.add({targets:spr, y:spr.y-7, duration:110, yoyo:true, repeat:-1}); }
-  else if(anim=='jump'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-75, scaleY:baseSY*0.75, scaleX:baseSX*1.25, duration:260, yoyo:true, onComplete:()=>this.playAnimOn(spr,'idle')}); }
-  else if(anim=='eat'){ spr.currentTween=this.tweens.add({targets:spr, scaleY:baseSY*0.6, y:spr.y+10, duration:160, yoyo:true, repeat:3, onComplete:()=>this.playAnimOn(spr,'idle')}); }
-  else if(anim=='sleep'){ spr.currentTween=this.tweens.add({targets:spr, angle:90, alpha:0.75, duration:600}); }
-  else if(anim=='dance'){ spr.currentTween=this.tweens.add({targets:spr, angle:18, scaleX:baseSX*1.25, duration:140, yoyo:true, repeat:-1}); this.tweens.add({targets:spr, y:spr.y-10, duration:140, yoyo:true, repeat:-1}); }
-  else if(anim=='sit'){ spr.currentTween=this.tweens.add({targets:spr, scaleY:baseSY*0.6, y:spr.y+18, duration:300}); }
-  else if(anim=='wave'){ spr.currentTween=this.tweens.add({targets:spr, angle:12, duration:120, yoyo:true, repeat:5, onComplete:()=>this.playAnimOn(spr,'idle')}); this.showHeart(spr); }
-  else if(anim=='cheer'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-18, scaleY:baseSY*1.3, duration:140, yoyo:true, repeat:4, onComplete:()=>this.playAnimOn(spr,'dance')}); }
-  else if(anim=='spin'){ spr.currentTween=this.tweens.add({targets:spr, angle:360, duration:600, repeat:1, onComplete:()=>{ spr.setAngle(0); this.playAnimOn(spr,'idle'); }}); }
-  else if(anim=='bounce'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-40, scaleY:baseSY*1.2, duration:180, yoyo:true, repeat:2, onComplete:()=>this.playAnimOn(spr,'idle')}); }
-  else if(anim=='stretch'){ spr.currentTween=this.tweens.add({targets:spr, scaleY:baseSY*1.45, duration:400, yoyo:true, onComplete:()=>this.playAnimOn(spr,'idle')}); }
-  else if(anim=='yawn'){ spr.currentTween=this.tweens.add({targets:spr, scaleY:baseSY*1.3, alpha:0.8, duration:500, yoyo:true, onComplete:()=>{ spr.setAlpha(1); this.playAnimOn(spr,'sleep'); }}); }
-  else if(anim=='swim'){ spr.currentTween=this.tweens.add({targets:spr, x:spr.x+30, duration:250, yoyo:true, repeat:3, onComplete:()=>this.playAnimOn(spr,'idle')}); }
-  else if(anim=='clap'){ spr.currentTween=this.tweens.add({targets:spr, scaleX:baseSX*1.3, duration:100, yoyo:true, repeat:5, onComplete:()=>this.playAnimOn(spr,'cheer')}); }
+  if(isBaby){ this.showMsg('👶 Baby Born! '+spr.stats.name); this.showHeart(spr); this.playAnimOn(spr,'bounce'); }
  }
 
- showHeart(spr){
-  let heart=this.add.text(spr.x, spr.y-60, '❤️', {fontSize:'24px'}).setDepth(50).setOrigin(0.5);
-  this.tweens.add({targets:heart, y:heart.y-50, alpha:0, duration:1000, onComplete:()=>heart.destroy()});
+ addOwned(spr){
+  const list=document.getElementById('ownedList'); let div=document.createElement('div'); div.className='ownedItem';
+  let badges=`<span class="badge" style="background:#4ade80">LVL${spr.stats.lvl}</span>`;
+  if(spr.stats.isBaby) badges+=`<span class="badge" style="background:#f472b6;top:-4px;right:-4px">👶</span>`;
+  div.innerHTML=`<img src="new/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png" onerror="this.src='clean/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png'" style="width:30px;height:30px;object-fit:contain">${badges}`;
+  div.onclick=()=>{ selectedEnt=spr; this.focusOn(spr); this.showStats(spr); }; spr._tab=div; spr._tabUpdate=()=>{ let b=div.querySelector('.badge'); if(b) b.innerText='LVL'+spr.stats.lvl; if(spr.stats.lover) div.classList.add('hasLover'); if(spr.stats.owner) div.classList.add('hasPet'); }; list.appendChild(div);
+ }
+
+ focusOn(spr){ this.cameras.main.pan(spr.x,spr.y,400,'Power2'); document.querySelectorAll('.ownedItem').forEach(e=>e.classList.remove('highlight')); if(spr._tab) spr._tab.classList.add('highlight'); setTimeout(()=>spr._tab&&spr._tab.classList.remove('highlight'),2000); }
+
+ showStats(spr){
+  selectedEnt=spr;
+  document.getElementById('sImg').src=`new/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png`;
+  document.getElementById('sName').innerText=spr.stats.name+(spr.stats.isBaby?' 👶':'');
+  document.getElementById('sType').innerText=spr.stats.type+' • '+spr.stats.gender.toUpperCase()+(spr.stats.isHuman?' • HUMAN':' • ANIMAL');
+  document.getElementById('sAnim').innerText='❤️ '+spr.animState.toUpperCase()+' | LVL'+spr.stats.lvl;
+  let loverTxt=spr.stats.lover?'💕 '+spr.stats.loverName:'Single';
+  let ownerTxt=spr.stats.owner?'🐾 Pet of '+spr.stats.owner:'Wild';
+  let petsTxt=spr.stats.pets.length?spr.stats.pets.join(', '):'None';
+  let familyTxt=spr.stats.lover?`Family Time: ${Math.floor(spr.stats.familyTime/1000)}s / 30s for baby`:'Need lover';
+  document.getElementById('sStats').innerHTML=`
+   <div class="statRow"><span>📶 LEVEL</span><b>${spr.stats.lvl} ${spr.stats.lvl<5?'(Need '+this.getNextReq(spr)+')':'MAX!'}</b></div>
+   <div class="statRow"><span>😊 HAPPY</span><b>${spr.stats.happiness}%</b></div>
+   <div class="statRow"><span>👫 FRIENDS</span><b>${spr.stats.friends}</b></div>
+   ${spr.stats.isHuman?`<div class="statRow"><span>💕 LOVER</span><b>${loverTxt}</b></div>
+   <div class="statRow"><span>👶 FAMILY</span><b style="font-size:8px">${familyTxt}</b></div>
+   <div class="statRow"><span>🐾 PETS</span><b style="font-size:8px">${petsTxt}</b></div>`:
+   `<div class="statRow"><span>🐾 OWNER</span><b style="font-size:8px">${ownerTxt}</b></div>`}
+   <div class="statRow"><span>📍 POS</span><b>${Math.round(spr.x)},${Math.round(spr.y)}</b></div>`;
+  document.getElementById('statWin').classList.add('open');
+ }
+
+ getNextReq(spr){
+  let lvl=spr.stats.lvl;
+  let reqs={1:'1 friend + 75 happy',2:'3 friends + 80 happy',3:'5 friends + 85 happy',4:'8 friends + 90 happy'};
+  return reqs[lvl]||'MAX';
+ }
+
+ checkLevelUp(spr){
+  if(spr.stats.lvl>=5) return;
+  let f=spr.stats.friends, h=spr.stats.happiness;
+  let can=false;
+  if(spr.stats.lvl==1 && f>=1 && h>=75) can=true;
+  if(spr.stats.lvl==2 && f>=3 && h>=80) can=true;
+  if(spr.stats.lvl==3 && f>=5 && h>=85) can=true;
+  if(spr.stats.lvl==4 && f>=8 && h>=90) can=true;
+  if(can){
+   spr.stats.lvl++;
+   this.showMsg('⬆️ LEVEL UP! '+spr.stats.name+' is now LVL'+spr.stats.lvl);
+   this.showHeart(spr); this.playAnimOn(spr,'cheer');
+   if(spr._tabUpdate) spr._tabUpdate();
+   // grow a little pag level up
+   this.tweens.add({targets:spr, scaleX:spr.scaleX*1.15, scaleY:spr.scaleY*1.15, yoyo:true, duration:200, repeat:1});
+  }
  }
 
  makeFriends(a,b){
-  if(a==b) return; if(Date.now()-a.lastMeet<3000) return; if(a.stats.friendsList.includes(b.stats.name)) return;
-  // di na kilala -> maging friends!
-  a.stats.friendsList.push(b.stats.name); b.stats.friendsList.push(a.stats.name);
-  a.stats.friends++; b.stats.friends++; totalFriends++; document.getElementById('fCount').innerText=totalFriends;
-  a.stats.happiness=Math.min(100,a.stats.happiness+10); b.stats.happiness=Math.min(100,b.stats.happiness+10);
-  a.lastMeet=Date.now(); b.lastMeet=Date.now();
-  this.playAnimOn(a,'wave'); this.playAnimOn(b,'wave');
-  this.showHeart(a); this.showHeart(b);
-  // check party
-  let nearby=this.ents.filter(e=>Phaser.Math.Distance.Between(e.x,e.y,a.x,a.y)<120).length;
-  if(nearby>=3){ this.partyTime(a.x,a.y); }
- }
+  if(a==b) return; if(Date.now()-a.lastMeet<3000) return;
+  let isHumanA=a.stats.isHuman, isHumanB=b.stats.isHuman;
+  // ANIMAL PET SYSTEM
+  if(!isHumanA && isHumanB &&!a.stats.owner){ a.stats.owner=b.stats.name; b.stats.pets.push(a.stats.name+' ('+a.stats.type+')'); this.showMsg('🐾 '+a.stats.name+' is now pet of '+b.stats.name); if(b._tabUpdate) b._tabUpdate(); }
+  if(!isHumanB && isHumanA &&!b.stats.owner){ b.stats.owner=a.stats.name; a.stats.pets.push(b.stats.name+' ('+b.stats.type+')'); this.showMsg('🐾 '+b.stats.name+' is now pet of '+a.stats.name); if(a._tabUpdate) a._tabUpdate(); }
 
- partyTime(x,y){
-  document.getElementById('partyMsg').classList.add('show');
-  setTimeout(()=>document.getElementById('partyMsg').classList.remove('show'),2000);
-  this.ents.forEach(e=>{ if(Phaser.Math.Distance.Between(e.x,e.y,x,y)<150){ this.playAnimOn(e,'dance'); } });
- }
-
- update(time,delta){
-  if(isShopOpen) return;
-  // FRIENDSHIP CHECK - every 500ms
-  for(let i=0;i<this.ents.length;i++){
-   for(let j=i+1;j<this.ents.length;j++){
-    let a=this.ents[i], b=this.ents[j];
-    let d=Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y);
-    if(d<75){ this.makeFriends(a,b); }
+  // HUMAN-HUMAN friendship for lover check
+  if(isHumanA && isHumanB){
+   if(a.stats.friendsList.includes(b.stats.name)) {
+    // already friends - increase family time if lovers
+    if(a.stats.lover==b){
+     if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)<100){ a.stats.familyTime+=200; b.stats.familyTime+=200; if(a.stats.familyTime>30000 && b.stats.familyTime>30000){ this.makeBaby(a,b); a.stats.familyTime=0; b.stats.familyTime=0; } }
+    }
+    return;
+   }
+   a.stats.friendsList.push(b.stats.name); b.stats.friendsList.push(a.stats.name);
+   a.stats.friends++; b.stats.friends++; totalFriends++; document.getElementById('fCount').innerText=totalFriends;
+   a.stats.happiness=Math.min(100,a.stats.happiness+8); b.stats.happiness=Math.min(100,b.stats.happiness+8);
+   a.lastMeet=Date.now(); b.lastMeet=Date.now();
+   this.playAnimOn(a,'wave'); this.playAnimOn(b,'wave'); this.showHeart(a); this.showHeart(b);
+   this.checkLevelUp(a); this.checkLevelUp(b); if(a._tabUpdate) a._tabUpdate(); if(b._tabUpdate) b._tabUpdate();
+   this.checkLovers(a,b);
+  } else if(!isHumanA ||!isHumanB){
+   // human-animal or animal-animal friendship (for happiness only)
+   if(!a.stats.friendsList.includes(b.stats.name)){
+    a.stats.friendsList.push(b.stats.name); b.stats.friendsList.push(a.stats.name);
+    a.stats.friends++; b.stats.friends++; a.stats.happiness=Math.min(100,a.stats.happiness+5); b.stats.happiness=Math.min(100,b.stats.happiness+5);
+    this.playAnimOn(a,'wave'); this.playAnimOn(b,'wave'); this.showHeart(a);
+    this.checkLevelUp(a); this.checkLevelUp(b);
    }
   }
-  this.ents.forEach(e=>{
-   if(['sleep','sit','eat','jump','wave','cheer','spin','bounce','stretch','yawn','swim','clap','dance'].includes(e.animState) && e.animState!='dance' && e.animState!='walk' && e.animState!='run' && e.animState!='idle') {
-    // if manual anim, don't move, pero allow dance to still have timer
-    if(['dance'].includes(e.animState) && e.moveTimer<=0) { /* keep dancing */ }
-    else if(!['dance'].includes(e.animState)) return;
-   }
-   e.moveTimer-=delta;
-   if(e.moveTimer<=0){
-    if(Math.random()<0.18){ this.playAnimOn(e,'idle'); e.moveTimer=1500+Math.random()*2000; e.vx=0; e.vy=0; }
-    else{ let isRun=Math.random()<0.18; this.playAnimOn(e, isRun?'run':'walk'); e.targetX=this.bounds.x+Math.random()*this.bounds.w; e.targetY=this.bounds.y+Math.random()*this.bounds.h; e.moveTimer=2200+Math.random()*3000; let ang=Math.atan2(e.targetY-e.y,e.targetX-e.x); let sp=isRun?e.baseSpeed*2.2:e.baseSpeed; e.vx=Math.cos(ang)*sp; e.vy=Math.sin(ang)*sp; e.setFlipX(e.vx<0); }
-   }
-   e.x+=(e.vx||0); e.y+=(e.vy||0);
-   if(e.x<this.bounds.x||e.x>this.bounds.x+this.bounds.w) e.vx*=-1; if(e.y<this.bounds.y||e.y>this.bounds.y+this.bounds.h) e.vy*=-1;
-  });
  }
-}
-function closeStat(){document.getElementById('statWin').classList.remove('open');}
-function playAnim(a){ if(selectedEnt) window.game.scene.scenes[0].playAnimOn(selectedEnt,a); }
-let game=new Phaser.Game({type:Phaser.AUTO, parent:'game', width:innerWidth, height:innerHeight, backgroundColor:'#0f0f0f', scene:WorldV65, scale:{mode:Phaser.Scale.RESIZE}});
-window.game=game;
-</script></body></html>
+
+ checkLovers(a,b){
+  if(!a.stats.isHuman||!b.stats.isHuman) return;
+  if(a.stats.lover||b.stats.lover) return; // exclusive
+  if(a.stats.gender==b.stats.gender) return; // need male+female
+  if(a.stats.gender=='animal'||b.stats.gender=='animal') return;
+  if(a.stats.friends<3||b.stats.friends<3) return;
+  if(a.stats.happiness<85||b.stats.happiness<85) return;
+  // must be close for 5 sec already
+  if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)>90) return;
+  // 30% chance to become lovers when conditions met
+  if(Math.random()<0.03){
+   a.stats.lover=b; a.stats.loverName=b.stats.name; b.stats.lover=a; b.stats.loverName=a.stats.name;
+   a.stats.mood='💕 In Love'; b.stats.mood='💕 In Love';
+   this.showMsg('💕 LOVERS! '+a.stats.name+' + '+b.stats.name);
+   this.showHeart(a); this.showHeart(b); this.playAnimOn(a,'cheer'); this.playAnimOn(b,'cheer');
+   if(a._tab) a._tab.classList.add('hasLover'); if(b._tab) b._tab.classList.add('hasLover');
+  }
+ }
+
+ makeBaby(a,b){
+  // random baby type from parents
+  let babyType=Math.random()<0.5?a.stats.id:b.stats.id;
+  let mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+  this.spawn(mx, my+20, babyType, true);
+ }
+
+ showHeart(spr){ let h=this.add.text(spr.x, spr.y-65, spr.stats.isHuman&&spr.stats.lover?'💕':'❤️', {fontSize:'22px'}).setDepth(50).setOrigin(0.5); this.tweens.add({targets:h, y:h.y-55, alpha:0, duration:1200, onComplete:()=>h.destroy()}); }
+ showMsg(txt){ let el=document.getElementById('partyMsg'); el.innerText=txt; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2500); }
+
+ playAnimOn(spr, anim){
+  if(!spr.active) return; if(spr.currentTween){ spr.currentTween.stop(); this.tweens.killTweensOf(spr); spr.setAngle(0); spr.setAlpha(1); }
+  spr.animState=anim; if(selectedEnt==spr) document.getElementById('sAnim').innerText='❤️ '+anim.toUpperCase()+' | LVL'+spr.stats.lvl;
+  let bsx=spr.scaleX, bsy=spr.scaleY;
+  if(anim=='idle'){ spr.currentTween=this.tweens.add({targets:spr, scaleY:bsy*1.07, scaleX:bsx*0.97, duration:800, yoyo:true, repeat:-1}); }
+  else if(anim=='walk'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-4, duration:200, yoyo:true, repeat:-1}); }
+  else if(anim=='run'){ this.tweens.add({targets:spr, angle:-10, duration:90, yoyo:true, repeat:-1}); spr.currentTween=this.tweens.add({targets:spr, y:spr.y-7, duration:110, yoyo:true, repeat:-1}); }
+  else if(anim=='jump'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-65, duration:260, yoyo:true, onComplete:()=>this.playAnimOn(spr,'idle')}); }
+  else if(anim=='eat'){ spr.currentTween=this.tweens.add({targets:spr, scaleY:bsy*0.6, y:spr.y+8, duration:160, yoyo:true, repeat:3, onComplete:()=>this.playAnimOn(spr,'idle')}); }
+  else if(anim=='sleep'){ spr.currentTween=this.tweens.add({targets:spr, angle:90, alpha:0.75, duration:500}); }
+  else if(anim=='dance'){ spr.currentTween=this.tweens.add({targets:spr, angle:15, scaleX:bsx*1.2, duration:140, yoyo:true, repeat:-1}); this.tweens.add({targets:spr, y:spr.y-8, duration:140, yoyo:true, repeat:-1}); }
+  else if(anim=='sit'){ spr.currentTween=this.tweens.add({targets:spr, scaleY:bsy*0.6, y:spr.y+15, duration:300}); }
+  else if(anim=='wave'){ spr.currentTween=this.tweens.add({targets:spr, angle:10, duration:120, yoyo:true, repeat:
