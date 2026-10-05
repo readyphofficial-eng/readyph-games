@@ -1,112 +1,83 @@
 <!DOCTYPE html><html><head>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>ReadyPH V10.2 Fixed</title>
+<title>ReadyPH V11 COMPLETE</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
-<style>
-html,body{margin:0;padding:0;background:#6aa84f;overflow:hidden;height:100%;font-family:Arial;touch-action:none}
+<style>html,body{margin:0;padding:0;background:#5a8f3f;overflow:hidden;height:100%;font-family:Arial;touch-action:none}
 #game{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1}
-#joy{position:fixed;left:10px;bottom:15px;width:125px;height:125px;z-index:50;background:rgba(255,255,255,.25);border-radius:50%;border:2px solid #fff;touch-action:none}
-#btnA{position:fixed;right:15px;bottom:25px;width:82px;height:82px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:22px;z-index:50;touch-action:none}
+#joy{position:fixed;left:12px;bottom:18px;width:125px;height:125px;z-index:50;background:rgba(255,255,255,.28);border-radius:50%;border:2px solid #fff}
+#btnA{position:fixed;right:16px;bottom:28px;width:82px;height:82px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:22px;z-index:50}
 #hud{position:fixed;top:0;left:0;right:0;background:#000000cc;color:#fff;padding:10px 12px;display:flex;justify-content:space-between;z-index:40;font-size:12px;font-weight:800}
-#dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:4px solid #22c55e;padding:18px;color:#fff;display:none;z-index:60;border-radius:16px 16px 0 0}
-</style></head><body>
+#dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:4px solid #22c55e;padding:18px;color:#fff;display:none;z-index:60;border-radius:16px 16px 0 0}</style>
+</head><body>
 <div id="game"></div>
-<div id="hud"><span id="hL">V10.2 FIXED - MEGA buildings</span><span id="hR">Score:0</span></div>
+<div id="hud"><span>V11 COMPLETE - Buildings+Roads+Chars</span><span id="score">Score:0</span></div>
 <div id="joy"></div><button id="btnA">A</button>
-<div id="dialog"><b id="dN" style="color:#4ade80;font-size:15px"></b><p id="dT" style="white-space:pre-line;margin:10px 0;font-size:14px"></p></div>
+<div id="dialog"><b id="dN" style="color:#4ade80"></b><p id="dT" style="white-space:pre-line"></p></div>
 <script>
 let joy={x:0,y:0},score=0,game;
-class MainScene extends Phaser.Scene{
+class Main extends Phaser.Scene{
  constructor(){super('Game')}
- preload(){ this.load.image('mega','assets/kenney/MEGA.png'); }
+ preload(){
+  this.load.image('buildings','assets/kenney/MEGA_CLEAN.png');
+  this.load.image('ground','assets/kenney/GRASS_ROAD.png');
+  this.load.image('chars','assets/kenney/CHARS.png');
+ }
  create(){
-  // PLAIN GRASS LANG MUNA - hindi na gamit tilemap para hindi maging bricks
-  this.add.rectangle(1500,1500,3000,3000,0x7bc86f).setDepth(0);
-  for(let i=0;i<120;i++){
-   let x=Phaser.Math.Between(0,3000), y=Phaser.Math.Between(0,3000);
-   this.add.circle(x,y,3,0x5faa4f).setDepth(0).setAlpha(0.4);
+  let gImg=this.textures.get('ground').getSourceImage();
+  let gw=gImg.width/4, gh=gImg.height/2;
+  let makeGround=(k,c,r)=>{ let cv=document.createElement('canvas'); cv.width=gw; cv.height=gh; cv.getContext('2d').drawImage(gImg,c*gw,r*gh,gw,gh,0,0,gw,gh); if(this.textures.exists(k)) this.textures.remove(k); this.textures.addCanvas(k,cv); };
+  makeGround('grass1',0,0); makeGround('grass2',1,0); makeGround('grassFlower',1,0); makeGround('roadH',0,1); makeGround('roadV',1,1); makeGround('roadX',2,1); makeGround('roadCurve',3,1);
+
+  // Grass base with variation
+  for(let x=0;x<3000;x+=64) for(let y=0;y<3000;y+=64){
+   let key = (Math.random()<0.15)?'grassFlower':'grass1';
+   this.add.image(x,y,key).setScale(64/gw).setDepth(0);
   }
   // Roads
-  this.add.rectangle(1500,1250,3000,100,0x3a3a3a).setDepth(1);
-  this.add.rectangle(1500,1250,3000,6,0xffffff).setDepth(1).setAlpha(0.9);
-  this.add.rectangle(1250,1500,100,3000,0x3a3a3a).setDepth(1);
-  this.add.rectangle(1250,1500,6,3000,0xffffff).setDepth(1).setAlpha(0.9);
-  this.add.circle(1250,1250,50,0x7ec8e3).setStrokeStyle(4,0xffffff).setDepth(2);
+  this.add.image(1500,1250,'roadH').setScale(3000/gw, 100/gh).setDepth(1);
+  this.add.image(1250,1500,'roadV').setScale(100/gw, 3000/gh).setDepth(1);
+  this.add.image(1250,1250,'roadX').setScale(110/gw,110/gh).setDepth(1);
 
-  let mega=this.textures.get('mega').getSourceImage();
-  let mk=(k,x,y,w,h)=>{
-   let c=document.createElement('canvas'); c.width=w; c.height=h;
-   c.getContext('2d').drawImage(mega,x,y,w,h,0,0,w,h);
-   if(this.textures.exists(k)) this.textures.remove(k);
-   this.textures.addCanvas(k,c);
-  };
-  // Correct crops for MEGA.png (based on generated image)
-  mk('s_school', 22, 92, 175, 165);
-  mk('s_office', 247, 92, 175, 165);
-  mk('s_canteen', 472, 92, 175, 165);
-  mk('s_library', 697, 92, 175, 165);
-  mk('s_gym', 922, 92, 175, 165);
-  mk('s_dorm', 1147, 92, 175, 165);
-  mk('s_hospital', 1372, 92, 175, 165);
-  mk('s_shop', 1597, 92, 175, 165);
+  let bImg=this.textures.get('buildings').getSourceImage();
+  let bw=bImg.width/4, bh=bImg.height/2;
+  let mkB=(k,c,r)=>{ let cv=document.createElement('canvas'); cv.width=bw; cv.height=bh; cv.getContext('2d').drawImage(bImg,c*bw,r*bh,bw,bh,0,0,bw,bh); if(this.textures.exists(k)) this.textures.remove(k); this.textures.addCanvas(k,cv); };
+  mkB('school',0,0); mkB('office',1,0); mkB('canteen',2,0); mkB('library',3,0); mkB('gym',0,1); mkB('dorm',1,1); mkB('hospital',2,1); mkB('shop',3,1);
 
-  this.builds=[];
-  let addB=(x,y,k,n)=>{
-   this.add.image(x,y,k).setScale(0.9).setDepth(2);
-   this.add.text(x,y+100,n,{fontSize:'11px',backgroundColor:'#000000bb',color:'#fff',padding:{x:6,y:3}}).setOrigin(0.5).setDepth(3);
-   this.builds.push({x,y,name:n});
-  };
-  addB(1500,700,'s_school','SCHOOL');
-  addB(2000,650,'s_office','OFFICE');
-  addB(750,1250,'s_canteen','CANTEEN');
-  addB(2000,1250,'s_library','LIBRARY');
-  addB(750,650,'s_gym','GYM');
-  addB(1500,2050,'s_dorm','DORM');
-  addB(2200,1750,'s_hospital','HOSPITAL');
-  addB(550,1750,'s_shop','SHOP');
+  this.builds=[]; let place=(x,y,k,n)=>{ this.add.image(x,y,k).setScale(0.5).setDepth(2); this.add.text(x,y+90,n,{fontSize:'11px',backgroundColor:'#000c',color:'#fff',padding:{x:6,y:3}}).setOrigin(0.5).setDepth(3); this.builds.push({x,y,name:n}); };
+  place(1500,700,'school','SCHOOL'); place(2000,650,'office','OFFICE'); place(750,1250,'canteen','CANTEEN'); place(2000,1250,'library','LIBRARY'); place(750,650,'gym','GYM'); place(1500,2050,'dorm','DORM'); place(2200,1750,'hospital','HOSPITAL'); place(550,1750,'shop','SHOP');
 
-  // Trees
-  for(let i=0;i<28;i++){
-   let x=Phaser.Math.Between(80,2920), y=Phaser.Math.Between(80,2920);
-   if(this.builds.some(b=>Phaser.Math.Distance.Between(x,y,b.x,b.y)<180)) continue;
-   if(Phaser.Math.Distance.Between(x,y,1250,1250)<120) continue;
-   let cc=this.add.container(x,y).setDepth(1);
-   cc.add(this.add.circle(0,10,7,0x6d4c41));
-   cc.add(this.add.circle(0,-8,20,0x2ecc71).setStrokeStyle(2,0x1e8449));
-  }
+  let cImg=this.textures.get('chars').getSourceImage();
+  let charW=cImg.width/6;
+  let mkC=(k,i)=>{ let cv=document.createElement('canvas'); cv.width=charW; cv.height=cImg.height; cv.getContext('2d').drawImage(cImg,i*charW,0,charW,cImg.height,0,0,charW,cImg.height); if(this.textures.exists(k)) this.textures.remove(k); this.textures.addCanvas(k,cv); };
+  mkC('player',0); mkC('girl',1); mkC('teacher',2); mkC('chef',3); mkC('janitor',4); mkC('nurse',5);
 
-  this.player=this.add.container(1500,1080).setDepth(10);
-  this.player.add(this.add.circle(0,10,12,0x000000).setAlpha(0.2));
-  this.player.add(this.add.circle(0,0,14,0x1e3a8a).setStrokeStyle(3,0xffffff));
+  // NPCs standing near buildings
+  this.add.image(1500,850,'teacher').setScale(0.35).setDepth(4);
+  this.add.image(750,1350,'chef').setScale(0.35).setDepth(4);
+  this.add.image(2000,1350,'girl').setScale(0.35).setDepth(4);
+  this.add.image(2200,1850,'nurse').setScale(0.35).setDepth(4);
+  this.add.image(550,1850,'janitor').setScale(0.35).setDepth(4);
 
-  this.cameras.main.setBounds(0,0,3000,3000);
-  this.cameras.main.startFollow(this.player,true,0.14,0.14);
+  this.player=this.add.image(1500,1080,'player').setScale(0.4).setDepth(10);
+  this.cameras.main.setBounds(0,0,3000,3000); this.cameras.main.startFollow(this.player,true,0.14,0.14);
   this.keys=this.input.keyboard.addKeys('W,A,S,D');
-  document.getElementById('hL').innerText='V10.2 FIXED - Joystick working!';
  }
-
  update(){
   if(document.getElementById('dialog').style.display==='block') return;
-  let sp=6, mx=0, my=0;
-  if(this.keys.A.isDown) mx=-1; else if(this.keys.D.isDown) mx=1; else mx=joy.x;
-  if(this.keys.W.isDown) my=-1; else if(this.keys.S.isDown) my=1; else my=joy.y;
+  let sp=6,mx=joy.x,my=joy.y;
+  if(this.keys.A.isDown) mx=-1; if(this.keys.D.isDown) mx=1; if(this.keys.W.isDown) my=-1; if(this.keys.S.isDown) my=1;
   if(Math.abs(mx)<0.2) mx=0; if(Math.abs(my)<0.2) my=0;
   if(mx||my){ this.player.x+=mx*sp; this.player.y+=my*sp; }
-  this.player.x=Phaser.Math.Clamp(this.player.x,30,2970);
-  this.player.y=Phaser.Math.Clamp(this.player.y,30,2970);
  }
 }
-game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#7bc86f',scene:MainScene,scale:{mode:Phaser.Scale.RESIZE}});
+game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#7bc86f',scene:Main,scale:{mode:Phaser.Scale.RESIZE}});
 let stick=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'62px',top:'62px'},color:'white',size:85});
-stick.on('move',(e,d)=>{ if(d&&d.vector){ joy.x=d.vector.x; joy.y=-d.vector.y; } });
-stick.on('end',()=>{ joy.x=0; joy.y=0; });
-function interact(){
- let sc=game.scene.getScene('Game'); if(!sc.builds) return;
- let near=null; for(let b of sc.builds){ if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<160){ near=b; break; } }
- if(!near){ document.getElementById('dN').innerText='Lakad pa!'; document.getElementById('dT').innerText='Punta ka sa building! SCHOOL nasa taas, CANTEEN kaliwa, LIBRARY kanan!'; document.getElementById('dialog').style.display='block'; return; }
- document.getElementById('dN').innerText=near.name; document.getElementById('dT').innerText='Welcome sa '+near.name+'! Galing sa MEGA.png mo! +100 pts'; document.getElementById('dialog').style.display='block'; score+=100; document.getElementById('hR').innerText='Score:'+score;
-}
-document.getElementById('btnA').onclick=interact;
+stick.on('move',(e,d)=>{ if(d&&d.vector){ joy.x=d.vector.x; joy.y=-d.vector.y; } }); stick.on('end',()=>{ joy.x=0; joy.y=0; });
+document.getElementById('btnA').onclick=()=>{
+ let sc=game.scene.getScene('Game'); let near=null; for(let b of sc.builds){ if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<170){ near=b; break; } }
+ if(!near){ document.getElementById('dN').innerText='Explore!'; document.getElementById('dT').innerText='May tao na! Teacher sa SCHOOL, Chef sa CANTEEN, Nurse sa HOSPITAL!'; document.getElementById('dialog').style.display='block'; return; }
+ document.getElementById('dN').innerText=near.name; document.getElementById('dT').innerText='Welcome sa '+near.name+'! +100 pts'; document.getElementById('dialog').style.display='block'; score+=100; document.getElementById('score').innerText='Score:'+score;
+};
 document.getElementById('dialog').onclick=()=>document.getElementById('dialog').style.display='none';
 </script></body></html>
