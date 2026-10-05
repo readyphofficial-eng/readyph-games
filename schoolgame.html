@@ -1,138 +1,104 @@
 <!DOCTYPE html><html><head>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>ReadyPH V27 CITY PURE EMOJI</title>
+<title>V28 MEGA CITY MAP+SPRITES</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
-<style>html,body{margin:0;padding:0;background:#4a9a42;overflow:hidden;height:100%;font-family:Arial;touch-action:none}#game{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1}#joy{position:fixed;left:12px;bottom:18px;width:120px;height:120px;z-index:50;background:rgba(255,255,255,.32);border-radius:50%;border:2px solid #fff}#btnA{position:fixed;right:14px;bottom:22px;width:86px;height:86px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:16px;z-index:50}#btnB{position:fixed;right:14px;bottom:116px;width:64px;height:64px;background:#ef4444;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:12px;z-index:50;display:none}#hud{position:fixed;top:0;left:0;right:0;background:#000000cc;color:#fff;padding:7px 10px;display:flex;justify-content:space-between;z-index:40;font-size:10px;font-weight:800}#quest{position:fixed;top:38px;left:8px;background:#000000aa;color:#fde047;padding:7px 9px;border-radius:8px;font-size:10px;z-index:40}#dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:4px solid #22c55e;padding:14px;color:#fff;display:none;z-index:60}#quiz{position:fixed;top:0;left:0;right:0;bottom:0;background:#000000f0;z-index:110;display:none;justify-content:center;align-items:center;flex-direction:column;padding:20px;color:#fff}.qBtn{width:92%;padding:12px;margin:6px;background:#fff;color:#000;border-radius:10px;font-weight:800;border:none}</style>
+<style>html,body{margin:0;background:#7ab86f;overflow:hidden;height:100%;touch-action:none}#game{position:fixed;top:0;left:0;width:100%;height:100%}#joy{position:fixed;left:12px;bottom:18px;width:120px;height:120px;z-index:50;background:rgba(255,255,255,.3);border-radius:50%;border:2px solid #fff}#btnA{position:fixed;right:14px;bottom:22px;width:86px;height:86px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;z-index:50}#btnB{position:fixed;right:14px;bottom:116px;width:64px;height:64px;background:#ef4444;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;z-index:50;display:none}#hud{position:fixed;top:0;left:0;right:0;background:#000000cc;color:#fff;padding:7px 10px;display:flex;justify-content:space-between;z-index:40;font-size:10px;font-weight:800}#quest{position:fixed;top:36px;left:8px;background:#000000aa;color:#fde047;padding:6px 9px;border-radius:8px;font-size:10px;z-index:40}#dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:4px solid #22c55e;padding:14px;color:#fff;display:none;z-index:60}</style>
 </head><body>
-<div id="game"></div>
-<div id="hud"><span id="hudLoc">V27 CITY REAL</span><span id="score">Score:0</span></div>
-<div id="quest"><div id="qList"></div></div>
+<div id="game"></div><div id="hud"><span>V28 MEGA CITY - MAP+75 Buildings</span><span id="score">Score:0</span></div>
+<div id="quest"><div id="qList">Building lots occupied...</div></div>
 <div id="joy"></div><button id="btnA">ENTER</button><button id="btnB">EXIT</button>
-<div id="dialog"><b id="dN" style="color:#4ade80"></b><p id="dT" style="white-space:pre-line"></p><div id="dBtns"></div></div>
-<div id="quiz"><h2>Teacher Test ONLY</h2><p id="qQ"></p><div id="qOpts" style="width:100%;display:flex;flex-direction:column;align-items:center"></div><button onclick="closeQuiz()" style="margin-top:10px;padding:8px 18px;background:#ef4444;color:#fff;border-radius:20px;border:2px solid #fff">Close</button></div>
+<div id="dialog"><b id="dN" style="color:#4ade80"></b><p id="dT"></p><div id="dBtns"></div></div>
 <script>
-let joy={x:0,y:0},score=0,game,mode='outside',currentBuilding=null,quests={teacher:false,food:false,library:false};
-const TESTS=[{q:"Polite greeting?",a:["Good morning, ma'am!","Yo teach!"],correct:0,reward:150},{q:"She ___ to school.",a:["goes","go"],correct:0,reward:150},{q:"Past of study?",a:["studied","studyed"],correct:0,reward:150}];
-const SD=["Hi! Tara review!","Uy nag-test ka na?","Ang laki ng city no?","Punta Canteen?","Library ako!","Dami tao!","Tara ikot sa city!","Practice English!","Ganda ng city!"];
+let joy={x:0,y:0},mode='outside';
 class Main extends Phaser.Scene{
  constructor(){super('Game')}
- create(){
-  // PURE COLOR GROUND - hindi na need ng assets! kaya hindi mag green screen!
-  this.outside=[]; const SZ=3000, T=64, RX=1280, RY=1280;
-  // Grass - alternating green para may tiles pa rin pero walang white lines!
-  for(let x=0;x<SZ;x+=T)for(let y=0;y<SZ;y+=T){
-   let col=(Math.floor(x/T)+Math.floor(y/T))%2===0?0x4caf50:0x43a047;
-   let r=this.add.rectangle(x+T/2,y+T/2,T,T,col).setDepth(0).setStrokeStyle(1,0x3d8b40,0.15);
-   this.outside.push(r);
-  }
-  // Roads - gray na may yellow lines
-  for(let x=0;x<SZ;x+=T){let rd=this.add.rectangle(x+T/2,RY+T/2,T,T,0x5a5a5a).setDepth(1); this.outside.push(rd); if(x%128<64){let line=this.add.rectangle(x+T/2,RY+T/2,18,4,0xf7c948).setDepth(2); this.outside.push(line);}}
-  for(let y=0;y<SZ;y+=T){let rd=this.add.rectangle(RX+T/2,y+T/2,T,T,0x5a5a5a).setDepth(1); this.outside.push(rd); if(y%128<64){let line=this.add.rectangle(RX+T/2,y+T/2,4,18,0xf7c948).setDepth(2); this.outside.push(line);}}
-  let cross=this.add.rectangle(RX+T/2,RY+T/2,T,T,0x616161).setDepth(2); this.outside.push(cross);
-
-  this.builds=[];
-  let addBuilding=(x,y,emoji,size,label,canEnter,realSize)=>{
-   let shadow=this.add.ellipse(x,y+35,realSize,realSize*0.35,0x000000).setAlpha(0.22).setDepth(1);
-   let b=this.add.text(x,y,emoji,{fontSize:size+'px'}).setOrigin(0.5).setDepth(3);
-   b.setShadow(2,2,'#000',2,false,true);
-   let tx=this.add.text(x,y+52,label,{fontSize:'10px',backgroundColor:'#000d',color:'#fff',padding:{x:5,y:2},fontStyle:'bold'}).setOrigin(0.5).setDepth(4);
-   this.outside.push(shadow,b,tx);
-   this.builds.push({x:x,y:y,name:label,intIdx:0,radius:realSize*0.6,noEnter:!canEnter,emoji:emoji});
-  };
-  // REALISTIC SIZES - katotohanan!
-  // School pinakamalaki, Hospital malaki, Office medium, House maliit
-  addBuilding(1360,700,'🏫',88,'SCHOOL',true,90); // 88px = malaki
-  addBuilding(1440,920,'🏢',78,'OFFICE',true,80);
-  addBuilding(700,1360,'🍔',72,'CANTEEN',true,75); // Canteen
-  addBuilding(1520,1440,'📚',78,'LIBRARY',true,80);
-  addBuilding(700,700,'🏟️',70,'GYM',false,75);
-  addBuilding(1360,1680,'🏠',62,'HOUSE',false,65); // House maliit lang!
-  addBuilding(1820,1360,'🏥',90,'HOSPITAL',true,92); // Hospital pinakamalaki!
-  addBuilding(500,1680,'🏪',66,'SHOP',true,70);
-
-  // EMOJI CITY BUILDINGS - dagdag para city talaga!
-  let city=[
-   [300,300,'🏢',68,'CONDO'],[460,300,'🏬',64,'MALL'],[300,480,'🏦',60,'BANK'],[460,480,'🏨',60,'HOTEL'],
-   [2000,300,'🏢',70,'TOWER'],[2160,300,'🏬',64,'PLAZA'],[2000,480,'⛪',58,'CHURCH'],[2160,480,'🏫',60,'UNIV'],
-   [300,1000,'🏠',52,'HOUSE'],[460,1000,'🏡',52,'VILLA'],[300,1160,'🏠',50,'HOME'],[460,1160,'🏘️',50,'SUBD'],
-   [2000,1000,'🏭',62,'FACTORY'],[2160,1000,'⛽',56,'GAS'],[2000,1160,'🏪',54,'STORE'],[2160,1160,'🏦',56,'BANK2'],
-   [1000,200,'🏢',62,''],[1160,200,'🏬',62,''],[1000,2100,'🏢',62,''],[1160,2100,'🏢',62,''],
-   [300,1900,'🏠',50,''],[460,1900,'🏠',50,''],[2000,1900,'🏠',50,''],[2160,1900,'🏠',50,''],
-  ];
-  city.forEach(c=>{
-   if(Math.abs(c[0]-RX)<90||Math.abs(c[1]-RY)<90) return;
-   addBuilding(c[0],c[1],c[2],c[3],c[4],false,c[3]);
-  });
-
-  // DECORATIONS - realistic
-  let decos=[[800,600,'🌳',38],[900,620,'🌴',40],[800,1250,'🌲',36],[900,1270,'🌳',38],[1600,600,'🌳',36],[1700,850,'🌴',38],[1900,1250,'🌳',36],[600,950,'🚗',28],[900,1310,'🚕',28],[1350,1310,'🚌',32],[1310,800,'🚙',28],[700,900,'🚦',30],[1350,900,'🚦',30],[1350,1650,'🚦',30],[700,1650,'🚦',30],[1000,1300,'⛲',42],[1500,700,'⛲',36],[600,1600,'🌻',24],[640,1600,'🌷',22]];
-  decos.forEach(d=>{if(Math.abs(d[0]-RX)<70&&Math.abs(d[1]-RY)<70) return; let t=this.add.text(d[0],d[1],d[2],{fontSize:d[3]+'px'}).setOrigin(0.5).setDepth(2); this.outside.push(t);});
-
-  this.npcs=[];
-  // Students and people - realistic sizes! tao mas maliit kesa building!
-  let people=[
-   {x:1650,y:650,e:'👩‍🏫',r:'Teacher',s:38},{x:1750,y:700,e:'👧',r:'Girl Student',s:32},{x:1800,y:760,e:'👦',r:'Boy Student',s:32},
-   {x:1000,y:650,e:'👦',r:'Boy Student',s:32},{x:580,y:700,e:'👧',r:'Girl Student',s:32},{x:580,y:1250,e:'👧',r:'Girl Student',s:32},
-   {x:950,y:1250,e:'👦',r:'Boy Student',s:32},{x:850,y:1500,e:'👨‍🍳',r:'Chef',s:36},{x:1950,y:1280,e:'👩‍⚕️',r:'Nurse',s:36},
-   {x:450,y:1800,e:'👨‍ дворник',r:'Janitor',s:34},{x:1700,y:1550,e:'👦',r:'Boy Student',s:32},{x:1600,y:1550,e:'👧',r:'Girl Student',s:32},
-   // extra city people
-   {x:350,y:350,e:'👨‍💼',r:'Worker',s:28},{x:380,y:360,e:'👩‍💼',r:'Worker',s:28},{x:2050,y:350,e:'👮',r:'Police',s:30},{x:2080,y:360,e:'👷',r:'Builder',s:30},
-   {x:1050,y:300,e:'👨‍🎓',r:'Student',s:28},{x:1080,y:310,e:'👩‍🎓',r:'Student',s:28},{x:600,y:600,e:'👦',r:'Kid',s:26},{x:1800,y:600,e:'👴',r:'Lolo',s:30},
-  ];
-  people.forEach(p=>{
-   let t=this.add.text(p.x,p.y,p.e,{fontSize:p.s+'px'}).setOrigin(0.5).setDepth(5);
-   t.role=p.r; t.dialogs=SD; t.dIdx=0; t.dirX=(Math.random()-0.5); t.dirY=(Math.random()-0.5); t.speed=p.r.includes('Student')||p.r==='Boy'||p.r==='Girl'?0.9:0.4; t.t=0; t.isPerson=true;
-   this.outside.push(t); this.npcs.push(t);
-  });
-
-  this.interiorBG=this.add.rectangle(1500,1500,640,640,0x8d6e63).setStrokeStyle(8,0x5d4037).setDepth(0).setVisible(false);
-  this.interiorLabel=this.add.text(1500,1250,'INSIDE',{fontSize:'32px',backgroundColor:'#000a',color:'#fff',padding:{x:10,y:5}}).setOrigin(0.5).setDepth(1).setVisible(false);
-  this.insideObjs=[];
-  this.player=this.add.text(1400,600,'🧑',{fontSize:'42px'}).setOrigin(0.5).setDepth(10);
-  this.cameras.main.setBounds(0,0,SZ,SZ); this.cameras.main.startFollow(this.player,true,0.14,0.14);
-  this.keys=this.input.keyboard.addKeys('W,A,S,D');
-  updateQuests();
+ preload(){
+  this.load.image('map','MAP.png');
+  this.load.image('new1','new1.png');
+  this.load.image('new2','new2.png');
+  this.load.image('new3','new3.png');
  }
- isBlocked(x,y){for(let b of this.builds){if(Phaser.Math.Distance.Between(x,y,b.x,b.y)<b.radius) return true;} return false;}
+ create(){
+  const W=4000,H=3000;
+  // MAP background - whole city!
+  this.bg=this.add.image(W/2,H/2,'map').setDisplaySize(W,H).setDepth(0);
+
+  this.builds=[]; this.npcs=[]; this.outside=[];
+  // helper to create cropped sprite from sheet
+  const addFromSheet=(sheet, cols, rows, col, row, wx, wy, isBuilding)=>{
+   let tex=this.textures.get(sheet).getSourceImage();
+   let fw=tex.width/cols, fh=tex.height/rows;
+   let canvas=this.textures.createCanvas(sheet+'_'+col+'_'+row+'_'+wx, fw, fh);
+   let ctx=canvas.getContext();
+   ctx.drawImage(tex, col*fw, row*fh, fw, fh, 0,0,fw,fh);
+   canvas.refresh();
+   let spr=this.add.image(wx,wy, sheet+'_'+col+'_'+row+'_'+wx).setDepth(isBuilding?3:5);
+   if(isBuilding){
+    // adjust size base on map - buildings 90-130px
+    let target = isBuilding? 110 + Math.random()*30 : 38;
+    let sc = target / Math.max(fw,fh);
+    spr.setScale(sc);
+    // invisible wall
+    this.builds.push({x:wx,y:wy,radius:55*sc+20, name:'Building '+col+'-'+row});
+   } else {
+    let sc = 42 / Math.max(fw,fh);
+    spr.setScale(sc);
+    spr.isPerson=true; spr.dirX=(Math.random()-0.5); spr.dirY=(Math.random()-0.5); spr.speed=0.6+Math.random()*0.6; spr.t=0;
+    spr.role='Citizen'; this.npcs.push(spr);
+   }
+   this.outside.push(spr);
+   return spr;
+  };
+
+  // VACANT LOTS from MAP - nilagay ko sa bakanteng lote talaga!
+  let vacantLots=[
+   [600,500],[850,500],[1100,520],[1350,520],[1600,520],
+   [600,750],[850,750],[1100,750],[1350,750],[1600,750],
+   [600,1000],[850,1000],[1100,1000],[1350,1000],[1600,1000],
+   [2200,500],[2450,500],[2700,500],[2950,500],[3200,500],
+   [2200,750],[2450,750],[2700,750],[2950,750],[3200,750],
+   [2200,1000],[2450,1000],[2700,1000],[2950,1000],[3200,1000],
+   [600,1600],[850,1600],[1100,1600],[1350,1600],[1600,1600],
+   [600,1850],[850,1850],[1100,1850],[1350,1850],[1600,1850],
+   [2200,1600],[2450,1600],[2700,1600],[2950,1600],[3200,1600],
+   [2200,1850],[2450,1850],[2700,1850],[2950,1850],[3200,1850],
+   [600,2200],[850,2200],[1100,2200],[1350,2200],[1600,2200],
+   [2200,2200],[2450,2200],[2700,2200],[2950,2200],[3200,2200],
+   [1100,1350],[1350,1350],[1600,1350],[1850,1100]
+  ];
+
+  // Place 75 buildings: new1 (25), new2 (25), new3 (25)
+  let bIdx=0;
+  // new1 - 5x5 buildings
+  for(let r=0;r<5;r++) for(let c=0;c<5;c++){ if(bIdx>=vacantLots.length) break; let pos=vacantLots[bIdx++]; addFromSheet('new1',5,7,c,r,pos[0],pos[1],true); }
+  for(let r=0;r<5;r++) for(let c=0;c<5;c++){ if(bIdx>=vacantLots.length) break; let pos=vacantLots[bIdx++]; addFromSheet('new2',5,9,c,r,pos[0],pos[1],true); }
+  for(let r=0;r<5;r++) for(let c=0;c<5;c++){ if(bIdx>=vacantLots.length) break; let pos=vacantLots[bIdx++]; addFromSheet('new3',5,7,c,r,pos[0],pos[1],true); }
+
+  // Place people - naglalakad!
+  let peoplePos=[[500,600],[700,600],[900,600],[1200,800],[1400,800],[1800,800],[2000,600],[2400,600],[2800,600],[500,1400],[900,1400],[1300,1400],[1700,1400],[2100,1400],[2500,1400],[2900,1400],[500,2000],[900,2000],[1300,2000],[1700,2000],[2100,2000],[2500,2000],[2900,2000],[3300,2000],[500,2400],[900,2400]];
+  // new1 people rows 5-6
+  let pIdx=0;
+  for(let r=5;r<7;r++) for(let c=0;c<5;c++){ if(pIdx>=peoplePos.length) break; let pos=peoplePos[pIdx++]; addFromSheet('new1',5,7,c,r,pos[0],pos[1],false); }
+  for(let r=5;r<9;r++) for(let c=0;c<5;c++){ if(pIdx>=peoplePos.length) break; let pos=peoplePos[pIdx++]; addFromSheet('new2',5,9,c,r,pos[0],pos[1],false); }
+  for(let r=5;r<7;r++) for(let c=0;c<5;c++){ if(pIdx>=peoplePos.length) break; let pos=peoplePos[pIdx++]; addFromSheet('new3',5,7,c,r,pos[0],pos[1],false); }
+
+  this.player=this.add.text(1000,1200,'🧑',{fontSize:'44px'}).setOrigin(0.5).setDepth(20);
+  this.cameras.main.setBounds(0,0,W,H); this.cameras.main.startFollow(this.player,true,0.12,0.12);
+  this.keys=this.input.keyboard.addKeys('W,A,S,D');
+ }
+ isBlocked(x,y){ for(let b of this.builds){ if(Phaser.Math.Distance.Between(x,y,b.x,b.y)<b.radius) return true; } return false; }
  update(t,dt){
-  if(document.getElementById('dialog').style.display==='block'||document.getElementById('quiz').style.display==='flex')return;
-  let sp=mode==='outside'?4.8:3.5,mx=joy.x,my=joy.y;
-  if(this.keys.A.isDown)mx=-1;if(this.keys.D.isDown)mx=1;if(this.keys.W.isDown)my=-1;if(this.keys.S.isDown)my=1;
-  if(Math.abs(mx)<0.2)mx=0;if(Math.abs(my)<0.2)my=0;
-  if(mx||my){let nx=this.player.x+mx*sp, ny=this.player.y+my*sp; let canMove=true; if(mode==='outside'){if(this.isBlocked(nx,ny)) canMove=false; if(nx<60||nx>2940||ny<60||ny>2940) canMove=false;} else {if(nx<1230||nx>1770||ny<1230||ny>1770) canMove=false;} if(canMove){this.player.x=nx;this.player.y=ny;}}
-  if(mode==='outside'){this.npcs.forEach(n=>{if(!n.isPerson) return; n.t+=dt;if(n.t>2000+Math.random()*2000){n.dirX=(Math.random()-0.5)*1.2;n.dirY=(Math.random()-0.5)*1.2;n.t=0;} let nx=n.x+n.dirX*n.speed, ny=n.y+n.dirY*n.speed; if(this.isBlocked(nx,ny)){n.dirX*=-1;n.dirY*=-1;return;} if(nx<80||nx>2920||ny<80||ny>2920){n.dirX*=-1;n.dirY*=-1;return;} n.x=nx; n.y=ny;});}
+  if(document.getElementById('dialog').style.display==='block') return;
+  let sp=4.2,mx=joy.x,my=joy.y;
+  if(this.keys.A.isDown) mx=-1; if(this.keys.D.isDown) mx=1; if(this.keys.W.isDown) my=-1; if(this.keys.S.isDown) my=1;
+  if(Math.abs(mx)<0.2) mx=0; if(Math.abs(my)<0.2) my=0;
+  if(mx||my){ let nx=this.player.x+mx*sp, ny=this.player.y+my*sp; if(!this.isBlocked(nx,ny)&&nx>0&&nx<4000&&ny>0&&ny<3000){ this.player.x=nx; this.player.y=ny; } }
+  this.npcs.forEach(n=>{ n.t+=dt; if(n.t>1800+Math.random()*1500){ n.dirX=(Math.random()-0.5)*1.4; n.dirY=(Math.random()-0.5)*1.4; n.t=0; } let nx=n.x+n.dirX*n.speed, ny=n.y+n.dirY*n.speed; if(this.isBlocked(nx,ny)){ n.dirX*=-1; n.dirY*=-1; return; } if(nx<0||nx>4000||ny<0||ny>3000){ n.dirX*=-1; n.dirY*=-1; return; } n.x=nx; n.y=ny; });
  }
 }
-game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#4a9a42',scene:Main,scale:{mode:Phaser.Scale.RESIZE},render:{antialias:false}});
+new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#7ab86f',scene:Main,scale:{mode:Phaser.Scale.RESIZE}});
 let stick=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'60px',top:'60px'},color:'white',size:80});
 stick.on('move',(e,d)=>{if(d&&d.vector){joy.x=d.vector.x;joy.y=-d.vector.y;}});stick.on('end',()=>{joy.x=0;joy.y=0;});
-function enterBuilding(b){
- if(b.noEnter){document.getElementById('dN').innerText=b.name;document.getElementById('dT').innerText=b.name==='HOUSE'?'HOUSE - Maliit na bahay, walang interior!':b.name==='GYM'?'GYM - Sarado, no interior!':b.emoji+' '+b.name+' - Building lang sa city, walang pasok!';document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>';document.getElementById('dialog').style.display='block'; return;}
- let sc=game.scene.getScene('Game');mode='inside';currentBuilding=b;sc.outside.forEach(o=>o.setVisible(false));sc.interiorBG.setVisible(true);sc.interiorLabel.setVisible(true);sc.interiorLabel.setText('INSIDE '+b.name+' '+b.emoji);sc.insideObjs.forEach(o=>o.destroy());sc.insideObjs=[];
- if(b.name==='SCHOOL'){let t=sc.add.text(1500,1360,'👩‍🏫',{fontSize:'56px'}).setOrigin(0.5).setDepth(5); sc.insideObjs.push(t); let s1=sc.add.text(1320,1520,'👦',{fontSize:'36px'}).setOrigin(0.5).setDepth(4); let s2=sc.add.text(1500,1520,'👧',{fontSize:'36px'}).setOrigin(0.5).setDepth(4); let s3=sc.add.text(1680,1520,'👦',{fontSize:'36px'}).setOrigin(0.5).setDepth(4); sc.insideObjs.push(s1,s2,s3);}else{let em=b.name==='CANTEEN'?'👨‍🍳':b.name==='HOSPITAL'?'👩‍⚕️':'👩‍🏫'; let t=sc.add.text(1500,1380,em,{fontSize:'52px'}).setOrigin(0.5).setDepth(5); sc.insideObjs.push(t);}
- sc.player.x=1500;sc.player.y=1700;sc.player.setFontSize('52px');sc.player.setDepth(6);document.getElementById('btnB').style.display='block';document.getElementById('hudLoc').innerText='Inside: '+b.name;
-}
-function exitBuilding(){let sc=game.scene.getScene('Game');mode='outside';currentBuilding=null;sc.outside.forEach(o=>o.setVisible(true));sc.interiorBG.setVisible(false);sc.interiorLabel.setVisible(false);sc.insideObjs.forEach(o=>o.destroy());sc.insideObjs=[];sc.player.setFontSize('42px');sc.player.x=1400;sc.player.y=620;document.getElementById('btnB').style.display='none';document.getElementById('hudLoc').innerText='V27 CITY REAL';updateQuests();}
-function updateQuests(){let h='';h+=(quests.teacher?'✅':'⭕')+' Teacher<br>';h+=(quests.food?'✅':'⭕')+' Canteen<br>';h+=(quests.library?'✅':'⭕')+' Library<br>Score:'+score;document.getElementById('qList').innerHTML=h;document.getElementById('score').innerText='Score:'+score;}
-function showQuiz(){let q=TESTS[Math.floor(Math.random()*TESTS.length)];document.getElementById('qQ').innerText=q.q;let o=document.getElementById('qOpts');o.innerHTML='';q.a.forEach((txt,i)=>{let b=document.createElement('button');b.className='qBtn';b.innerText=txt;b.onclick=()=>{if(i===q.correct){score+=q.reward;quests.teacher=true;alert('Correct! +'+q.reward);}else alert('Mali!');closeQuiz();updateQuests();};o.appendChild(b);});document.getElementById('quiz').style.display='flex';}
-function closeQuiz(){document.getElementById('quiz').style.display='none';}
-document.getElementById('btnA').onclick=()=>{
- let sc=game.scene.getScene('Game');
- if(mode==='inside'){
-  if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,1500,1360)<120){
-   if(currentBuilding.name==='SCHOOL'){document.getElementById('dN').innerText='Teacher';document.getElementById('dT').innerText='Ready for test? City na tayo!';document.getElementById('dBtns').innerHTML='<button onclick="showQuiz();document.getElementById(\'dialog\').style.display=\'none\'" style="padding:10px 18px;background:#22c55e;color:#fff;border-radius:10px;border:2px solid #fff;font-weight:900">TAKE TEST</button> <button onclick="document.getElementById(\'dialog\').style.display=\'none\'">Close</button>';}
-   else{document.getElementById('dN').innerText=currentBuilding.name;document.getElementById('dT').innerText='No test here!';document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>';}
-   document.getElementById('dialog').style.display='block';
-  } else {document.getElementById('dN').innerText='Inside';document.getElementById('dT').innerText='Lapit sa teacher!';document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>';document.getElementById('dialog').style.display='block';}
-  return;
- }
- let near=null;for(let b of sc.builds){if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<b.radius+20){near=b;break;}}
- if(near){enterBuilding(near);return;}
- let npc=null;for(let n of sc.npcs){if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,n.x,n.y)<65){npc=n;break;}}
- if(npc){let txt=npc.dialogs[npc.dIdx%npc.dialogs.length];npc.dIdx++;document.getElementById('dN').innerText=npc.role;document.getElementById('dT').innerText=txt;document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>';document.getElementById('dialog').style.display='block';return;}
- document.getElementById('dN').innerText='City Explore';document.getElementById('dT').innerText='Tunay na city na! Walang puting lines, walang invisible! Lahat emoji, kita lahat!';document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>';document.getElementById('dialog').style.display='block';
-};
-document.getElementById('btnB').onclick=exitBuilding;
-window.showQuiz=showQuiz;window.closeQuiz=closeQuiz;
+document.getElementById('btnA').onclick=()=>{ let sc=game.scene.getScene('Game'); let near=null; for(let b of sc.builds){ if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<90){ near=b; break; } } let d=document.getElementById('dialog'); if(near){ document.getElementById('dN').innerText='Building'; document.getElementById('dT').innerText='May invisible wall! Hindi makapasok - nasa vacant lot lang! Realistic city!'; } else { document.getElementById('dN').innerText='Mega City'; document.getElementById('dT').innerText='75 buildings lahat nasa vacant lots ng MAP.png! Tao naglalakad pa rin!'; } document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'">OK</button>'; d.style.display='block'; };
 </script></body></html>
