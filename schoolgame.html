@@ -1,27 +1,61 @@
 <!DOCTYPE html><html><head>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>ReadyPH V13 WALK + INTERIOR</title>
+<title>ReadyPH V14 WALKING + QUEST</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
-<style>html,body{margin:0;padding:0;background:#6dbf67;overflow:hidden;height:100%;font-family:Arial;touch-action:none}
+<style>html,body{margin:0;padding:0;background:#4a8c3f;overflow:hidden;height:100%;font-family:Arial;touch-action:none}
 #game{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1}
 #joy{position:fixed;left:12px;bottom:18px;width:125px;height:125px;z-index:50;background:rgba(255,255,255,.28);border-radius:50%;border:2px solid #fff}
-#btnA{position:fixed;right:16px;bottom:28px;width:88px;height:88px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:20px;z-index:50}
-#btnB{position:fixed;right:16px;bottom:125px;width:68px;height:68px;background:#ef4444;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:14px;z-index:50;display:none}
-#hud{position:fixed;top:0;left:0;right:0;background:#000000cc;color:#fff;padding:10px 12px;display:flex;justify-content:space-between;z-index:40;font-size:11px;font-weight:800}
-#dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:4px solid #22c55e;padding:18px;color:#fff;display:none;z-index:60}
-#interior{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:100;display:none;justify-content:center;align-items:center;flex-direction:column}
-#interior img{max-width:92%;max-height:72%;border:4px solid #fff;border-radius:12px}
-#interiorTxt{color:#fff;margin-top:12px;font-weight:800;text-align:center;padding:0 20px}</style>
+#btnA{position:fixed;right:16px;bottom:28px;width:88px;height:88px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:17px;z-index:50}
+#btnB{position:fixed;right:16px;bottom:125px;width:68px;height:68px;background:#ef4444;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:13px;z-index:50;display:none}
+#hud{position:fixed;top:0;left:0;right:0;background:#000000dd;color:#fff;padding:8px 10px;display:flex;justify-content:space-between;z-index:40;font-size:10px;font-weight:800}
+#quest{position:fixed;top:42px;left:8px;background:#000000bb;color:#fde047;padding:8px 10px;border-radius:8px;font-size:10px;z-index:40;max-width:180px}
+#dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:4px solid #22c55e;padding:16px;color:#fff;display:none;z-index:60;max-height:55%;overflow:auto}
+#quiz{position:fixed;top:0;left:0;right:0;bottom:0;background:#000000f0;z-index:110;display:none;justify-content:center;align-items:center;flex-direction:column;padding:20px;color:#fff}
+.qBtn{width:90%;padding:12px;margin:6px;background:#fff;color:#000;border-radius:10px;font-weight:800;border:none}
+</style>
 </head><body>
 <div id="game"></div>
-<div id="hud"><span>V13 WALK+INTERIOR</span><span id="score">Score:0 | Inside: OUTSIDE</span></div>
+<div id="hud"><span id="hudLoc">V14 - Outside</span><span id="score">Score:0</span></div>
+<div id="quest"><b>QUESTS</b><div id="qList">- Talk to Teacher<br>- Buy food Canteen<br>- Go to Library</div></div>
 <div id="joy"></div><button id="btnA">ENTER</button><button id="btnB">EXIT</button>
-<div id="dialog"><b id="dN" style="color:#4ade80"></b><p id="dT" style="white-space:pre-line"></p></div>
-<div id="interior"><img id="intImg"><div id="interiorTxt"></div><button onclick="exitInterior()" style="margin-top:15px;padding:12px 28px;background:#ef4444;color:#fff;border:3px solid #fff;border-radius:30px;font-weight:900">EXIT BUILDING [B]</button></div>
+<div id="dialog"><b id="dN" style="color:#4ade80"></b><p id="dT" style="white-space:pre-line;margin:8px 0"></p><div id="dBtns"></div></div>
+<div id="quiz"><h2 id="qTitle">Test</h2><p id="qQ"></p><div id="qOpts" style="width:100%;display:flex;flex-direction:column;align-items:center"></div><button onclick="closeQuiz()" style="margin-top:12px;padding:8px 20px;background:#ef4444;color:#fff;border-radius:20px;border:2px solid #fff">Close</button></div>
 <script>
-let joy={x:0,y:0},score=0,game,inside=null;
-function clean(cv){let c=cv.getContext('2d'),d=c.getImageData(0,0,cv.width,cv.height);for(let i=0;i<d.data.length;i+=4){let r=d.data[i],g=d.data[i+1],b=d.data[i+2];if((r>230&&g>230&&b>230)||(r>185&&g>185&&b>185&&Math.abs(r-g)<12))d.data[i+3]=0;}c.putImageData(d,0,0);}
+let joy={x:0,y:0},score=0,game,mode='outside',currentBuilding=null,quests={teacher:false,food:false,library:false};
+const DIALOGS={
+ Teacher:["Uy student! May exam tayo ngayon! Ready ka na ba?","Mag-aral ka mabuti! Ang English ay importante!","Nasa loob ako ng classroom, pindutin mo ENTER para mag-test!","Good luck! Kaya mo yan!"],
+ Chef:["Gutom ka ba? May bagong luto akong adobo!","₱50 lang ang meal! Masarap at healthy!","Kumain ka muna bago mag-exam, para may energy!","Welcome sa Canteen! Ano order mo?"],
+ Student:["Hi! Tara sabay tayo pumasok sa School!","Ang hirap ng quiz sa English no?","Nasa library ako kanina, ang daming books!","Uy, nakita mo ba si Teacher?"],
+ Nurse:["Hello! May first aid kit ako kung masakit ulo mo!","Magpahinga ka pag pagod ka na!","Health is wealth! Inom ka tubig!","Nasa clinic ako, punta ka lang pag need mo help!"],
+ Janitor:["Linisin ko muna tong hallway...","Uy student, wag magkalat ha!","Sipag mo mag-aral ah!","Magandang umaga!"]
+};
+const QUIZZES={
+ SCHOOL:{q:"What is the correct greeting? A: Good morning, ma'am! B: Yo teach!",a:["A: Good morning, ma'am!","B: Yo teach!"],correct:0,reward:150},
+ OFFICE:{q:"Formal letter start?",a:["Dear Sir/Madam,","Uy boss"],correct:0,reward:100},
+ CANTEEN:{q:"How to order politely?",a:["Can I have... please?","Bigyan mo ko!"],correct:0,reward:100},
+ LIBRARY:{q:"Library rule?",a:["Keep quiet please","Shout loudly"],correct:0,reward:120}
+};
+
+function cleanBuilding(cv){
+ let ctx=cv.getContext('2d'),d=ctx.getImageData(0,0,cv.width,cv.height);
+ for(let i=0;i<d.data.length;i+=4){
+  let r=d.data[i],g=d.data[i+1],b=d.data[i+2];
+  let isPureWhite=r>248&&g>248&&b>248;
+  let isChecker=r>190&&g>190&&b>190&&Math.abs(r-g)<8&&Math.abs(g-b)<8&&r<230;
+  if(isPureWhite||isChecker) d.data[i+3]=0;
+ } ctx.putImageData(d,0,0);
+}
+function cleanChar(cv){
+ // HUWAG TANGGALIN WHITE NG UNIFORM! Tanggalin lang pure background 255,255,255
+ let ctx=cv.getContext('2d'),d=ctx.getImageData(0,0,cv.width,cv.height);
+ for(let i=0;i<d.data.length;i+=4){
+  let r=d.data[i],g=d.data[i+1],b=d.data[i+2];
+  // tanggalin lang EXACT white background (255), wag yung off-white ng damit (240-254)
+  if(r===255&&g===255&&b===255) d.data[i+3]=0;
+ } ctx.putImageData(d,0,0);
+}
+
 class Main extends Phaser.Scene{
  constructor(){super('Game')}
  preload(){
@@ -31,97 +65,139 @@ class Main extends Phaser.Scene{
   this.load.image('interiors','assets/kenney/INTERIORS.png');
  }
  create(){
-  let gImg=this.textures.get('ground').getSourceImage(); let gw=gImg.width/4,gh=gImg.height/2,inset=5;
-  let mk=(k,c,r)=>{let cv=document.createElement('canvas');cv.width=gw-inset*2;cv.height=gh-inset*2;cv.getContext('2d').drawImage(gImg,c*gw+inset,r*gh+inset,gw-inset*2,gh-inset*2,0,0,gw-inset*2,gh-inset*2);if(this.textures.exists(k))this.textures.remove(k);this.textures.addCanvas(k,cv);};
+  this.outsideGroup=this.add.group(); this.insideGroup=this.add.group(); this.insideGroup.setVisible(false);
+  // GROUND - overlap para walang white grid!
+  let gImg=this.textures.get('ground').getSourceImage(),gw=gImg.width/4,gh=gImg.height/2,inset=4;
+  let mk=(k,c,r)=>{let cv=document.createElement('canvas');cv.width=gw;cv.height=gh;cv.getContext('2d').drawImage(gImg,c*gw,r*gh,gw,gh,0,0,gw,gh);if(this.textures.exists(k))this.textures.remove(k);this.textures.addCanvas(k,cv);};
   mk('g1',0,0); mk('g2',1,0); mk('r_h',0,1); mk('r_v',1,1); mk('r_x',2,1);
-  for(let x=0;x<3000;x+=64) for(let y=0;y<3000;y+=64) this.add.image(x+32,y+32,Math.random()<0.8?'g1':'g2').setDisplaySize(64,64).setDepth(0);
-  for(let x=0;x<3000;x+=64) this.add.image(x+32,1250,'r_h').setDisplaySize(64,64).setDepth(1);
-  for(let y=0;y<3000;y+=64) this.add.image(1250,y+32,'r_v').setDisplaySize(64,64).setDepth(1);
-  this.add.image(1250,1250,'r_x').setDisplaySize(64,64).setDepth(2);
+  for(let x=0;x<3000;x+=64) for(let y=0;y<3000;y+=64){
+   let key=Math.random()<0.8?'g1':'g2';
+   // 66 size overlap para takpan white lines
+   this.add.image(x+32,y+32,key).setDisplaySize(66,66).setDepth(0).setParent(this.outsideGroup);
+  }
+  // ROADS - overlap 66 din
+  for(let x=0;x<3000;x+=64) this.add.image(x+32,1250,'r_h').setDisplaySize(68,68).setDepth(1).setParent(this.outsideGroup);
+  for(let y=0;y<3000;y+=64) this.add.image(1250,y+32,'r_v').setDisplaySize(68,68).setDepth(1).setParent(this.outsideGroup);
+  this.add.image(1250,1250,'r_x').setDisplaySize(70,70).setDepth(2).setParent(this.outsideGroup);
 
+  // Buildings
   let bImg=this.textures.get('buildings').getSourceImage(),bw=bImg.width/4,bh=bImg.height/2;
-  let mkB=(k,c,r)=>{let cv=document.createElement('canvas');cv.width=bw;cv.height=bh;cv.getContext('2d').drawImage(bImg,c*bw,r*bh,bw,bh,0,0,bw,bh);clean(cv);if(this.textures.exists(k))this.textures.remove(k);this.textures.addCanvas(k,cv);};
+  let mkB=(k,c,r)=>{let cv=document.createElement('canvas');cv.width=bw;cv.height=bh;cv.getContext('2d').drawImage(bImg,c*bw,r*bh,bw,bh,0,0,bw,bh);cleanBuilding(cv);if(this.textures.exists(k))this.textures.remove(k);this.textures.addCanvas(k,cv);};
   mkB('school',0,0); mkB('office',1,0); mkB('canteen',2,0); mkB('library',3,0); mkB('gym',0,1); mkB('dorm',1,1); mkB('hospital',2,1); mkB('shop',3,1);
-  this.builds=[]; let place=(x,y,k,n,intIdx)=>{this.add.ellipse(x,y+48,80,22,0x000000).setAlpha(0.18).setDepth(1);this.add.image(x,y,k).setDisplaySize(96,96).setDepth(3);this.add.text(x,y+60,n,{fontSize:'9px',backgroundColor:'#000c',color:'#fff',padding:{x:5,y:2}}).setOrigin(0.5).setDepth(4);this.builds.push({x,y,name:n,intIdx});};
+  this.builds=[];
+  let place=(x,y,k,n,intIdx)=>{this.add.ellipse(x,y+48,80,22,0x000000).setAlpha(0.18).setDepth(1).setParent(this.outsideGroup); let b=this.add.image(x,y,k).setDisplaySize(96,96).setDepth(3).setParent(this.outsideGroup); this.add.text(x,y+60,n,{fontSize:'9px',backgroundColor:'#000c',color:'#fff',padding:{x:5,y:2}}).setOrigin(0.5).setDepth(4).setParent(this.outsideGroup); this.builds.push({x,y,name:n,intIdx,sprite:b});};
   place(1450,900,'school','SCHOOL',0); place(1750,900,'office','OFFICE',1); place(900,1450,'canteen','CANTEEN',2); place(1750,1450,'library','LIBRARY',3); place(900,900,'gym','GYM',0); place(1450,1900,'dorm','DORM',1); place(2000,1750,'hospital','HOSPITAL',2); place(600,1750,'shop','SHOP',3);
 
-  // NPCs WALKING
+  // Chars - white kept!
   let cImg=this.textures.get('chars').getSourceImage(),charW=cImg.width/6,charH=cImg.height;
-  let mkC=(k,i)=>{let cv=document.createElement('canvas');cv.width=charW;cv.height=charH;cv.getContext('2d').drawImage(cImg,i*charW,0,charW,charH,0,0,charW,charH);clean(cv);if(this.textures.exists(k))this.textures.remove(k);this.textures.addCanvas(k,cv);};
+  let mkC=(k,i)=>{let cv=document.createElement('canvas');cv.width=charW;cv.height=charH;cv.getContext('2d').drawImage(cImg,i*charW,0,charW,charH,0,0,charW,charH);cleanChar(cv);if(this.textures.exists(k))this.textures.remove(k);this.textures.addCanvas(k,cv);};
   mkC('player',0); mkC('girl',1); mkC('teacher',2); mkC('chef',3); mkC('janitor',4); mkC('nurse',5);
+
   this.npcs=[];
-  let roles=[{k:'teacher',name:'Teacher',speed:0.7},{k:'chef',name:'Chef',speed:0.6},{k:'girl',name:'Student',speed:1.2},{k:'nurse',name:'Nurse',speed:0.8},{k:'janitor',name:'Janitor',speed:0.5}];
-  roles.forEach((r,i)=>{
-   let x=900+Math.random()*1100, y=900+Math.random()*900;
-   let sp=this.add.image(x,y,r.k).setDisplaySize(34,34).setDepth(4);
-   sp.role=r.name; sp.speed=r.speed; sp.dirX=(Math.random()-0.5)*2; sp.dirY=(Math.random()-0.5)*2; sp.walkTime=0;
-   this.npcs.push(sp);
+  [{k:'teacher',role:'Teacher',x:1480,y:980},{k:'chef',role:'Chef',x:900,y:1530},{k:'girl',role:'Student',x:1750,y:1530},{k:'nurse',role:'Nurse',x:2000,y:1830},{k:'janitor',role:'Janitor',x:600,y:1830}].forEach(o=>{
+   let sp=this.add.image(o.x,o.y,o.k).setDisplaySize(38,38).setDepth(4).setParent(this.outsideGroup);
+   sp.role=o.role; sp.baseX=o.x; sp.baseY=o.y; sp.dirX=(Math.random()-0.5); sp.dirY=(Math.random()-0.5); sp.speed=0.6+Math.random()*0.6; sp.t=0; sp.dialogIdx=0; this.npcs.push(sp);
   });
 
-  // Interiors textures
-  let intImg=this.textures.get('interiors').getSourceImage(); let iw=intImg.width/2, ih=intImg.height/2;
+  // Interiors prep
+  let intImg=this.textures.get('interiors').getSourceImage(),iw=intImg.width/2,ih=intImg.height/2;
   ['int_school','int_office','int_canteen','int_library'].forEach((k,idx)=>{
-   let c=idx%2, r=Math.floor(idx/2);
-   let cv=document.createElement('canvas'); cv.width=iw; cv.height=ih;
-   cv.getContext('2d').drawImage(intImg,c*iw,r*ih,iw,ih,0,0,iw,ih);
-   if(this.textures.exists(k)) this.textures.remove(k); this.textures.addCanvas(k,cv);
+   let c=idx%2,r=Math.floor(idx/2); let cv=document.createElement('canvas'); cv.width=iw; cv.height=ih; cv.getContext('2d').drawImage(intImg,c*iw,r*ih,iw,ih,0,0,iw,ih); if(this.textures.exists(k))this.textures.remove(k); this.textures.addCanvas(k,cv);
   });
+  this.interiorBG=this.add.image(1500,1500,'int_school').setDisplaySize(800,800).setDepth(0).setParent(this.insideGroup).setVisible(false);
+  this.insideTeacher=null; this.insideWalls=[];
 
-  this.player=this.add.image(1500,1080,'player').setDisplaySize(38,38).setDepth(10);
+  this.player=this.add.image(1500,1080,'player').setDisplaySize(40,40).setDepth(10);
   this.cameras.main.setBounds(0,0,3000,3000); this.cameras.main.startFollow(this.player,true,0.14,0.14);
-  this.keys=this.input.keyboard.addKeys('W,A,S,D,ENTER,ESC,B');
+  this.keys=this.input.keyboard.addKeys('W,A,S,D');
  }
  update(time,delta){
-  if(inside) return;
-  if(document.getElementById('dialog').style.display==='block') return;
-  let sp=5,mx=joy.x,my=joy.y;
+  if(document.getElementById('dialog').style.display==='block' || document.getElementById('quiz').style.display==='flex') return;
+  let sp=mode==='outside'?5:4, mx=joy.x, my=joy.y;
   if(this.keys.A.isDown) mx=-1; if(this.keys.D.isDown) mx=1; if(this.keys.W.isDown) my=-1; if(this.keys.S.isDown) my=1;
   if(Math.abs(mx)<0.2) mx=0; if(Math.abs(my)<0.2) my=0;
-  if(mx||my){ this.player.x+=mx*sp; this.player.y+=my*sp; }
-  this.player.x=Phaser.Math.Clamp(this.player.x,30,2970); this.player.y=Phaser.Math.Clamp(this.player.y,30,2970);
-
-  // NPC WALKING LOGIC
-  this.npcs.forEach(npc=>{
-   npc.walkTime+=delta;
-   if(npc.walkTime>2000+Math.random()*3000){ npc.dirX=(Math.random()-0.5)*2; npc.dirY=(Math.random()-0.5)*2; npc.walkTime=0; }
-   npc.x+=npc.dirX*npc.speed; npc.y+=npc.dirY*npc.speed;
-   // bounce sa buildings at walls
-   if(this.builds.some(b=>Phaser.Math.Distance.Between(npc.x,npc.y,b.x,b.y)<90)){ npc.dirX*=-1; npc.dirY*=-1; }
-   if(npc.x<100||npc.x>2900) npc.dirX*=-1; if(npc.y<100||npc.y>2900) npc.dirY*=-1;
-  });
+  if(mx||my){ let nx=this.player.x+mx*sp, ny=this.player.y+my*sp;
+   if(mode==='outside' || (nx>1120&&nx<1880&&ny>1120&&ny<1880)){ this.player.x=nx; this.player.y=ny; }
+  }
+  if(mode==='outside'){
+   this.npcs.forEach(n=>{
+    n.t+=delta; if(n.t>2500){ n.dirX=(Math.random()-0.5)*1.2; n.dirY=(Math.random()-0.5)*1.2; n.t=0; }
+    let nx=n.x+n.dirX*n.speed, ny=n.y+n.dirY*n.speed;
+    if(this.builds.some(b=>Phaser.Math.Distance.Between(nx,ny,b.x,b.y)<95)){ n.dirX*=-1; n.dirY*=-1; } else { n.x=nx; n.y=ny; }
+    if(n.x<80||n.x>2920) n.dirX*=-1; if(n.y<80||n.y>2920) n.dirY*=-1;
+   });
+  }
  }
 }
-game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#6dbf67',scene:Main,scale:{mode:Phaser.Scale.RESIZE}});
+game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#4a8c3f',scene:Main,scale:{mode:Phaser.Scale.RESIZE}});
 let stick=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'62px',top:'62px'},color:'white',size:85});
 stick.on('move',(e,d)=>{ if(d&&d.vector){ joy.x=d.vector.x; joy.y=-d.vector.y; } }); stick.on('end',()=>{ joy.x=0; joy.y=0; });
-function enterInterior(building){
- inside=building;
- let sc=game.scene.getScene('Game');
- let keys=['int_school','int_office','int_canteen','int_library'];
- let tex=sc.textures.get(keys[building.intIdx]).getSourceImage();
- document.getElementById('intImg').src=tex.src || keys[building.intIdx];
- // Use canvas to dataURL
- let c=document.createElement('canvas'); c.width=tex.width; c.height=tex.height; c.getContext('2d').drawImage(tex,0,0);
- document.getElementById('intImg').src=c.toDataURL();
- document.getElementById('interiorTxt').innerText='You are inside '+building.name+'! Explore the interior! Press EXIT to go outside.';
- document.getElementById('interior').style.display='flex';
- document.getElementById('btnB').style.display='block';
- document.getElementById('score').innerText='Score:'+score+' | Inside: '+building.name;
+
+function enterBuilding(b){
+ let sc=game.scene.getScene('Game'); mode='inside'; currentBuilding=b;
+ sc.outsideGroup.setVisible(false); sc.insideGroup.setVisible(true);
+ let keys=['int_school','int_office','int_canteen','int_library']; sc.interiorBG.setTexture(keys[b.intIdx]).setVisible(true);
+ if(sc.insideTeacher) sc.insideTeacher.destroy();
+ // Teacher sa loob!
+ let teacherTex=b.name==='SCHOOL'?'teacher':b.name==='CANTEEN'?'chef':b.name==='HOSPITAL'?'nurse':'teacher';
+ sc.insideTeacher=sc.add.image(1500,1250,teacherTex).setDisplaySize(48,48).setDepth(5).setParent(sc.insideGroup);
+ sc.player.x=1500; sc.player.y=1750;
+ document.getElementById('btnB').style.display='block'; document.getElementById('hudLoc').innerText='Inside: '+b.name;
+ document.getElementById('quest').innerHTML='<b>INSIDE '+b.name+'</b><br>Talk to '+sc.insideTeacher.texture.key+'<br>Press ENTER to interact';
 }
-function exitInterior(){
- inside=null; document.getElementById('interior').style.display='none'; document.getElementById('btnB').style.display='none';
- document.getElementById('score').innerText='Score:'+score+' | Inside: OUTSIDE';
+function exitBuilding(){
+ let sc=game.scene.getScene('Game'); mode='outside'; currentBuilding=null;
+ sc.insideGroup.setVisible(false); sc.outsideGroup.setVisible(true); sc.interiorBG.setVisible(false);
+ if(sc.insideTeacher) sc.insideTeacher.destroy();
+ sc.player.x=1450+Math.random()*100; sc.player.y=1000+Math.random()*100;
+ document.getElementById('btnB').style.display='none'; document.getElementById('hudLoc').innerText='Outside';
+ updateQuests();
 }
+function updateQuests(){
+ let html='<b>QUESTS</b><div>';
+ html+= (quests.teacher?'✅':'⭕')+' Talk to Teacher<br>';
+ html+= (quests.food?'✅':'⭕')+' Buy food Canteen<br>';
+ html+= (quests.library?'✅':'⭕')+' Go to Library<br>';
+ html+='Score: '+score+'</div>'; document.getElementById('quest').innerHTML=html;
+ document.getElementById('score').innerText='Score:'+score;
+}
+function showQuiz(building){
+ let q=QUIZZES[building.name]||QUIZZES.SCHOOL;
+ document.getElementById('qTitle').innerText=building.name+' Test';
+ document.getElementById('qQ').innerText=q.q;
+ let opts=document.getElementById('qOpts'); opts.innerHTML='';
+ q.a.forEach((txt,i)=>{
+  let b=document.createElement('button'); b.className='qBtn'; b.innerText=txt;
+  b.onclick=()=>{ if(i===q.correct){ score+=q.reward; alert('Correct! +'+q.reward+' pts!'); if(building.name==='SCHOOL') quests.teacher=true; if(building.name==='CANTEEN') quests.food=true; if(building.name==='LIBRARY') quests.library=true; updateQuests(); } else { alert('Mali! Try again!'); } closeQuiz(); };
+  opts.appendChild(b);
+ });
+ document.getElementById('quiz').style.display='flex';
+}
+function closeQuiz(){ document.getElementById('quiz').style.display='none'; }
 document.getElementById('btnA').onclick=()=>{
- if(inside){ exitInterior(); return; }
- let sc=game.scene.getScene('Game'); let near=null,npcNear=null;
- for(let n of sc.npcs){ if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,n.x,n.y)<70){ npcNear=n; break; } }
- if(npcNear){ document.getElementById('dN').innerText=npcNear.role+' (Walking)'; document.getElementById('dT').innerText='Hi! Naglalakad ako sa school! May pasok ako sa '+sc.builds[Math.floor(Math.random()*sc.builds.length)].name+'!'; document.getElementById('dialog').style.display='block'; return; }
- for(let b of sc.builds){ if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<110){ near=b; break; } }
- if(!near){ document.getElementById('dN').innerText='Explore!'; document.getElementById('dT').innerText='Lapit ka sa building at pindot ENTER para pumasok sa loob!\nMay naglalakad na NPCs din!'; document.getElementById('dialog').style.display='block'; return; }
- enterInterior(near); score+=100; document.getElementById('score').innerText='Score:'+score+' | Inside: '+near.name;
+ let sc=game.scene.getScene('Game');
+ if(mode==='inside'){
+  if(sc.insideTeacher && Phaser.Math.Distance.Between(sc.player.x,sc.player.y,sc.insideTeacher.x,sc.insideTeacher.y)<90){
+   let b=currentBuilding; document.getElementById('dN').innerText=b.name+' '+sc.insideTeacher.texture.key;
+   document.getElementById('dT').innerText='Teacher: Gusto mo mag-test? Pindutin mo TAKE TEST!';
+   document.getElementById('dBtns').innerHTML='<button onclick="showQuiz(currentBuilding);document.getElementById(\'dialog\').style.display=\'none\'" style="padding:10px 18px;background:#22c55e;color:#fff;border-radius:10px;border:2px solid #fff;font-weight:900;margin-right:8px">TAKE TEST</button><button onclick="document.getElementById(\'dialog\').style.display=\'none\'" style="padding:10px 18px;background:#444;color:#fff;border-radius:10px">Close</button>';
+   document.getElementById('dialog').style.display='block';
+  } else {
+   document.getElementById('dN').innerText='Inside '+currentBuilding.name; document.getElementById('dT').innerText='Gumagala ka sa loob! Lapit ka sa teacher para mag-test!'; document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'" style="padding:8px 16px">OK</button>'; document.getElementById('dialog').style.display='block';
+  }
+  return;
+ }
+ let npcNear=null; for(let n of sc.npcs){ if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,n.x,n.y)<75){ npcNear=n; break; } }
+ if(npcNear){
+  let lines=DIALOGS[npcNear.role]||["Hello!"]; let txt=lines[npcNear.dialogIdx%lines.length]; npcNear.dialogIdx++;
+  document.getElementById('dN').innerText=npcNear.role; document.getElementById('dT').innerText=txt; document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'" style="padding:8px 16px;background:#22c55e;color:#fff;border-radius:10px;font-weight:800">OK</button>'; document.getElementById('dialog').style.display='block'; return;
+ }
+ let near=null; for(let b of sc.builds){ if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<115){ near=b; break; } }
+ if(!near){ document.getElementById('dN').innerText='Explore'; document.getElementById('dT').innerText='Hanapin mo buildings! May walking NPCs na may dialogue!'; document.getElementById('dBtns').innerHTML='<button onclick="document.getElementById(\'dialog\').style.display=\'none\'" style="padding:8px 16px">OK</button>'; document.getElementById('dialog').style.display='block'; return; }
+ enterBuilding(near);
 };
-document.getElementById('btnB').onclick=exitInterior;
-document.getElementById('dialog').onclick=()=>document.getElementById('dialog').style.display='none';
-window.exitInterior=exitInterior;
+document.getElementById('btnB').onclick=exitBuilding;
+document.getElementById('dialog').onclick=(e)=>{ if(e.target.id==='dialog') e.currentTarget.style.display='none'; };
+window.showQuiz=showQuiz; window.closeQuiz=closeQuiz; window.exitBuilding=exitBuilding;
+updateQuests();
 </script></body></html>
