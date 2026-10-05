@@ -1,9 +1,9 @@
 <!DOCTYPE html><html><head>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>ReadyPH V11.1 FIXED</title>
+<title>ReadyPH V11.2 PERFECT GRID</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
-<style>html,body{margin:0;padding:0;background:#5a8f3f;overflow:hidden;height:100%;font-family:Arial;touch-action:none}
+<style>html,body{margin:0;padding:0;background:#6dbf67;overflow:hidden;height:100%;font-family:Arial;touch-action:none}
 #game{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1}
 #joy{position:fixed;left:12px;bottom:18px;width:125px;height:125px;z-index:50;background:rgba(255,255,255,.28);border-radius:50%;border:2px solid #fff}
 #btnA{position:fixed;right:16px;bottom:28px;width:82px;height:82px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:22px;z-index:50}
@@ -11,16 +11,19 @@
 #dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:4px solid #22c55e;padding:18px;color:#fff;display:none;z-index:60}</style>
 </head><body>
 <div id="game"></div>
-<div id="hud"><span>V11.1 FIXED - White Removed</span><span id="score">Score:0</span></div>
+<div id="hud"><span>V11.2 PERFECT - No Checker No Grid</span><span id="score">Score:0</span></div>
 <div id="joy"></div><button id="btnA">A</button>
 <div id="dialog"><b id="dN" style="color:#4ade80"></b><p id="dT" style="white-space:pre-line"></p></div>
 <script>
 let joy={x:0,y:0},score=0,game;
-function removeWhite(canvas){
+function cleanCanvas(canvas){
  let ctx=canvas.getContext('2d'); let d=ctx.getImageData(0,0,canvas.width,canvas.height);
  for(let i=0;i<d.data.length;i+=4){
   let r=d.data[i],g=d.data[i+1],b=d.data[i+2];
-  if(r>240 && g>240 && b>240) d.data[i+3]=0;
+  // tanggal white, light gray, checker gray (192, 204, 220 etc)
+  let isWhite = r>235 && g>235 && b>235;
+  let isCheckerLight = r>185 && g>185 && b>185 && Math.abs(r-g)<15 && Math.abs(g-b)<15;
+  if(isWhite || isCheckerLight) d.data[i+3]=0;
  }
  ctx.putImageData(d,0,0);
 }
@@ -32,34 +35,37 @@ class Main extends Phaser.Scene{
   this.load.image('chars','assets/kenney/CHARS.png');
  }
  create(){
+  // --- GROUND with inner crop para walang dark border ---
   let gImg=this.textures.get('ground').getSourceImage();
   let gw=gImg.width/4, gh=gImg.height/2;
+  let inset=6; // tanggalin border
   let makeGround=(k,c,r)=>{
-   let cv=document.createElement('canvas'); cv.width=gw; cv.height=gh;
-   cv.getContext('2d').drawImage(gImg,c*gw,r*gh,gw,gh,0,0,gw,gh);
-   removeWhite(cv);
+   let cv=document.createElement('canvas'); cv.width=gw-inset*2; cv.height=gh-inset*2;
+   cv.getContext('2d').drawImage(gImg,c*gw+inset,r*gh+inset,gw-inset*2,gh-inset*2,0,0,gw-inset*2,gh-inset*2);
    if(this.textures.exists(k)) this.textures.remove(k);
    this.textures.addCanvas(k,cv);
   };
   makeGround('grass1',0,0); makeGround('grassFlower',1,0);
 
-  // Grass tiling - proper scale
-  for(let x=0;x<3000;x+=64) for(let y=0;y<3000;y+=64){
-   let key = Math.random()<0.12? 'grassFlower' : 'grass1';
-   this.add.image(x,y,key).setDisplaySize(68,68).setDepth(0);
+  // Perfect tiling - 64 exact, no gap
+  for(let x=0;x<3000;x+=64){
+   for(let y=0;y<3000;y+=64){
+    let key = Math.random()<0.1? 'grassFlower' : 'grass1';
+    this.add.image(x+32,y+32,key).setDisplaySize(64,64).setDepth(0);
+   }
   }
-  // Simple roads - no image stretch
-  this.add.rectangle(1500,1250,3000,100,0x5a5a5a).setDepth(1);
-  this.add.rectangle(1500,1250,3000,8,0xffd700).setDepth(1).setAlpha(0.8);
-  this.add.rectangle(1250,1500,100,3000,0x5a5a5a).setDepth(1);
-  this.add.rectangle(1250,1500,8,3000,0xffd700).setDepth(1).setAlpha(0.8);
+  this.add.rectangle(1500,1250,3000,86,0x5a5a5a).setDepth(1);
+  this.add.rectangle(1500,1250,3000,6,0xffd700).setDepth(1);
+  this.add.rectangle(1250,1500,86,3000,0x5a5a5a).setDepth(1);
+  this.add.rectangle(1250,1500,6,3000,0xffd700).setDepth(1);
 
+  // --- BUILDINGS with checker removal + smaller size ---
   let bImg=this.textures.get('buildings').getSourceImage();
   let bw=bImg.width/4, bh=bImg.height/2;
   let mkB=(k,c,r)=>{
    let cv=document.createElement('canvas'); cv.width=bw; cv.height=bh;
    cv.getContext('2d').drawImage(bImg,c*bw,r*bh,bw,bh,0,0,bw,bh);
-   removeWhite(cv);
+   cleanCanvas(cv);
    if(this.textures.exists(k)) this.textures.remove(k);
    this.textures.addCanvas(k,cv);
   };
@@ -67,47 +73,60 @@ class Main extends Phaser.Scene{
   mkB('gym',0,1); mkB('dorm',1,1); mkB('hospital',2,1); mkB('shop',3,1);
 
   this.builds=[];
-  let place=(x,y,k,n)=>{ this.add.image(x,y,k).setDisplaySize(130,130).setDepth(2); this.add.text(x,y+75,n,{fontSize:'10px',backgroundColor:'#000c',color:'#fff',padding:{x:5,y:2}}).setOrigin(0.5).setDepth(3); this.builds.push({x,y,name:n}); };
-  place(1500,700,'school','SCHOOL'); place(2000,650,'office','OFFICE'); place(750,1250,'canteen','CANTEEN'); place(2000,1250,'library','LIBRARY'); place(750,650,'gym','GYM'); place(1500,2050,'dorm','DORM'); place(2200,1750,'hospital','HOSPITAL'); place(550,1750,'shop','SHOP');
+  // Tamang laki: 96x96 lang, sakto sa grid
+  let place=(x,y,k,n)=>{
+   let img=this.add.image(x,y,k).setDisplaySize(96,96).setDepth(2);
+   this.add.text(x,y+62,n,{fontSize:'9px',backgroundColor:'#000a',color:'#fff',padding:{x:4,y:2}}).setOrigin(0.5).setDepth(3);
+   this.builds.push({x,y,name:n});
+  };
+  // Ayos position - hindi nasa gitna ng road
+  place(1450,900,'school','SCHOOL');
+  place(1750,900,'office','OFFICE');
+  place(900,1450,'canteen','CANTEEN');
+  place(1750,1450,'library','LIBRARY');
+  place(900,900,'gym','GYM');
+  place(1450,1900,'dorm','DORM');
+  place(2000,1750,'hospital','HOSPITAL');
+  place(600,1750,'shop','SHOP');
 
+  // --- CHARS ---
   let cImg=this.textures.get('chars').getSourceImage();
   let charW=cImg.width/6, charH=cImg.height;
   let mkC=(k,i)=>{
    let cv=document.createElement('canvas'); cv.width=charW; cv.height=charH;
    cv.getContext('2d').drawImage(cImg,i*charW,0,charW,charH,0,0,charW,charH);
-   removeWhite(cv);
+   cleanCanvas(cv);
    if(this.textures.exists(k)) this.textures.remove(k);
    this.textures.addCanvas(k,cv);
   };
   mkC('player',0); mkC('girl',1); mkC('teacher',2); mkC('chef',3); mkC('janitor',4); mkC('nurse',5);
 
-  this.add.image(1500,850,'teacher').setDisplaySize(50,50).setDepth(4);
-  this.add.image(750,1380,'chef').setDisplaySize(50,50).setDepth(4);
-  this.add.image(2000,1380,'girl').setDisplaySize(50,50).setDepth(4);
-  this.add.image(2200,1880,'nurse').setDisplaySize(50,50).setDepth(4);
-  this.add.image(550,1880,'janitor').setDisplaySize(50,50).setDepth(4);
+  this.add.image(1450,980,'teacher').setDisplaySize(36,36).setDepth(4);
+  this.add.image(900,1530,'chef').setDisplaySize(36,36).setDepth(4);
+  this.add.image(1750,1530,'girl').setDisplaySize(36,36).setDepth(4);
+  this.add.image(2000,1830,'nurse').setDisplaySize(36,36).setDepth(4);
+  this.add.image(600,1830,'janitor').setDisplaySize(36,36).setDepth(4);
 
-  this.player=this.add.image(1500,1080,'player').setDisplaySize(52,52).setDepth(10);
+  this.player=this.add.image(1500,1080,'player').setDisplaySize(38,38).setDepth(10);
   this.cameras.main.setBounds(0,0,3000,3000); this.cameras.main.startFollow(this.player,true,0.14,0.14);
   this.keys=this.input.keyboard.addKeys('W,A,S,D');
-  document.getElementById('score').innerText='Score:0';
  }
  update(){
   if(document.getElementById('dialog').style.display==='block') return;
-  let sp=5.5,mx=joy.x,my=joy.y;
+  let sp=5,mx=joy.x,my=joy.y;
   if(this.keys.A.isDown) mx=-1; if(this.keys.D.isDown) mx=1; if(this.keys.W.isDown) my=-1; if(this.keys.S.isDown) my=1;
   if(Math.abs(mx)<0.2) mx=0; if(Math.abs(my)<0.2) my=0;
   if(mx||my){ this.player.x+=mx*sp; this.player.y+=my*sp; }
   this.player.x=Phaser.Math.Clamp(this.player.x,30,2970); this.player.y=Phaser.Math.Clamp(this.player.y,30,2970);
  }
 }
-game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#7bc86f',scene:Main,scale:{mode:Phaser.Scale.RESIZE}});
+game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#6dbf67',scene:Main,scale:{mode:Phaser.Scale.RESIZE}});
 let stick=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'62px',top:'62px'},color:'white',size:85});
 stick.on('move',(e,d)=>{ if(d&&d.vector){ joy.x=d.vector.x; joy.y=-d.vector.y; } }); stick.on('end',()=>{ joy.x=0; joy.y=0; });
 document.getElementById('btnA').onclick=()=>{
- let sc=game.scene.getScene('Game'); let near=null; for(let b of sc.builds){ if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<160){ near=b; break; } }
- if(!near){ document.getElementById('dN').innerText='Explore!'; document.getElementById('dT').innerText='Lapit ka sa building para kausapin NPC! Teacher sa SCHOOL, Chef sa CANTEEN!'; document.getElementById('dialog').style.display='block'; return; }
- document.getElementById('dN').innerText=near.name; document.getElementById('dT').innerText='Welcome sa '+near.name+'! White background tinanggal na!'; document.getElementById('dialog').style.display='block'; score+=100; document.getElementById('score').innerText='Score:'+score;
+ let sc=game.scene.getScene('Game'); let near=null; for(let b of sc.builds){ if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<110){ near=b; break; } }
+ if(!near){ document.getElementById('dN').innerText='Explore!'; document.getElementById('dT').innerText='Lapit ka pa sa building! 110px distance lang!'; document.getElementById('dialog').style.display='block'; return; }
+ document.getElementById('dN').innerText=near.name; document.getElementById('dT').innerText='Welcome sa '+near.name+'! Perfect grid na, walang checker, walang dark lines!'; document.getElementById('dialog').style.display='block'; score+=100; document.getElementById('score').innerText='Score:'+score;
 };
 document.getElementById('dialog').onclick=()=>document.getElementById('dialog').style.display='none';
 </script></body></html>
