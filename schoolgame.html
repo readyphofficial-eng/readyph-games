@@ -1,114 +1,131 @@
 <!DOCTYPE html><html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>V53 WORLDBOX - NO PLAYER</title>
+<title>V55 STEADY WORLDBOX SHOP</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
 <style>
-html,body{margin:0;padding:0;background:#2e2e2e;overflow:hidden;height:100%;touch-action:none}
-#game{position:fixed;inset:0;image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges}
-#joy{position:fixed;left:12px;bottom:18px;width:110px;height:110px;background:rgba(255,255,255,.2);border-radius:50%;border:2px solid #fff;z-index:50}
-#hud{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.75);color:#fff;padding:6px 10px;font-size:10px;font-weight:800;z-index:40;display:flex;justify-content:space-between}
+html,body{margin:0;padding:0;background:#2e2e2e;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
+#game{position:fixed;top:0;left:0;right:0;bottom:140px;image-rendering:crisp-edges}
+#top{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.75);color:#fff;padding:6px 12px;font-size:11px;font-weight:800;z-index:40;display:flex;justify-content:space-between}
+#shop{position:fixed;bottom:0;left:0;right:0;height:140px;background:#121212;border-top:3px solid #333;display:flex;gap:8px;padding:8px;overflow-x:auto;z-index:50;align-items:flex-start}
+.shop-card{width:80px;min-width:80px;height:120px;background:#222;border:2px solid #444;border-radius:10px;display:flex;flex-direction:column;align-items:center;padding:4px;flex-shrink:0}
+.shop-card img{width:48px;height:48px;object-fit:contain;background:#1a1a1a;border-radius:6px}
+.shop-card b{font-size:8px;color:#fff;margin:3px 0;text-align:center;line-height:9px;height:18px;display:flex;align-items:center}
+.shop-card button{background:#4ade80;color:#000;border:none;border-radius:6px;padding:4px 6px;font-size:9px;font-weight:900;cursor:pointer;width:100%}
+.shop-card button:disabled{background:#555;color:#777}
+#coins{color:#facc15}
+#placed{position:fixed;bottom:145px;left:8px;background:rgba(0,0,0,.6);color:#fff;padding:4px 8px;border-radius:12px;font-size:9px;font-weight:800;z-index:45}
 </style>
 </head><body>
 <div id="game"></div>
-<div id="hud"><span>WORLDBOX TRIANGLE - NO PLAYER - PURE MAP</span><span id="info">Drag to pan | Pinch/Wheel to zoom | Joystick</span></div>
-<div id="joy"></div>
+<div id="top"><span>🏝️ TRIANGLE ISLAND - STEADY ZOOM OUT - WORLDBOX</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0 placed</span></span></div>
+<div id="placed">Tap shop to purchase → tap map to place | Drag placed to move</div>
+<div id="shop"></div>
 <script>
-let joy={x:0,y:0};
+const ANIMALS=[
+'beaver','bee','bunny','cat','caterpillar','chick','cow','crab','deer','dog','elephant','fox','giraffe','hog','koala','lion','monkey','panda','parrot','penguin','pig','polar','tiger'
+];
+const HUMANS=[
+'female-a','female-b','female-c','female-d','female-e','female-f','male-a','male-b','male-c','male-d','male-e','male-f'
+];
 
-class WorldBox extends Phaser.Scene{
- constructor(){super('WorldBox')}
+let coins=500;
+let selectedToPlace=null;
+let entities=[];
+
+class SteadyShop extends Phaser.Scene{
+ constructor(){super('SteadyShop')}
  preload(){
-  // 4K map mo - upload mo yung image as map-triangle-4k.png
-  this.load.image('island4k', 'clean/map-triangle-4k.png');
-  // fallback old
-  this.load.image('island', 'clean/map-triangle.png');
+  this.load.image('island4k','clean/map-triangle-4k.png');
+  this.load.image('island','clean/map-triangle.png');
+  ANIMALS.forEach(n=>this.load.image('animal-'+n,'clean/animal-'+n+'.png'));
+  HUMANS.forEach(n=>this.load.image('char-'+n,'clean/character-'+n+'.png'));
  }
  create(){
-  const W=3000,H=3000;
-  this.W=W; this.H=H;
-  
+  const W=3000,H=3000; this.W=W; this.H=H;
   this.add.rectangle(W/2,H/2,W,H,0x2e2e2e).setDepth(0);
-
-  let mapKey=null;
-  if(this.textures.exists('island4k')) mapKey='island4k';
-  else if(this.textures.exists('island')) mapKey='island';
   
-  if(mapKey){
-   let island=this.add.image(W/2,H/2,mapKey).setDepth(1);
-   // HINDI NA ISTRETCH NG SOBRA - exact size para hindi blurry!
-   // Kunin natural size, wag palakihan ng 2x
-   let tex=this.textures.get(mapKey).getSourceImage();
-   let nw=tex.width, nh=tex.height;
-   // Max 2800 lang para hindi mag pixelate
-   let maxW=2800;
-   if(nw>maxW){
-    let ratio=maxW/nw;
-    island.setDisplaySize(nw*ratio, nh*ratio);
-   }else{
-    island.setDisplaySize(nw, nh);
-   }
-   island.setOrigin(0.5,0.5);
-   // Crisp - no blur filter
-   island.setPipeline('TextureTintPipeline');
-  }else{
-   this.add.text(W/2,H/2,'UPLOAD map-triangle-4k.png to clean/', {font:'bold 24px Arial',color:'#ff4444',backgroundColor:'#000'}).setDepth(10).setOrigin(0.5);
+  let key=this.textures.exists('island4k')?'island4k':(this.textures.exists('island')?'island':null);
+  if(key){
+   let tex=this.textures.get(key).getSourceImage();
+   let island=this.add.image(W/2,H/2,key).setDepth(1);
+   let ratio=Math.min(2600/tex.width, 2600/tex.height);
+   island.setDisplaySize(tex.width*ratio, tex.height*ratio);
   }
 
-  // WORLDBOX - WALANG PLAYER! Camera lang gagalaw
+  // STEADY - FIXED CAMERA, NO MOVEMENT, NO ZOOM
   this.cameras.main.setBounds(0,0,W,H);
   this.cameras.main.centerOn(W/2,H/2);
-  this.cameras.main.setZoom(0.9); // 0.9 lang simula para buo kita at malinaw
-
-  this.keys=this.input.keyboard.addKeys('W,A,S,D');
-
-  // SMOOTH DRAG PAN - parang WorldBox
-  this.input.on('pointermove', p=>{
-   if(p.isDown){
-    this.cameras.main.scrollX-=(p.x-p.prevPosition.x)/this.cameras.main.zoom;
-    this.cameras.main.scrollY-=(p.y-p.prevPosition.y)/this.cameras.main.zoom;
+  this.cameras.main.setZoom(0.75); // steady zoom out - kita buo
+  
+  // Walang drag, walang wheel zoom - steady lang!
+  
+  // Tap map to place purchased
+  this.input.on('pointerdown', p=>{
+   if(p.y > window.innerHeight-140) return; // nasa shop
+   if(selectedToPlace){
+    let world=this.cameras.main.getWorldPoint(p.x,p.y);
+    this.placeEntity(world.x, world.y, selectedToPlace);
+    selectedToPlace=null;
+    document.getElementById('placed').innerText='Tap shop to purchase → tap map to place';
    }
   });
 
-  // WHEEL ZOOM - limit para hindi blurry
-  this.input.on('wheel',(p,dx,dy,dz)=>{
-   let cam=this.cameras.main;
-   // 0.5 to 2.0 lang max zoom para hindi mag blur
-   let nz=Phaser.Math.Clamp(cam.zoom - dy*0.001, 0.5, 2.0);
-   cam.setZoom(nz);
-  });
+  this.buildShop();
+ }
 
-  // Pinch zoom mobile
-  let lastDist=0;
-  this.input.addPointer(1);
-  this.input.on('pointermove', (p)=>{
-   if(this.input.pointer1.isDown && this.input.pointer2.isDown){
-    let dist=Phaser.Math.Distance.Between(this.input.pointer1.x,this.input.pointer1.y,this.input.pointer2.x,this.input.pointer2.y);
-    if(lastDist>0){
-     let diff=dist-lastDist;
-     let cam=this.cameras.main;
-     let nz=Phaser.Math.Clamp(cam.zoom + diff*0.002, 0.5, 2.0);
-     cam.setZoom(nz);
+ buildShop(){
+  const shop=document.getElementById('shop');
+  shop.innerHTML='';
+  const all=[...HUMANS.map(n=>({id:'char-'+n, file:'clean/character-'+n+'.png', name:n, price:20, type:'human'})), 
+             ...ANIMALS.map(n=>({id:'animal-'+n, file:'clean/animal-'+n+'.png', name:n, price:10, type:'animal'}))];
+  
+  all.forEach(item=>{
+   let card=document.createElement('div');
+   card.className='shop-card';
+   card.innerHTML=`
+    <img src="${item.file}" onerror="this.style.background='#333'">
+    <b>${item.name.toUpperCase()}</b>
+    <button>🪙${item.price} BUY</button>
+   `;
+   let btn=card.querySelector('button');
+   btn.onclick=()=>{
+    if(coins < item.price){
+     btn.innerText='NO COINS'; setTimeout(()=>btn.innerText='🪙'+item.price+' BUY',800); return;
     }
-    lastDist=dist;
-   }else{
-    lastDist=0;
-   }
+    coins-=item.price;
+    document.getElementById('coins').innerText=coins;
+    selectedToPlace=item.id;
+    document.getElementById('placed').innerText='✅ Purchased '+item.name+' → TAP MAP TO PLACE!';
+    // highlight
+    document.querySelectorAll('.shop-card').forEach(c=>c.style.borderColor='#444');
+    card.style.borderColor='#4ade80';
+   };
+   shop.appendChild(card);
   });
  }
- update(){
-  let sp=12, mx=joy.x, my=joy.y;
-  if(this.keys.A.isDown) mx=-1;
-  if(this.keys.D.isDown) mx=1;
-  if(this.keys.W.isDown) my=-1;
-  if(this.keys.S.isDown) my=1;
-  if(Math.abs(mx)<0.15) mx=0;
-  if(Math.abs(my)<0.15) my=0;
-  if(mx||my){
-   this.cameras.main.scrollX+=mx*sp/this.cameras.main.zoom;
-   this.cameras.main.scrollY+=my*sp/this.cameras.main.zoom;
-  }
+
+ placeEntity(x,y,id){
+  if(!this.textures.exists(id)) return;
+  let spr=this.add.image(x,y,id).setDepth(10).setInteractive({draggable:true});
+  let isAnimal=id.startsWith('animal-');
+  spr.setDisplaySize(isAnimal?26:32, isAnimal?26:32);
+  entities.push(spr);
+  document.getElementById('cnt').innerText=entities.length+' placed';
+  
+  // Drag to move placed entity - map steady pa rin
+  spr.on('drag', (p,dx,dy)=>{
+   spr.x+=dx/this.cameras.main.zoom;
+   spr.y+=dy/this.cameras.main.zoom;
+  });
+  spr.on('pointerdown', (p)=>{
+   // Right click / long press to delete
+   if(p.rightButtonDown()){
+    spr.destroy();
+    entities=entities.filter(e=>e!==spr);
+    document.getElementById('cnt').innerText=entities.length+' placed';
+   }
+  });
  }
 }
 
@@ -116,14 +133,10 @@ new Phaser.Game({
  type:Phaser.AUTO,
  parent:'game',
  width:innerWidth,
- height:innerHeight,
+ height:window.innerHeight-140,
  backgroundColor:'#2e2e2e',
- scene:WorldBox,
+ scene:SteadyShop,
  scale:{mode:Phaser.Scale.RESIZE},
- render:{antialias:true, pixelArt:false, roundPixels:false} // crisp, hindi pixelated blurry
+ render:{antialias:true}
 });
-
-let s=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'60px',top:'60px'},color:'white',size:90});
-s.on('move',(e,d)=>{if(d&&d.vector){joy.x=d.vector.x; joy.y=-d.vector.y;}});
-s.on('end',()=>{joy.x=0;joy.y=0;});
 </script></body></html>
