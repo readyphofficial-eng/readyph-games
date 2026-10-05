@@ -1,153 +1,195 @@
-<!DOCTYPE html>
-<html>
-<head>
+<!DOCTYPE html><html><head>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>READYPH V8 POLISHED</title>
+<title>ReadyPH V10.1 Fixed</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
-<style>
- body{margin:0;background:#000;overflow:hidden;font-family:'Segoe UI',Arial;touch-action:none}
- #joy{position:fixed;left:12px;bottom:12px;width:130px;height:130px;z-index:20;background:rgba(255,255,255,0.14);border-radius:50%;border:2.5px solid rgba(255,255,255,0.8);box-shadow:0 4px 15px rgba(0,0,0,.4)}
- #btnA{position:fixed;right:18px;bottom:22px;width:88px;height:88px;background:linear-gradient(#22c55e,#16a34a);border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:22px;z-index:20;box-shadow:0 6px 18px rgba(0,0,0,.5)}
- #hud{position:fixed;top:0;left:0;right:0;background:linear-gradient(#000000f2,#000000cc);color:#fff;padding:10px 14px;display:flex;justify-content:space-between;z-index:10;font-size:12px;font-weight:700;letter-spacing:0.3px}
- #questHUD{position:fixed;top:44px;left:8px;background:#ffffffe6;padding:10px 12px;border-radius:12px;z-index:10;font-size:11px;min-width:165px;border:2px solid #000;box-shadow:0 4px 12px rgba(0,0,0,.3)}
- #dialog{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(#1e293b,#0f172a);border-top:4px solid #22c55e;padding:18px;color:#fff;display:none;z-index:30;border-radius:16px 16px 0 0;box-shadow:0 -8px 20px rgba(0,0,0,.5)}
- #quiz{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:22px;border-radius:18px;width:88%;max-width:380px;display:none;z-index:40;color:#000;box-shadow:0 10px 30px rgba(0,0,0,.5);border:3px solid #000}
- #exitBtn{position:fixed;bottom:125px;left:50%;transform:translateX(-50%);background:linear-gradient(#ef4444,#dc2626);color:#fff;padding:13px 26px;border-radius:24px;border:2.5px solid #fff;font-weight:900;display:none;z-index:25;box-shadow:0 4px 15px rgba(0,0,0,.4)}
-</style>
-</head>
-<body>
-<div id="hud"><span id="hudLeft">Day 1 | Score:0</span><span id="hudMid">⚡100</span><span id="hudRight">☀️ Day - Campus V8</span></div>
-<div id="questHUD"><b style="font-size:12px">📋 QUESTS</b><div id="qList" style="margin-top:6px;line-height:1.6"></div></div>
+<style>body{margin:0;background:#5a8f3f;overflow:hidden;font-family:Arial;touch-action:none}
+#joy{position:fixed;left:10px;bottom:10px;width:130px;height:130px;z-index:20;background:rgba(255,255,255,.22);border-radius:50%;border:2px solid #fff}
+#btnA{position:fixed;right:15px;bottom:20px;width:85px;height:85px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:22px;z-index:20}
+#hud{position:fixed;top:0;left:0;right:0;background:#000000d9;color:#fff;padding:10px 14px;display:flex;justify-content:space-between;z-index:10;font-size:11px;font-weight:800}
+#dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:4px solid #22c55e;padding:18px;color:#fff;display:none;z-index:30;border-radius:16px 16px 0 0}</style>
+</head><body>
+<div id="hud"><span id="hL">V10.1 Dual: MEGA + TILEMAP</span><span id="hR">Score:0</span></div>
 <div id="joy"></div><button id="btnA">A</button>
-<button id="exitBtn">🚪 EXIT BUILDING</button>
-<div id="dialog"><b id="dName" style="color:#4ade80;font-size:14px"></b><p id="dText" style="white-space:pre-line;margin:10px 0;font-size:13px;line-height:1.5"></p><small style="opacity:.6">Tap to close • Press A again</small></div>
-<div id="quiz"><div style="display:flex;justify-content:space-between"><b id="qProg">Q1</b><b id="qScore">0</b></div><h3 id="qText" style="margin:14px 0;font-size:16px"></h3><div id="qOpts"></div></div>
-
+<div id="dialog"><b id="dN" style="color:#4ade80"></b><p id="dT" style="white-space:pre-line"></p></div>
 <script>
-let joy={x:0,y:0}, score=0, day=1, energy=100, isIndoor=false, currentBuilding=null, timeOfDay=0.1;
-let saved=JSON.parse(localStorage.getItem('readyph_v8')||'{"score":0,"day":1,"quests":[0,0,0,0]}'); score=saved.score||0; day=saved.day||1;
-let quests=[
- {id:0,title:"📚 Library Visit",done:saved.quests?.[0]||0,reward:50},
- {id:1,title:"🏀 Gym Workout",done:saved.quests?.[1]||0,reward:50},
- {id:2,title:"🏢 Office Info",done:saved.quests?.[2]||0,reward:100},
- {id:3,title:"🗣️ Talk to 5 Students",done:saved.quests?.[3]||0,reward:80,progress:0}
-];
-const npcDialogs={
- Ana:["Hi! I'm Ana, bookworm ng Library! 📚 Naghahanap ka ba ng IELTS tips? Nasa loob ng Library!","Uy ikaw pala! Alam mo ba 7.5 ako sa IELTS last month? Practice lang araw araw!","Pssst... sa Library may secret +20 points pag nag aral ka! Try mo!"],
- Mark:["Yo! Mark here! Gym rat ako 🏀 Tara workout, energy mo 100 agad!","Bro pag pagod ka sa review, Gym ka muna! Mind + body dapat!","Sabi ni coach, 30 mins gym = +50% focus sa exam! Legit!"],
- Sofia:["Hello! Sofia, scholarship officer assistant 🎓 Gusto mo malaman requirements? Punta ka Office!","Alam mo 500 points lang need para sa certificate? Kaya mo yan!","Office hours 8am-5pm, pero game open 24/7 haha!"],
- Jake:["Jake here! Gutom ka? Canteen tayo! May adobo + sinigang! 🍛","Pre tips: Kumain ka muna bago mag quiz, 100 energy = better score!","Sa Canteen libre kwentuhan, minsan may extra tips kami!"],
- Mia:["Mia! Dorm mate! 🛏️ Pagod ka na? Matulog ka muna, Day+1 bukas!","Sa Dorm tahimik, perfect mag review! Kaso need mo lumabas para sa score haha!","Day 7 ka na ba? Malapit ka na grumaduate!"],
- Liam:["Liam, basketball varsity! 🏀 Tara shoot tayo sa Gym!","Gym hindi lang katawan, pang English din! Teamwork vocab!","Nakita mo ba fountain? Dun kami tambay after class!"],
- Chloe:["Hi I'm Chloe! Artist ako 🎨 Ganda ng campus no? V8 na tayo!","Mahilig ako mag drawing ng campus, ikaw anong fave spot mo?","Try mo mag ikot sa gabi, ang ganda ng lights!"],
- Ethan:["Ethan, IT student 💻 Alam mo ba code nitong game? Phaser JS!","Gumagawa din ako game, pero English quiz muna focus natin!","Tip: Press A malapit sa building para pumasok!"],
- Zoe:["Zoe here! Future IELTS 8.0! ✨ Manifesting!","Nag review ako 2 hrs daily sa Library, effective!","Sama ka minsan study group namin sa Library!"],
- Noah:["Noah, senior na! Last Day ko bukas! 🎓 Ikaw Day ilan ka na?","Advice: Wag madaliin, enjoy campus! Score susunod din!","Pag graduate mo, may certificate! Save mo!"]
-};
-let talkCount=0;
-const qBank=[{q:"She ___ to school every day.", opts:["go","goes","going"], ans:1},{q:"I have ___ finished.", opts:["already","yet","ever"], ans:0},{q:"Synonym of happy?", opts:["sad","joyful","angry"], ans:1},{q:"Past of 'go'?", opts:["goed","went","gone"], ans:1},{q:"Article: ___ apple", opts:["A","An","The"], ans:1},{q:"If I ___ rich, I'd travel.", opts:["am","were","was"], ans:1}];
-let qIdx=0;
-function save(){localStorage.setItem('readyph_v8',JSON.stringify({score,day,quests:quests.map(q=>q.done)}));}
-function updateHUD(){document.getElementById('hudLeft').innerText=`Day ${day} | Score:${score}`; document.getElementById('hudMid').innerText=`⚡${Math.floor(energy)}`; document.getElementById('qScore').innerText=`Score:${score}`; let qHtml=''; quests.forEach(q=>{let p=q.id===3?` (${talkCount}/5)`:''; qHtml+=`<div>${q.done?'✅':'⬜'} ${q.title}${p}</div>`}); document.getElementById('qList').innerHTML=qHtml;}
-function showDialog(n,t){document.getElementById('dName').innerText=n; document.getElementById('dText').innerText=t; document.getElementById('dialog').style.display='block'; if(navigator.vibrate) navigator.vibrate(30);}
-function hideDialog(){document.getElementById('dialog').style.display='none';}
-function completeQuest(id){let q=quests.find(x=>x.id===id); if(q&&!q.done){q.done=1; score+=q.reward; save(); updateHUD(); showDialog('🎉 QUEST COMPLETE!',`${q.title} +${q.reward} points!`);}}
-
-class Game extends Phaser.Scene{
+let joy={x:0,y:0},score=0,game;
+class GameScene extends Phaser.Scene{
  constructor(){super('Game')}
- create(){
-  // PRETTY GRASS with texture
-  this.add.rectangle(1500,1500,3000,3000,0x6fbf5a);
-  for(let i=0;i<800;i++){let x=Phaser.Math.Between(0,3000), y=Phaser.Math.Between(0,3000); this.add.circle(x,y,1.2,0x000000,0.06);}
-  // ROADS - BETTER
-  this.add.rectangle(1500,1250,3000,140,0x2f2f2f); this.add.rectangle(1500,1250,3000,4,0xffffaa,0.9); this.add.rectangle(1500,1235,3000,2,0xffffff,0.5); this.add.rectangle(1500,1265,3000,2,0xffffff,0.5);
-  this.add.rectangle(1250,1500,110,3000,0x2f2f2f);
-  this.add.rectangle(750,1500,90,3000,0x3d3d3d); this.add.rectangle(2000,1500,90,3000,0x3d3d3d);
-  this.add.rectangle(1500,600,3000,90,0x3d3d3d); this.add.rectangle(1500,2000,3000,90,0x3d3d3d);
-  // FOUNTAIN - ANIMATED LOOK
-  this.add.circle(1250,1250,68,0x374151).setDepth(1); this.add.circle(1250,1250,58,0x7ec8e3).setDepth(1).setStrokeStyle(3,0xffffff); this.add.circle(1250,1250,28,0xffffff,0.6).setDepth(2);
-  this.fountainText=this.add.text(1250,1250,'⛲',{fontSize:'32px'}).setOrigin(0.5).setDepth(3);
-  this.add.text(1250,1310,'CENTRAL PLAZA',{fontSize:'10px',backgroundColor:'#000000aa',color:'#fff',padding:{x:6,y:2}}).setOrigin(0.5).setDepth(3);
-
-  this.buildings=[];
-  let addB=(x,y,w,h,c,roofC,name,emoji)=>{
-   let shadow=this.add.rectangle(x+6,y+8,w,h,0x000000,0.2).setDepth(1);
-   let base=this.add.rectangle(x,y,w,h,c).setStrokeStyle(3.5,0x000000).setDepth(2);
-   let roof=this.add.rectangle(x,y-h/2+10,w+12,18,roofC).setStrokeStyle(2.5,0x000000).setDepth(2.5);
-   // windows glow
-   for(let wx=x-w/2+24; wx<x+w/2-10; wx+=34){ for(let wy=y-h/2+34; wy<y+h/2-18; wy+=32){ this.add.rectangle(wx,wy,14,16,0xfff7a0,0.85).setStrokeStyle(1,0x000000,0.3).setDepth(2.6); } }
-   let door=this.add.rectangle(x,y+h/2-12,30,22,0x3e2723).setStrokeStyle(2,0x000).setDepth(2.7);
-   let handle=this.add.circle(x+8,y+h/2-12,2.5,0xffd700).setDepth(2.8);
-   let label=this.add.text(x,y-6,`${emoji}\n${name}`,{fontSize:'11px',align:'center',fontStyle:'bold',backgroundColor:'#000000cc',color:'#fff',padding:{x:5,y:3}}).setOrigin(0.5).setDepth(4);
-   this.buildings.push({x,y,w,h,name,rect:base,label,door,shadow,roof,handle});
-   return base;
-  };
-  addB(1500,800,380,260,0xd2b48c,0x8d6e63,'MAIN BUILDING','🏫');
-  addB(750,1250,220,220,0xffe4b5,0xd2a679,'CANTEEN','🍛');
-  addB(1500,2050,300,200,0xa3d5ff,0x5a7fa6,'DORMITORY','🛏️');
-  addB(2000,1250,260,200,0xc8e6c9,0x6a8f6b,'LIBRARY','📚');
-  addB(750,600,240,180,0xffccbc,0xb55a45,'GYM HALL','🏀');
-  addB(2000,600,220,180,0xd1c4e9,0x7a6a9e,'ADMIN OFFICE','🏢');
-
-  // DECOR - more trees with shadow
-  for(let i=0;i<40;i++){let x=Phaser.Math.Between(80,2920), y=Phaser.Math.Between(80,2920); if(Phaser.Math.Distance.Between(x,y,1250,1250)<150||Phaser.Math.Distance.Between(x,y,1500,800)<250) continue; this.add.ellipse(x+4,y+14,18,8,0x000000,0.2).setDepth(0); this.add.circle(x,y,15,0x1e5e1f).setDepth(1); this.add.rectangle(x,y+12,6,20,0x4a2c17).setDepth(1); }
-
-  // PLAYER V8 - PRETTIER
-  this.player = this.add.container(1500,1100); this.player.setDepth(10);
-  let shadow=this.add.ellipse(0,18,22,9,0x000000,0.35);
-  let shoe1=this.add.rectangle(-5,16,8,5,0x111111).setStrokeStyle(1,0x000); let shoe2=this.add.rectangle(5,16,8,5,0x111111).setStrokeStyle(1,0x000);
-  let pants=this.add.rectangle(0,7,17,20,0x1e3a8a).setStrokeStyle(1.5,0x000);
-  let polo=this.add.rectangle(0,-7,22,22,0xffffff).setStrokeStyle(1.5,0x000);
-  let collar=this.add.rectangle(0,-15,13,7,0x1e3a8a); let btn=this.add.circle(0,-8,1,0x000); let btn2=this.add.circle(0,-4,1,0x000);
-  let strap1=this.add.rectangle(-7,-7,3,18,0x2563eb).setStrokeStyle(1,0x000); let strap2=this.add.rectangle(7,-7,3,18,0x2563eb).setStrokeStyle(1,0x000);
-  let backpack=this.add.rectangle(0,-6,26,18,0x3b82f6).setVisible(false);
-  let head=this.add.circle(0,-24,11,0xffdbac).setStrokeStyle(1.5,0x000);
-  let hair=this.add.rectangle(0,-33,22,10,0x2c1810).setStrokeStyle(1,0x000);
-  let eye1=this.add.circle(-4,-24,1.6,0x000); let eye2=this.add.circle(4,-24,1.6,0x000); let smile=this.add.arc(0,-20,4,20,160,false).setStrokeStyle(1,0x000);
-  this.player.add([shadow,shoe1,shoe2,pants,backpack,strap1,strap2,polo,collar,btn,btn2,head,hair,eye1,eye2,smile]);
-
-  // NPCs with unique look + dialog pool
-  this.npcs=[]; let npcDefs=[
-   {n:'Ana',c:0xff8a65,x:900,y:1000,hair:0x4a2c17,acc:'📖'},{n:'Mark',c:0x81c784,x:1820,y:1020,hair:0x2c1810,acc:'🏀'},{n:'Sofia',c:0xba68c8,x:2000,y:780,hair:0x5d4037,acc:'🎓'},{n:'Jake',c:0x4db6ac,x:1000,y:1400,hair:0x111111,acc:'🍔'},{n:'Mia',c:0xffd54f,x:1600,y:1650,hair:0x8d6e63,acc:'💤'},{n:'Liam',c:0x90caf9,x:680,y:780,hair:0xffd54f,acc:'⛹️'},{n:'Chloe',c:0xf48fb1,x:2100,y:1450,hair:0xff6f00,acc:'🎨'},{n:'Ethan',c:0xa5d6a7,x:480,y:1250,hair:0x000000,acc:'💻'},{n:'Zoe',c:0xce93d8,x:1250,y:1800,hair:0x3e2723,acc:'✨'},{n:'Noah',c:0xffab91,x:1850,y:1900,hair:0x795548,acc:'🎓'}
-  ];
-  npcDefs.forEach(d=>{
-   let npc=this.add.container(d.x,d.y); npc.setDepth(5);
-   let s=this.add.ellipse(0,11,15,6,0x000000,0.25); let b=this.add.rectangle(0,0,17,21,d.c).setStrokeStyle(1,0x000); let h=this.add.circle(0,-17,8.5,0xffdbac).setStrokeStyle(1,0x000); let hr=this.add.rectangle(0,-24,17,7,d.hair);
-   let acc=this.add.text(0,-34,d.acc,{fontSize:'12px'}).setOrigin(0.5);
-   npc.add([s,b,h,hr,acc]); npc.nName=d.n; npc.origX=d.x; npc.origY=d.y; npc.dir=Math.random()*6.28; npc.talked=false; this.npcs.push(npc);
-  });
-
-  this.interiorGroups={};
-  let mkInt=(name,bg,items)=>{let g=[]; g.push(this.add.rectangle(400,300,800,600,bg).setVisible(false).setStrokeStyle(4,0x000)); items.forEach(it=>{it.setVisible(false); g.push(it);}); this.interiorGroups[name]=g;};
-  mkInt('MAIN BUILDING',0xfaf6e8,[this.add.rectangle(400,55,540,70,0x1e3a2f).setVisible(false), this.add.text(400,55,'🏫 MAIN - IELTS CLASS',{color:'#fff',fontSize:'14px'}).setOrigin(0.5).setVisible(false),...Array.from({length:12},(_,i)=>{let r=Math.floor(i/4),c=i%4; return this.add.rectangle(140+c*170,190+r*110,62,38,0x8d6e63).setStrokeStyle(2,0x3e2723).setVisible(false);})]);
-  mkInt('LIBRARY',0xf5f5dc,[this.add.text(400,70,'📚 LIBRARY - Quiet Please',{fontSize:'16px',fontStyle:'bold'}).setOrigin(0.5).setVisible(false),...Array.from({length:6},(_,i)=>this.add.rectangle(120+i*110,260,20,200,0x5d4037).setVisible(false)), this.add.text(400,500,'Press A to study +20 score',{backgroundColor:'#000',color:'#fff',padding:{x:8,y:4}}).setOrigin(0.5).setVisible(false)]);
-  mkInt('GYM HALL',0xe8f5e9,[this.add.text(400,80,'🏀 GYM - Workout Area',{fontSize:'16px'}).setOrigin(0.5).setVisible(false), this.add.rectangle(400,310,420,240,0xffffff,0).setStrokeStyle(4,0xff5722).setVisible(false), this.add.circle(400,310,20,0xff5722).setVisible(false), this.add.text(400,520,'Press A to workout Energy 100',{backgroundColor:'#000',color:'#fff'}).setOrigin(0.5).setVisible(false)]);
-  mkInt('ADMIN OFFICE',0xe3f2fd,[this.add.text(400,80,'🏢 ADMIN OFFICE - Scholarship',{fontSize:'15px'}).setOrigin(0.5).setVisible(false),...Array.from({length:3},(_,i)=>this.add.rectangle(160+i*240,280,130,70,0x90a4ae).setStrokeStyle(2,0x000).setVisible(false)), this.add.text(400,420,'Need 500 pts for certificate!',{backgroundColor:'#000',color:'#ffeb3b'}).setOrigin(0.5).setVisible(false)]);
-
-  this.teacher = this.add.container(400,190); this.teacher.setVisible(false); this.teacher.setDepth(20);
-  let tS=this.add.ellipse(0,15,20,8,0x000000,0.3); let tB=this.add.rectangle(0,0,28,36,0x16a34a).setStrokeStyle(2,0x000); let tH=this.add.circle(0,-24,12,0xffdbac).setStrokeStyle(1.5,0x000); let tHair=this.add.rectangle(0,-34,24,8,0x3e2723);
-  this.teacher.add([tS,tB,tH,tHair]); this.teacher.add(this.add.text(0,-52,'Ms. ReadyPH',{fontSize:'12px',backgroundColor:'#000',color:'#4ade80',padding:{x:5,y:2}}).setOrigin(0.5));
-
-  this.nightOverlay=this.add.rectangle(1500,1500,3000,3000,0x0a0a2a,0).setDepth(100).setScrollFactor(0); this.nightOverlay.setVisible(false);
-  this.lights=[]; for(let i=0;i<14;i++){let x=Phaser.Math.Between(300,2700), y=Phaser.Math.Between(300,2700); let l=this.add.circle(x,y,5,0xffff99,0.9).setDepth(4).setStrokeStyle(1,0xffffff,0.5); this.lights.push(l);}
-  this.cameras.main.setBounds(0,0,3000,3000); this.cameras.main.startFollow(this.player,true,0.12,0.12);
-  this.keys=this.input.keyboard.addKeys('W,A,S,D,SHIFT'); this.isIndoor=false; isIndoor=false; updateHUD();
+ preload(){
+  this.load.image('mega','assets/kenney/MEGA.png');
+  this.load.image('tilemap','assets/kenney/tilemap.png');
  }
- update(time,delta){
-  if(document.getElementById('quiz').style.display==='block'||document.getElementById('dialog').style.display==='block') return;
-  timeOfDay+=0.00012; if(timeOfDay>1) timeOfDay=0;
-  let isNight=timeOfDay>0.62; this.nightOverlay.setVisible(isNight); this.nightOverlay.alpha=isNight?(timeOfDay-0.62)*1.4:0; this.lights.forEach(l=>l.setVisible(isNight)); document.getElementById('hudRight').innerText=isNight?'🌙 Night - Lights On':'☀️ Day - Campus V8';
-  if(this.fountainText) this.fountainText.y=1250+Math.sin(time*0.004)*3;
-  let speed=5.2; if(this.keys.SHIFT.isDown) speed=8;
-  let mx=0,my=0; if(this.keys.A.isDown) mx=-1; else if(this.keys.D.isDown) mx=1; else mx=joy.x; if(this.keys.W.isDown) my=-1; else if(this.keys.S.isDown) my=1; else my=joy.y;
-  if(Math.abs(mx)<0.25) mx=0; if(Math.abs(my)<0.25) my=0;
-  if(mx!=0||my!=0){ this.player.x+=mx*speed; this.player.y+=my*speed; energy=Math.max(0,energy-0.02); }
-  if(!this.isIndoor){ this.player.x=Phaser.Math.Clamp(this.player.x,20,2980); this.player.y=Phaser.Math.Clamp(this.player.y,20,2980); this.npcs.forEach(npc=>{ npc.dir+=(Math.random()-0.5)*0.04; npc.x+=Math.cos(npc.dir)*0.55; npc.y+=Math.sin(npc.dir)*0.55; if(Phaser.Math.Distance.Between(npc.x,npc.y,npc.origX,npc.origY)>210) npc.dir+=3.14; }); } else { this.player.x=Phaser.Math.Clamp(this.player.x,60,740); this.player.y=Phaser.Math.Clamp(this.player.y,80,590); if(this.player.y>520) document.getElementById('exitBtn').style.display='block'; else document.getElementById('exitBtn').style.display='none'; }
+ create(){
+  let tilemapImg=this.textures.get('tilemap').getSourceImage();
+  let grassCanvas=document.createElement('canvas'); grassCanvas.width=64; grassCanvas.height=64;
+  let ctx=grassCanvas.getContext('2d');
+  try{ ctx.drawImage(tilemapImg,0,0,128,128,0,0,64,64); }catch(e){ ctx.fillStyle='#7bc86f'; ctx.fillRect(0,0,64,64); }
+  this.textures.addCanvas('groundTex',grassCanvas);
+
+  for(let x=0;x<3000;x+=64) for(let y=0;y<3000;y+=64){
+   this.add.image(x,y,'groundTex').setDepth(0).setAlpha(0.9);
+  }
+  this.add.rectangle(1500,1250,3000,110,0x4a4a4a).setDepth(1);
+  this.add.rectangle(1250,1500,110,3000,0x4a4a4a).setDepth(1);
+  this.add.circle(1250,1250,55,0x7ec8e3).setStrokeStyle(5,0xffffff).setDepth(2);
+
+  let megaImg=this.textures.get('mega').getSourceImage();
+  let makeTex=(key,x,y,w,h)=>{
+   let c=document.createElement('canvas'); c.width=w; c.height=h;
+   c.getContext('2d').drawImage(megaImg,x,y,w,h,0,0,w,h);
+   if(this.textures.exists(key)) this.textures.remove(key);
+   this.textures.addCanvas(key,c);
+  };
+  let bw=190,bh=190,gap=35,sx=18,sy=62;
+  makeTex('b_school',sx+0*(bw+gap),sy,bw,bh);
+  makeTex('b_office',sx+1*(bw+gap),sy,bw,bh);
+  makeTex('b_canteen',sx+2*(bw+gap),sy,bw,bh);
+  makeTex('b_library',sx+3*(bw+gap),sy,bw,bh);
+  makeTex('b_gym',sx+4*(bw+gap),sy,bw,bh);
+  makeTex('b_dorm',sx+5*(bw+gap),sy,bw,bh);
+  makeTex('b_hospital',sx+6*(bw+gap),sy,bw,bh);
+  makeTex('b_shop',sx+7*(bw+gap),sy,bw,bh);
+
+  this.builds=[];
+  let place=(x,y,key,name)=>{
+   this.add.image(x,y,key).setScale(0.85).setDepth(2);
+   this.add.text(x,y+95,name,{fontSize:'11px',backgroundColor:'#000c',color:'#fff',padding:{x:6,y:3}}).setOrigin(0.5).setDepth(3);
+   this.builds.push({x,y,name});
+  };
+  place(1500,700,'b_school','SCHOOL');
+  place(2000,650,'b_office','OFFICE');
+  place(750,1250,'b_canteen','CANTEEN');
+  place(2000,1250,'b_library','LIBRARY');
+  place(750,650,'b_gym','GYM');
+  place(1500,2050,'b_dorm','DORM');
+  place(2200,1750,'b_hospital','HOSPITAL');
+  place(550,1750,'b_shop','SHOP');
+
+  this.player=this.add.circle(1500,1080,14,0x1e3a8a).setStrokeStyle(3,0xfff).setDepth(10);
+  this.cameras.main.setBounds(0,0,3000,3000);
+  this.cameras.main.startFollow(this.player,true,0.14,0.14);
+  this.keys=this.input.keyboard.addKeys('W,A,S,D');
+  document.getElementById('hL').innerText='V10.1 DUAL LOADED!';
+ }
+ update(){
+  if(document.getElementById('dialog').style.display=='block') return;
+  let sp=6,mx=joy.x,my=joy.y;
+  if(this.keys.A.isDown) mx=-1; if(this.keys.D.isDown) mx=1; if(this.keys.W.isDown) my=-1; if(this.keys.S.isDown) my=1;
+  if(Math.abs(mx)<0.22) mx=0; if(Math.abs(my)<0.22) my=0;
+  if(mx||my){this.player.x+=mx*sp; this.player.y+=my*sp;}
+  this.player.x=Phaser.Math.Clamp(this.player.x,30,2970); this.player.y=Phaser.Math.Clamp(this.player.y,30,2970);
  }
 }
-const game=new Phaser.Game({width:innerWidth,height:innerHeight,backgroundColor:'#6fbf5a',scene:Game});
-function startQuiz(){ let q=qBank[qIdx%qBank.length]; document.getElementById('qProg').innerText=`Q ${qIdx+1}`; document.getElementById('qText').innerText=q.q; let box=document.getElementById('qOpts'); box.innerHTML=''; q.opts.forEach((o,i)=>{let b=document.createElement('button'); b.style='width:100%;padding:13px;margin:6px 0;border-radius:12px;border:2.5px solid #000;background:#fff;font-weight:700;text-align:left;box-shadow:0 2px 0 #000'; b.innerText=String.fromCharCode(65+i)+'. '+o; b.onclick=()=>{if(i===q.ans){score+=50; energy=Math.min(100,energy+10); showDialog('✅ CORRECT!','+50 points! Galing!');}else{showDialog('❌ Mali','Tama: '+q.opts[q.ans]);} qIdx=(qIdx+1)%qBank.length; save(); updateHUD(); document.getElementById('quiz').style.display='none'; if(navigator.vibrate) navigator.vibrate(40);}; box.appendChild(b);}); document.getElementById('quiz').style.display='block';}
-function enterBuilding(name){ let sc=game.scene.getScene('Game'); sc.isIndoor=true; isIndoor=true; currentBuilding=name; sc.player.x=400; sc.player.y=480; sc.buildings.forEach(b=>{b.rect.setVisible(false); b.label.setVisible(false); b.door.setVisible(false); b.roof.setVisible(false); b.handle.setVisible(false);}); sc.npcs.forEach(n=>n.setVisible(false)); Object.values(sc.interiorGroups).forEach(g=>g.forEach(o=>o.setVisible(false))); if(sc.interiorGroups[name]) sc.interiorGroups[name].forEach(o=>o.setVisible(true)); if(name==='MAIN BUILDING') sc.teacher.setVisible(true); sc.cameras.main.setBounds(0,0,800,600); sc.cameras.main.setBackgroundColor(0xfaf6e8); document.getElementById('exitBtn').style.display='block'; if(name==='LIBRARY') completeQuest(0); if(name==='GYM HALL') completeQuest(1); if(name==='ADMIN OFFICE') completeQuest(2); showDialog(name,`Welcome to ${name}!`);}
-function exitBuilding(){ let sc=game.scene.getScene('Game'); sc.isIndoor=false; isIndoor=false; currentBuilding=null; sc.player.x=1500; sc.player.y=1050; sc.buildings.forEach(b=>{b.rect.setVisible(true); b.label.setVisible(true); b.door.setVisible(true); b.roof.setVisible(true); b.handle.setVisible(true);}); sc.npcs.forEach(n=>n.setVisible(true)); Object.values(sc.interiorGroups).forEach(g=>g.forEach(o=>o.setVisible(false))); sc.teacher.setVisible(false); sc.cameras.main.setBounds(0,0,3000,3000); document.getElementById('exitBtn').style.display='none'; hideDialog();}
-function doInteract(){ let sc=game.scene.getScene('Game'); if(!sc) return; if(!sc.isIndoor){ for(let npc of sc.npcs){ if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,npc.x,npc.y)<95){ let lines=npcDialogs[npc.nName]||["Hi!"]; let msg=lines[Math.floor(Math.random()*lines.length)]; showDialog(npc.nName+` ${npc.list?.acc||''}`,msg); if(!npc.talked){npc.talked=true; talkCount++; if(talkCount>=5) completeQuest(3); updateHUD();} return; } } for(let b of sc.buildings){ if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<200){ if(b.name==='CANTEEN'){energy=100; updateHUD(); showDialog('Canteen 🍛','Sarap! Busog! Energy 100%! May adobo, sinigang, at extra rice!');} else if(b.name==='DORMITORY'){day++; energy=100; save(); updateHUD(); showDialog('Dormitory 🛏️',`Good night! Day ${day} na! Tulog ka 8 hrs, 
+game=new Phaser.Game({type:Phaser.AUTO,width:innerWidth,height:innerHeight,backgroundColor:'#6aa84f',scene:GameScene,scale:{mode:Phaser.Scale.RESIZE}});
+let stick=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'65px',top:'65px'},color:'white',size:90});
+stick.on('move',(e,d)=>{if(d&&d.vector){joy.x=d.vector.x; joy.y=-d.vector.y;}});
+stick.on('end',()=>{joy.x=0;joy.y=0;});
+function interact(){
+ let sc=game.scene.getScene('Game'); if(!sc.builds) return;
+ let near=null;
+ for(let b of sc.builds){if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<160){near=b;break;}}
+ if(!near){document.getElementById('dN').innerText='Explore!'; document.getElementById('dT').innerText='2 files gamit mo na! MEGA for buildings, TILEMAP for ground!\n\nSCHOOL taas, CANTEEN kaliwa, LIBRARY kanan, DORM baba!'; document.getElementById('dialog').style.display='block'; return;}
+ document.getElementById('dN').innerText=near.name; document.getElementById('dT').innerText='Welcome to '+near.name+'!\n\nDual pack: '+near.name+' from MEGA.png, ground from tilemap.png!\n+100 pts!'; document.getElementById('dialog').style.display='block'; score+=100; document.getElementById('hR').innerText='Score:'+score;
+}
+document.getElementById('btnA').onclick=interact;
+document.getElementById('dialog').onclick=()=>document.getElementById('dialog').style.display='none';
+window.addEventListener('resize',()=>{try{game.scale.resize(innerWidth,innerHeight)}catch(e){}});
+</script></body></html><!DOCTYPE html><html><head>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>ReadyPH V10.1 Fixed</title>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
+<style>body{margin:0;background:#5a8f3f;overflow:hidden;font-family:Arial;touch-action:none}
+#joy{position:fixed;left:10px;bottom:10px;width:130px;height:130px;z-index:20;background:rgba(255,255,255,.22);border-radius:50%;border:2px solid #fff}
+#btnA{position:fixed;right:15px;bottom:20px;width:85px;height:85px;background:#22c55e;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:22px;z-index:20}
+#hud{position:fixed;top:0;left:0;right:0;background:#000000d9;color:#fff;padding:10px 14px;display:flex;justify-content:space-between;z-index:10;font-size:11px;font-weight:800}
+#dialog{position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:4px solid #22c55e;padding:18px;color:#fff;display:none;z-index:30;border-radius:16px 16px 0 0}</style>
+</head><body>
+<div id="hud"><span id="hL">V10.1 Dual: MEGA + TILEMAP</span><span id="hR">Score:0</span></div>
+<div id="joy"></div><button id="btnA">A</button>
+<div id="dialog"><b id="dN" style="color:#4ade80"></b><p id="dT" style="white-space:pre-line"></p></div>
+<script>
+let joy={x:0,y:0},score=0,game;
+class GameScene extends Phaser.Scene{
+ constructor(){super('Game')}
+ preload(){
+  this.load.image('mega','assets/kenney/MEGA.png');
+  this.load.image('tilemap','assets/kenney/tilemap.png');
+ }
+ create(){
+  let tilemapImg=this.textures.get('tilemap').getSourceImage();
+  let grassCanvas=document.createElement('canvas'); grassCanvas.width=64; grassCanvas.height=64;
+  let ctx=grassCanvas.getContext('2d');
+  try{ ctx.drawImage(tilemapImg,0,0,128,128,0,0,64,64); }catch(e){ ctx.fillStyle='#7bc86f'; ctx.fillRect(0,0,64,64); }
+  this.textures.addCanvas('groundTex',grassCanvas);
+
+  for(let x=0;x<3000;x+=64) for(let y=0;y<3000;y+=64){
+   this.add.image(x,y,'groundTex').setDepth(0).setAlpha(0.9);
+  }
+  this.add.rectangle(1500,1250,3000,110,0x4a4a4a).setDepth(1);
+  this.add.rectangle(1250,1500,110,3000,0x4a4a4a).setDepth(1);
+  this.add.circle(1250,1250,55,0x7ec8e3).setStrokeStyle(5,0xffffff).setDepth(2);
+
+  let megaImg=this.textures.get('mega').getSourceImage();
+  let makeTex=(key,x,y,w,h)=>{
+   let c=document.createElement('canvas'); c.width=w; c.height=h;
+   c.getContext('2d').drawImage(megaImg,x,y,w,h,0,0,w,h);
+   if(this.textures.exists(key)) this.textures.remove(key);
+   this.textures.addCanvas(key,c);
+  };
+  let bw=190,bh=190,gap=35,sx=18,sy=62;
+  makeTex('b_school',sx+0*(bw+gap),sy,bw,bh);
+  makeTex('b_office',sx+1*(bw+gap),sy,bw,bh);
+  makeTex('b_canteen',sx+2*(bw+gap),sy,bw,bh);
+  makeTex('b_library',sx+3*(bw+gap),sy,bw,bh);
+  makeTex('b_gym',sx+4*(bw+gap),sy,bw,bh);
+  makeTex('b_dorm',sx+5*(bw+gap),sy,bw,bh);
+  makeTex('b_hospital',sx+6*(bw+gap),sy,bw,bh);
+  makeTex('b_shop',sx+7*(bw+gap),sy,bw,bh);
+
+  this.builds=[];
+  let place=(x,y,key,name)=>{
+   this.add.image(x,y,key).setScale(0.85).setDepth(2);
+   this.add.text(x,y+95,name,{fontSize:'11px',backgroundColor:'#000c',color:'#fff',padding:{x:6,y:3}}).setOrigin(0.5).setDepth(3);
+   this.builds.push({x,y,name});
+  };
+  place(1500,700,'b_school','SCHOOL');
+  place(2000,650,'b_office','OFFICE');
+  place(750,1250,'b_canteen','CANTEEN');
+  place(2000,1250,'b_library','LIBRARY');
+  place(750,650,'b_gym','GYM');
+  place(1500,2050,'b_dorm','DORM');
+  place(2200,1750,'b_hospital','HOSPITAL');
+  place(550,1750,'b_shop','SHOP');
+
+  this.player=this.add.circle(1500,1080,14,0x1e3a8a).setStrokeStyle(3,0xfff).setDepth(10);
+  this.cameras.main.setBounds(0,0,3000,3000);
+  this.cameras.main.startFollow(this.player,true,0.14,0.14);
+  this.keys=this.input.keyboard.addKeys('W,A,S,D');
+  document.getElementById('hL').innerText='V10.1 DUAL LOADED!';
+ }
+ update(){
+  if(document.getElementById('dialog').style.display=='block') return;
+  let sp=6,mx=joy.x,my=joy.y;
+  if(this.keys.A.isDown) mx=-1; if(this.keys.D.isDown) mx=1; if(this.keys.W.isDown) my=-1; if(this.keys.S.isDown) my=1;
+  if(Math.abs(mx)<0.22) mx=0; if(Math.abs(my)<0.22) my=0;
+  if(mx||my){this.player.x+=mx*sp; this.player.y+=my*sp;}
+  this.player.x=Phaser.Math.Clamp(this.player.x,30,2970); this.player.y=Phaser.Math.Clamp(this.player.y,30,2970);
+ }
+}
+game=new Phaser.Game({type:Phaser.AUTO,width:innerWidth,height:innerHeight,backgroundColor:'#6aa84f',scene:GameScene,scale:{mode:Phaser.Scale.RESIZE}});
+let stick=nipplejs.create({zone:document.getElementById('joy'),mode:'static',position:{left:'65px',top:'65px'},color:'white',size:90});
+stick.on('move',(e,d)=>{if(d&&d.vector){joy.x=d.vector.x; joy.y=-d.vector.y;}});
+stick.on('end',()=>{joy.x=0;joy.y=0;});
+function interact(){
+ let sc=game.scene.getScene('Game'); if(!sc.builds) return;
+ let near=null;
+ for(let b of sc.builds){if(Phaser.Math.Distance.Between(sc.player.x,sc.player.y,b.x,b.y)<160){near=b;break;}}
+ if(!near){document.getElementById('dN').innerText='Explore!'; document.getElementById('dT').innerText='2 files gamit mo na! MEGA for buildings, TILEMAP for ground!\n\nSCHOOL taas, CANTEEN kaliwa, LIBRARY kanan, DORM baba!'; document.getElementById('dialog').style.display='block'; return;}
+ document.getElementById('dN').innerText=near.name; document.getElementById('dT').innerText='Welcome to '+near.name+'!\n\nDual pack: '+near.name+' from MEGA.png, ground from tilemap.png!\n+100 pts!'; document.getElementById('dialog').style.display='block'; score+=100; document.getElementById('hR').innerText='Score:'+score;
+}
+document.getElementById('btnA').onclick=interact;
+document.getElementById('dialog').onclick=()=>document.getElementById('dialog').style.display='none';
+window.addEventListener('resize',()=>{try{game.scale.resize(innerWidth,innerHeight)}catch(e){}});
+</script></body></html>
