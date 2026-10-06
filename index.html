@@ -1,9 +1,9 @@
 <!DOCTYPE html><html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>V77 EMOJI DIALOGUE</title>
+<title>V79 NO BLACK EVER</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <style>
-html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
+html,body{margin:0;padding:0;background:#12351f;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
 #game{position:fixed;inset:0}
 #top{position:fixed;top:0;left:0;right:0;background:#000;color:#fff;padding:8px 10px;font-size:11px;font-weight:900;z-index:40;display:flex;justify-content:space-between}
 #toggle{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:#4ade80;color:#000;border:none;border-radius:22px;padding:14px 28px;font-weight:900;font-size:14px;z-index:80}
@@ -31,7 +31,7 @@ html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%;touc
 </style>
 </head><body>
 <div id="game"></div>
-<div id="top"><span>🏝️ V77 EMOJI CHAT</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span></span></div>
+<div id="top"><span>🏝️ V79 FIXED</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span></span></div>
 <div id="ownedTab"><b>OWNED</b><div id="ownedList"></div><button id="minBtn" onclick="toggleTab()">◀</button></div>
 <div id="msg"></div>
 <div id="statWin">
@@ -44,41 +44,34 @@ html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%;touc
 const ANIMALS=['beaver','bee','bunny','cat','caterpillar','chick','cow','crab','deer','dog','elephant','fox','giraffe','hog','koala','lion','monkey','panda','parrot','penguin','pig','polar','tiger'];
 const HUMANS=['female-a','female-b','female-c','female-d','female-e','female-f','male-a','male-b','male-c','male-d','male-e','male-f'];
 const NAMES=['Luna','Milo','Kiko','Bilog','Kulit','Ganda','Bebe','Momo','Juan','Maria'];
-// SHORT DIALOGUES - PAMINSAN LANG
-const DIALOGUES={
- walk:["Lakad muna!","Going somewhere","Tara lakad!"],
- run:["Bilisan!","Takbo!","Ang bilis!"],
- idle:["Chill lang","Hay...","Ano kaya?"],
- jump:["Wheee!","Lundag!","Taas!"],
- eat:["Yum!","Sarap!","Kain!","Busog!"],
- sleep:["Zzz...","Pagod ako","Tulog muna"],
- dance:["Party!","Saya!","Groove!"],
- sit:["Pahinga","Upo muna","Kapagod"],
- wave:["Hi!","Hello!","Hey!"],
- cheer:["Yay!","Yehey!","Galing!"],
- spin:["Woo!","Dizzy haha","Ikot!"],
- bounce:["Boing!","Talbog!","Fun!"]
-};
-const EMOJIS={ walk:"🚶", run:"🏃", idle:"💭", jump:"🤾", eat:"😋", sleep:"💤", dance:"🪩", sit:"😌", wave:"👋", cheer:"🎉", spin:"🌀", bounce:"⚽" };
-
+const DIALOGUES={walk:["Lakad muna!","Going somewhere","Tara lakad!"],run:["Bilisan!","Takbo!","Ang bilis!"],idle:["Chill lang","Hay...","Ano kaya?"],jump:["Wheee!","Lundag!","Taas!"],eat:["Yum!","Sarap!","Kain!","Busog!"],sleep:["Zzz...","Pagod ako","Tulog muna"],dance:["Party!","Saya!","Groove!"],sit:["Pahinga","Upo muna","Kapagod"],wave:["Hi!","Hello!","Hey!"],cheer:["Yay!","Yehey!","Galing!"],spin:["Woo!","Dizzy haha","Ikot!"],bounce:["Boing!","Talbog!","Fun!"]};
+const EMOJIS={walk:"🚶",run:"🏃",idle:"💭",jump:"🤾",eat:"😋",sleep:"💤",dance:"🪩",sit:"😌",wave:"👋",cheer:"🎉",spin:"🌀",bounce:"⚽"};
 let coins=500, selected=null, isShopOpen=false, selectedEnt=null, totalFriends=0, isTabMin=false;
 function toggleTab(){ isTabMin=!isTabMin; document.getElementById('ownedTab').classList.toggle('minimized',isTabMin); document.getElementById('minBtn').innerHTML=isTabMin?'▶':'◀'; }
 function getGender(id){ return id.includes('female')?'female':id.includes('male')?'male':'animal'; }
 function isHumanId(id){ return id.includes('female')||id.includes('male'); }
-const BASE='https://readyphofficial-eng.github.io/readyph-games/new/';
 
-class WorldV77 extends Phaser.Scene{
- constructor(){super('WorldV77'); this.ents=[]}
+class WorldV79 extends Phaser.Scene{
+ constructor(){super('WorldV79'); this.ents=[]}
  preload(){
-  this.load.image('map',BASE+'map-triangle-4k.png');
-  ANIMALS.forEach(n=>{ this.load.image('a-'+n,BASE+'animal-'+n+'.png'); });
-  HUMANS.forEach(n=>{ this.load.image('h-'+n,BASE+'character-'+n+'.png'); });
+  this.load.on('loaderror', (file)=>{ console.log('FAIL LOAD:', file.key, file.url); });
+  this.load.image('map','new/map-triangle-4k.png');
+  ANIMALS.forEach(n=>{ this.load.image('a-'+n,'new/animal-'+n+'.png'); });
+  HUMANS.forEach(n=>{ this.load.image('h-'+n,'new/character-'+n+'.png'); });
  }
  create(){
   const W=3500,H=3500;
-  this.add.rectangle(W/2,H/2,W,H,0x1e3a2a).setDepth(0);
-  this.island=this.add.image(W/2,H/2,'map').setDepth(1);
-  this.island.setDisplaySize(2100,2100);
+  this.add.rectangle(W/2,H/2,W,H,0x12351f).setDepth(0);
+  if(this.textures.exists('map')){
+   try{
+    this.island=this.add.image(W/2,H/2,'map').setDepth(1);
+    this.island.setDisplaySize(2100,2100);
+    console.log('MAP LOADED OK');
+   }catch(e){ console.log('MAP TOO BIG, USING FALLBACK'); this.createFallback(W,H); }
+  }else{
+   console.log('MAP NOT FOUND, USING FALLBACK');
+   this.createFallback(W,H);
+  }
   this.bounds={x:W/2-1000,y:H/2-700,w:2000,h:1400};
   this.cameras.main.setBounds(0,0,W,H); this.cameras.main.centerOn(W/2,H/2); this.cameras.main.setZoom(0.40);
   this.isDragging=false;
@@ -87,18 +80,25 @@ class WorldV77 extends Phaser.Scene{
   this.input.on('pointerup',()=>this.isDragging=false);
   this.buildShop();
   document.getElementById('toggle').onclick=()=>{ isShopOpen=!isShopOpen; document.getElementById('shopWrap').className=isShopOpen?'':'closed'; document.getElementById('toggle').innerHTML=isShopOpen?'❌ CLOSE':'🛒 SHOP'; };
+  this.showMsg('V79 - Hindi na black kahit fail map!');
+ }
+ createFallback(W,H){
+  let g=this.add.graphics().setDepth(1);
+  g.fillStyle(0x2d6a4f,1); g.fillTriangle(W/2,H/2-900,W/2-1000,H/2+700,W/2+1000,H/2+700);
+  g.lineStyle(8,0xffffff,0.3); g.strokeTriangle(W/2,H/2-900,W/2-1000,H/2+700,W/2+1000,H/2+700);
+  this.add.text(W/2,H/2-800,'TRIANGLE ISLAND',{fontSize:'42px',color:'#fff',fontStyle:'bold'}).setOrigin(0.5).setDepth(2);
  }
  buildShop(){
-  const shop=document.getElementById('shop');
+  const shop=document.getElementById('shop'); shop.innerHTML='';
   [...HUMANS.map(n=>({id:'h-'+n,name:n,price:20,t:'human'})),...ANIMALS.map(n=>({id:'a-'+n,name:n,price:10,t:'animal'}))].forEach(it=>{
    let key=it.id; let c=document.createElement('div'); c.className='card';
-   c.innerHTML=`<img src="${BASE}${it.t=='human'?'character':'animal'}-${it.name}.png"><b>${it.name.toUpperCase()}</b><button>🪙${it.price}</button>`;
-   c.querySelector('button').onclick=()=>{ if(coins<it.price) return; if(!this.textures.exists(key)) return; coins-=it.price; document.getElementById('coins').innerText=coins; selected=key; document.querySelectorAll('.card').forEach(x=>x.style.borderColor='#444'); c.style.borderColor='#4ade80'; };
+   c.innerHTML=`<img src="new/${it.t=='human'?'character':'animal'}-${it.name}.png" onerror="this.style.background='#f00'"><b>${it.name.toUpperCase()}</b><button>🪙${it.price}</button>`;
+   c.querySelector('button').onclick=()=>{ if(coins<it.price) return; if(!this.textures.exists(key)){ this.showMsg('Di pa load '+it.name+' - 404?'); return; } coins-=it.price; document.getElementById('coins').innerText=coins; selected=key; document.querySelectorAll('.card').forEach(x=>x.style.borderColor='#444'); c.style.borderColor='#4ade80'; };
    shop.appendChild(c);
   });
  }
  spawn(x,y,id,isBaby=false){
-  if(!this.textures.exists(id)) return;
+  if(!this.textures.exists(id)){ this.showMsg('Missing PNG: '+id); return; }
   let human=isHumanId(id);
   let spr=this.add.image(x,y,id).setDepth(10).setInteractive();
   if(human){ spr.setDisplaySize(95,125); } else { spr.setDisplaySize(90,90); }
@@ -108,96 +108,57 @@ class WorldV77 extends Phaser.Scene{
   this.ents.push(spr); document.getElementById('cnt').innerText=this.ents.length; this.addOwned(spr); this.playAnimOn(spr,'idle');
   spr.on('pointerdown',()=>this.showStats(spr));
  }
- addOwned(spr){ const list=document.getElementById('ownedList'); let div=document.createElement('div'); div.className='ownedItem'; div.innerHTML=`<img src="${BASE}${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png">`; div.onclick=()=>{ selectedEnt=spr; this.focusOn(spr); this.showStats(spr); }; spr._tab=div; list.appendChild(div); }
+ addOwned(spr){ const list=document.getElementById('ownedList'); let div=document.createElement('div'); div.className='ownedItem'; div.innerHTML=`<img src="new/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png">`; div.onclick=()=>{ selectedEnt=spr; this.focusOn(spr); this.showStats(spr); }; spr._tab=div; list.appendChild(div); }
  focusOn(spr){ this.cameras.main.pan(spr.x,spr.y,400,'Power2'); }
- showStats(spr){ selectedEnt=spr; document.getElementById('sImg').src=BASE+(spr.stats.isHuman?'character':'animal')+'-'+spr.stats.type.toLowerCase()+'.png'; document.getElementById('sName').innerText=spr.stats.name; document.getElementById('sType').innerText=spr.stats.type+' • '+spr.stats.gender.toUpperCase(); document.getElementById('sAnim').innerText='LVL'+spr.stats.lvl+' | '+spr.animState.toUpperCase(); let loverTxt=spr.stats.lover?'💕 '+spr.stats.loverName:'Single'; let ownerTxt=spr.stats.owner?'🐾 '+spr.stats.owner:'Wild'; let petsTxt=spr.stats.pets.length?spr.stats.pets.slice(0,2).join(', '):'None'; document.getElementById('sStats').innerHTML=`<div class="statRow"><span>LEVEL</span><b>${spr.stats.lvl}</b></div><div class="statRow"><span>HAPPY</span><b>${spr.stats.happiness}%</b></div><div class="statRow"><span>FRIENDS</span><b>${spr.stats.friends}</b></div>${spr.stats.isHuman?`<div class="statRow"><span>LOVER</span><b style="font-size:9px">${loverTxt}</b></div><div class="statRow"><span>FAMILY</span><b>${Math.floor(spr.stats.familyTime/1000)}s/30s</b></div><div class="statRow"><span>PETS</span><b style="font-size:8px">${petsTxt}</b></div>`:`<div class="statRow"><span>OWNER</span><b style="font-size:8px">${ownerTxt}</b></div>`}`; document.getElementById('statWin').classList.add('open'); }
+ showStats(spr){ selectedEnt=spr; document.getElementById('sImg').src='new/'+(spr.stats.isHuman?'character':'animal')+'-'+spr.stats.type.toLowerCase()+'.png'; document.getElementById('sName').innerText=spr.stats.name; document.getElementById('sType').innerText=spr.stats.type+' • '+spr.stats.gender.toUpperCase(); document.getElementById('sAnim').innerText='LVL'+spr.stats.lvl+' | '+spr.animState.toUpperCase(); let loverTxt=spr.stats.lover?'💕 '+spr.stats.loverName:'Single'; let ownerTxt=spr.stats.owner?'🐾 '+spr.stats.owner:'Wild'; let petsTxt=spr.stats.pets.length?spr.stats.pets.slice(0,2).join(', '):'None'; document.getElementById('sStats').innerHTML=`<div class="statRow"><span>LEVEL</span><b>${spr.stats.lvl}</b></div><div class="statRow"><span>HAPPY</span><b>${spr.stats.happiness}%</b></div><div class="statRow"><span>FRIENDS</span><b>${spr.stats.friends}</b></div>${spr.stats.isHuman?`<div class="statRow"><span>LOVER</span><b style="font-size:9px">${loverTxt}</b></div><div class="statRow"><span>FAMILY</span><b>${Math.floor(spr.stats.familyTime/1000)}s/30s</b></div><div class="statRow"><span>PETS</span><b style="font-size:8px">${petsTxt}</b></div>`:`<div class="statRow"><span>OWNER</span><b style="font-size:8px">${ownerTxt}</b></div>`}`; document.getElementById('statWin').classList.add('open'); }
  checkLevelUp(spr){ if(spr.stats.lvl>=5) return; let f=spr.stats.friends,h=spr.stats.happiness,can=false; if(spr.stats.lvl==1&&f>=1&&h>=75) can=true; if(spr.stats.lvl==2&&f>=3&&h>=80) can=true; if(spr.stats.lvl==3&&f>=5&&h>=85) can=true; if(spr.stats.lvl==4&&f>=8&&h>=90) can=true; if(can){ spr.stats.lvl++; this.showMsg('⬆️ LVL '+spr.stats.lvl); } }
  makeFriends(a,b){ if(a==b||Date.now()-a.lastMeet<2500) return; if(!a.stats.isHuman && b.stats.isHuman &&!a.stats.owner){ a.stats.owner=b.stats.name; a.stats.ownerRef=b; b.stats.pets.push(a.stats.name); this.showMsg('🐾 '+a.stats.name+' pet of '+b.stats.name); } if(!b.stats.isHuman && a.stats.isHuman &&!b.stats.owner){ b.stats.owner=a.stats.name; b.stats.ownerRef=a; a.stats.pets.push(b.stats.name); this.showMsg('🐾 '+b.stats.name+' pet of '+a.stats.name); } if(a.stats.isHuman&&b.stats.isHuman){ if(a.stats.friendsList.includes(b.stats.name)){ if(a.stats.lover==b&&Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)<110){ a.stats.familyTime+=200; b.stats.familyTime+=200; if(a.stats.familyTime>30000){ this.makeBaby(a,b); a.stats.familyTime=0; b.stats.familyTime=0; } } return; } a.stats.friendsList.push(b.stats.name); b.stats.friendsList.push(a.stats.name); a.stats.friends++; b.stats.friends++; totalFriends++; document.getElementById('fCount').innerText=totalFriends; a.stats.happiness=Math.min(100,a.stats.happiness+8); b.stats.happiness=Math.min(100,b.stats.happiness+8); a.lastMeet=Date.now(); b.lastMeet=Date.now(); this.playAnimOn(a,'wave'); this.playAnimOn(b,'wave'); this.showHeart(a); this.checkLevelUp(a); this.checkLovers(a,b); } else { if(!a.stats.friendsList.includes(b.stats.name)){ a.stats.friendsList.push(b.stats.name); b.stats.friendsList.push(a.stats.name); a.stats.friends++; b.stats.friends++; this.playAnimOn(a,'wave'); this.checkLevelUp(a); } } }
  checkLovers(a,b){ if(!a.stats.isHuman||!b.stats.isHuman||a.stats.lover||b.stats.lover||a.stats.gender==b.stats.gender) return; if(a.stats.friends<3||b.stats.friends<3||a.stats.happiness<85||b.stats.happiness<85) return; if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)>90) return; if(Math.random()<0.04){ a.stats.lover=b; a.stats.loverName=b.stats.name; b.stats.lover=a; b.stats.loverName=a.stats.name; this.showMsg('💕 '+a.stats.name+' + '+b.stats.name); this.showHeart(a); this.showHeart(b); } }
  makeBaby(a,b){ let babyId=Math.random()<0.5?a.stats.id:b.stats.id; this.spawn((a.x+b.x)/2,(a.y+b.y)/2+20,babyId,true); }
  showHeart(spr){ let h=this.add.text(spr.x,spr.y-60,spr.stats.lover?'💕':'❤️',{fontSize:'20px'}).setDepth(50).setOrigin(0.5); this.tweens.add({targets:h,y:h.y-45,alpha:0,duration:1200,onComplete:()=>h.destroy()}); }
  showMsg(t){ let el=document.getElementById('msg'); el.innerText=t; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2500); }
-
- // BAGONG EMOJI + DIALOGUE BUBBLE - MALIIT LANG, DI MAGULO
- showBubble(spr, anim){
-  // 30% chance lang mag chat para di magulo
+ showBubble(spr,anim){
   if(Math.random()>0.30 && anim!='sleep' && anim!='dance') return;
-  if(Date.now()-spr.lastChat<4000) return; // 4 sec cooldown
+  if(Date.now()-spr.lastChat<4000) return;
   spr.lastChat=Date.now();
-
-  if(spr._bubble) { spr._bubble.destroy(); }
-
-  let emoji = EMOJIS[anim]||"💬";
-  let txt = "";
-  // Sleep at dance LAGI may emoji, yung dialogue minsan lang
-  if(anim=='sleep' || anim=='dance' || Math.random()<0.35){
-   let list=DIALOGUES[anim]||["..."];
-   txt = list[Math.floor(Math.random()*list.length)];
-  }
-
-  let bubbleText = txt? `${emoji} ${txt}` : `${emoji}`;
-  // MALIIT NA TEXT, SAKTO LANG SIZE
-  let bubble = this.add.text(spr.x, spr.y-75, bubbleText, {
-   fontSize:'13px', color:'#000', backgroundColor:'#ffffff', padding:{left:6,right:6,top:3,bottom:3},
-   fontFamily:'Arial', fontStyle:'bold'
-  }).setOrigin(0.5).setDepth(60);
-  bubble.setStroke('#000',1);
+  if(spr._bubble) spr._bubble.destroy();
+  let emoji=EMOJIS[anim]||"💬"; let txt=""; if(anim=='sleep'||anim=='dance'||Math.random()<0.35){ let list=DIALOGUES[anim]||["..."]; txt=list[Math.floor(Math.random()*list.length)]; }
+  let bubbleText=txt? `${emoji} ${txt}` : `${emoji}`;
+  let bubble=this.add.text(spr.x,spr.y-75,bubbleText,{fontSize:'13px',color:'#000',backgroundColor:'#ffffff',padding:{left:6,right:6,top:3,bottom:3},fontFamily:'Arial'}).setOrigin(0.5).setDepth(60);
   spr._bubble=bubble;
-
-  this.tweens.add({targets:bubble, y:bubble.y-12, alpha:0, duration: anim=='sleep'?2200:1500, delay: anim=='sleep'?1200:700, onComplete:()=>{ bubble.destroy(); spr._bubble=null; }});
+  this.tweens.add({targets:bubble,y:bubble.y-12,alpha:0,duration:anim=='sleep'?2200:1500,delay:anim=='sleep'?1200:700,onComplete:()=>{ bubble.destroy(); spr._bubble=null; }});
  }
-
  playAnimOn(spr,anim){
-  if(!spr.active) return;
-  if(spr.currentTween){ spr.currentTween.stop(); } this.tweens.killTweensOf(spr);
+  if(!spr.active) return; if(spr.currentTween) spr.currentTween.stop(); this.tweens.killTweensOf(spr);
   spr.setAngle(0); spr.setAlpha(1); spr.setDisplaySize(spr.baseW,spr.baseH);
   spr.animState=anim; if(selectedEnt==spr) document.getElementById('sAnim').innerText='LVL'+spr.stats.lvl+' | '+anim.toUpperCase();
-
-  // SHOW EMOJI + DIALOGUE
-  this.showBubble(spr, anim);
-
-  if(anim=='idle'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-2, duration:600, yoyo:true, repeat:-1}); }
-  else if(anim=='walk'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-2, duration:200, yoyo:true, repeat:-1}); }
-  else if(anim=='run'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-3, duration:120, yoyo:true, repeat:-1}); }
-  else if(anim=='jump'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-35, duration:200, yoyo:true, onComplete:()=>{ if(spr.active) this.playAnimOn(spr,'idle'); }}); }
-  else if(anim=='eat'){ spr.currentTween=this.tweens.add({targets:spr, angle:5, duration:150, yoyo:true, repeat:3, onComplete:()=>{ if(spr.active){ spr.setAngle(0); this.playAnimOn(spr,'idle'); }}}); }
-  else if(anim=='sleep'){
-    // NAKA HINTO TALAGA PAG SLEEPING
-    spr.vx=0; spr.vy=0;
-    spr.currentTween=this.tweens.add({targets:spr, y:spr.y+8, alpha:0.75, duration:400, onComplete:()=>{
-     // Tuloy tuloy Zzz bubble habang tulog
-     if(spr.active && spr.animState=='sleep'){
-      this.time.addEvent({delay:900, callback:()=>{ if(spr.active && spr.animState=='sleep') this.showBubble(spr,'sleep'); }, loop:true, repeat:2});
-     }
-    }});
-  }
-  else if(anim=='dance'){ spr.currentTween=this.tweens.add({targets:spr, angle:6, duration:150, yoyo:true, repeat:7, onComplete:()=>{ if(spr.active){ spr.setAngle(0); this.playAnimOn(spr,'idle'); }}}); }
-  else if(anim=='sit'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y+10, duration:250, onComplete:()=>{ if(spr.active) this.time.delayedCall(1200,()=>{ if(spr.active) this.playAnimOn(spr,'idle'); }); }}); }
-  else if(anim=='wave'){ spr.currentTween=this.tweens.add({targets:spr, angle:10, duration:100, yoyo:true, repeat:5, onComplete:()=>{ if(spr.active){ spr.setAngle(0); this.playAnimOn(spr,'idle'); }}}); }
-  else if(anim=='cheer'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-12, duration:120, yoyo:true, repeat:4, onComplete:()=>{ if(spr.active) this.playAnimOn(spr,'idle'); }}); }
-  else if(anim=='spin'){ spr.currentTween=this.tweens.add({targets:spr, angle:360, duration:600, onComplete:()=>{ if(spr.active){ spr.setAngle(0); this.playAnimOn(spr,'idle'); }}}); }
-  else if(anim=='bounce'){ spr.currentTween=this.tweens.add({targets:spr, y:spr.y-20, duration:150, yoyo:true, repeat:2, onComplete:()=>{ if(spr.active) this.playAnimOn(spr,'idle'); }}); }
+  this.showBubble(spr,anim);
+  if(anim=='idle'){ spr.currentTween=this.tweens.add({targets:spr,y:spr.y-2,duration:600,yoyo:true,repeat:-1}); }
+  else if(anim=='walk'){ spr.currentTween=this.tweens.add({targets:spr,y:spr.y-2,duration:200,yoyo:true,repeat:-1}); }
+  else if(anim=='run'){ spr.currentTween=this.tweens.add({targets:spr,y:spr.y-3,duration:120,yoyo:true,repeat:-1}); }
+  else if(anim=='jump'){ spr.currentTween=this.tweens.add({targets:spr,y:spr.y-35,duration:200,yoyo:true,onComplete:()=>{ if(spr.active) this.playAnimOn(spr,'idle'); }}); }
+  else if(anim=='eat'){ spr.currentTween=this.tweens.add({targets:spr,angle:5,duration:150,yoyo:true,repeat:3,onComplete:()=>{ if(spr.active){ spr.setAngle(0); this.playAnimOn(spr,'idle'); }}}); }
+  else if(anim=='sleep'){ spr.vx=0; spr.vy=0; spr.currentTween=this.tweens.add({targets:spr,y:spr.y+8,alpha:0.75,duration:400}); }
+  else if(anim=='dance'){ spr.currentTween=this.tweens.add({targets:spr,angle:6,duration:150,yoyo:true,repeat:7,onComplete:()=>{ if(spr.active){ spr.setAngle(0); this.playAnimOn(spr,'idle'); }}}); }
+  else if(anim=='sit'){ spr.currentTween=this.tweens.add({targets:spr,y:spr.y+10,duration:250,onComplete:()=>{ if(spr.active) this.time.delayedCall(1200,()=>{ if(spr.active) this.playAnimOn(spr,'idle'); }); }}); }
+  else if(anim=='wave'){ spr.currentTween=this.tweens.add({targets:spr,angle:10,duration:100,yoyo:true,repeat:5,onComplete:()=>{ if(spr.active){ spr.setAngle(0); this.playAnimOn(spr,'idle'); }}}); }
+  else if(anim=='cheer'){ spr.currentTween=this.tweens.add({targets:spr,y:spr.y-12,duration:120,yoyo:true,repeat:4,onComplete:()=>{ if(spr.active) this.playAnimOn(spr,'idle'); }}); }
+  else if(anim=='spin'){ spr.currentTween=this.tweens.add({targets:spr,angle:360,duration:600,onComplete:()=>{ if(spr.active){ spr.setAngle(0); this.playAnimOn(spr,'idle'); }}}); }
+  else if(anim=='bounce'){ spr.currentTween=this.tweens.add({targets:spr,y:spr.y-20,duration:150,yoyo:true,repeat:2,onComplete:()=>{ if(spr.active) this.playAnimOn(spr,'idle'); }}); }
  }
  update(t,d){
   if(isShopOpen) return;
   for(let i=0;i<this.ents.length;i++) for(let j=i+1;j<this.ents.length;j++){ let a=this.ents[i],b=this.ents[j]; if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)<70) this.makeFriends(a,b); }
   this.ents.forEach(e=>{
-   // UPDATE BUBBLE POSITION
-   if(e._bubble && e._bubble.active){ e._bubble.x=e.x; e._bubble.y=e._bubble.y; }
-
-   if(e.stats.ownerRef && e.stats.ownerRef.active){
-    let dist=Phaser.Math.Distance.Between(e.x,e.y,e.stats.ownerRef.x,e.stats.ownerRef.y);
-    if(dist>130){ let ang=Math.atan2(e.stats.ownerRef.y-e.y, e.stats.ownerRef.x-e.x); e.vx=Math.cos(ang)*e.baseSpeed*1.6; e.vy=Math.sin(ang)*e.baseSpeed*1.6; e.setFlipX(e.vx<0); if(e.animState!='run') this.playAnimOn(e,'run'); e.x+=e.vx; e.y+=e.vy; return; }
-   }
-   // PAG SLEEPING HINTO TALAGA
+   if(e._bubble && e._bubble.active){ e._bubble.x=e.x; e._bubble.y=e._bubble.y-2; }
+   if(e.stats.ownerRef && e.stats.ownerRef.active){ let dist=Phaser.Math.Distance.Between(e.x,e.y,e.stats.ownerRef.x,e.stats.ownerRef.y); if(dist>130){ let ang=Math.atan2(e.stats.ownerRef.y-e.y,e.stats.ownerRef.x-e.x); e.vx=Math.cos(ang)*e.baseSpeed*1.6; e.vy=Math.sin(ang)*e.baseSpeed*1.6; e.setFlipX(e.vx<0); if(e.animState!='run') this.playAnimOn(e,'run'); e.x+=e.vx; e.y+=e.vy; return; } }
    if(e.animState=='sleep'){ e.vx=0; e.vy=0; e.moveTimer-=d; if(e.moveTimer<=0) this.playAnimOn(e,'idle'); return; }
-
    e.moveTimer-=d;
    if(e.moveTimer<=0){
     let r=Math.random();
     if(r<0.28){ this.playAnimOn(e,'walk'); e.moveTimer=1500+Math.random()*1500; }
     else if(r<0.38){ this.playAnimOn(e,'run'); e.moveTimer=1000+Math.random()*1000; }
-    else if(r<0.50){ this.playAnimOn(e,'idle'); e.moveTimer=800+Math.random()*1000; e.vx=0; e.vy=0;
+    else if(r<0.50){ this.playAnimOn(e,'idle'); e.moveTimer=800+Math.random()*1000; e.vx=0; e.vy=0; }
     else if(r<0.58){ this.playAnimOn(e,'dance'); e.moveTimer=1200; e.vx=0; e.vy=0; }
     else if(r<0.66){ this.playAnimOn(e,'eat'); e.moveTimer=1000; e.vx=0; e.vy=0; }
     else if(r<0.73){ this.playAnimOn(e,'wave'); e.moveTimer=800; e.vx=0; e.vy=0; }
@@ -205,24 +166,14 @@ class WorldV77 extends Phaser.Scene{
     else if(r<0.86){ this.playAnimOn(e,'jump'); e.moveTimer=600; e.vx=0; e.vy=0; }
     else if(r<0.92){ this.playAnimOn(e,'sit'); e.moveTimer=1500; e.vx=0; e.vy=0; }
     else { this.playAnimOn(e,'sleep'); e.moveTimer=2500; e.vx=0; e.vy=0; }
-
-    if(e.animState=='walk' || e.animState=='run'){
-     e.targetX=this.bounds.x+Math.random()*this.bounds.w; e.targetY=this.bounds.y+Math.random()*this.bounds.h;
-     let ang=Math.atan2(e.targetY-e.y,e.targetX-e.x); let sp=e.animState=='run'?e.baseSpeed*1.8:e.baseSpeed;
-     e.vx=Math.cos(ang)*sp; e.vy=Math.sin(ang)*sp; e.setFlipX(e.vx<0);
-    } else { e.vx=0; e.vy=0; }
+    if(e.animState=='walk'||e.animState=='run'){ e.targetX=this.bounds.x+Math.random()*this.bounds.w; e.targetY=this.bounds.y+Math.random()*this.bounds.h; let ang=Math.atan2(e.targetY-e.y,e.targetX-e.x); let sp=e.animState=='run'?e.baseSpeed*1.8:e.baseSpeed; e.vx=Math.cos(ang)*sp; e.vy=Math.sin(ang)*sp; e.setFlipX(e.vx<0); } else { e.vx=0; e.vy=0; }
    }
-   if(e.animState=='walk' || e.animState=='run'){
-    e.x+=e.vx; e.y+=e.vy;
-    if(e.x<this.bounds.x||e.x>this.bounds.x+this.bounds.w) e.vx*=-1;
-    if(e.y<this.bounds.y||e.y>this.bounds.y+this.bounds.h) e.vy*=-1;
-    if(e.vx) e.setFlipX(e.vx<0);
-   }
+   if(e.animState=='walk'||e.animState=='run'){ e.x+=e.vx; e.y+=e.vy; if(e.x<this.bounds.x||e.x>this.bounds.x+this.bounds.w) e.vx*=-1; if(e.y<this.bounds.y||e.y>this.bounds.y+this.bounds.h) e.vy*=-1; if(e.vx) e.setFlipX(e.vx<0); }
   });
  }
 }
 function closeStat(){document.getElementById('statWin').classList.remove('open');}
 function playAnim(a){ if(selectedEnt) window.game.scene.scenes[0].playAnimOn(selectedEnt,a); }
-let game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#12351f',scene:WorldV77,scale:{mode:Phaser.Scale.RESIZE}});
+let game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#12351f',scene:WorldV79,scale:{mode:Phaser.Scale.RESIZE}});
 window.game=game;
-</script></body></html>                
+</script></body></html>
