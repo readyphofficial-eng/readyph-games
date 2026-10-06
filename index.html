@@ -1,9 +1,9 @@
 <!DOCTYPE html><html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>V81 FIX - Quest Minimize</title>
+<title>V82 newmap</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <style>
-html,body{margin:0;padding:0;background:#12351f;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
+html,body{margin:0;padding:0;background:#0a2e5c;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
 #game{position:fixed;inset:0}
 #top{position:fixed;top:0;left:0;right:0;background:#000;color:#fff;padding:8px 10px;font-size:11px;font-weight:900;z-index:40;display:flex;justify-content:space-between}
 #toggle{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:#4ade80;color:#000;border:none;border-radius:22px;padding:14px 28px;font-weight:900;font-size:14px;z-index:80}
@@ -20,7 +20,7 @@ html,body{margin:0;padding:0;background:#12351f;overflow:hidden;height:100%;touc
 .ownedItem{width:46px;height:46px;background:#222;border:2px solid #555;border-radius:10px;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer}
 .ownedItem img{width:34px;height:34px;object-fit:contain}
 #minBtn{position:absolute;top:50%;right:-16px;width:16px;height:50px;background:#4ade80;border:none;border-radius:0 10px 10px 0;font-weight:900}
-#questWin{position:fixed;top:42px;right:0;width:190px;background:rgba(0,0,0,.92);border-left:2px solid #fbbf24;border-bottom:2px solid #fbbf24;border-radius:0 0 0 12px;z-index:55;padding:8px 8px 8px 12px;max-height:50vh;overflow-y:auto;transition:transform.3s}
+#questWin{position:fixed;top:42px;right:0;width:190px;background:rgba(0,0,0,.92);border-left:2px solid #fbbf24;border-bottom:2px solid #fbbf24;border-radius:0 0 0 12px;z-index:55;padding:8px 8px 8px 12px;max-height:50vh;overflow-y:auto;transition:transform.3s ease}
 #questWin.minQ{transform:translateX(174px)}
 #qMinBtn{position:absolute;top:50%;left:-16px;width:16px;height:50px;background:#fbbf24;border:none;border-radius:10px 0 0 10px;font-weight:900;z-index:56}
 #statWin{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:#1e1e1e;border:3px solid #4ade80;border-radius:16px;padding:12px;width:310px;z-index:90;transition:transform.2s;max-height:85vh;overflow-y:auto}
@@ -39,7 +39,7 @@ html,body{margin:0;padding:0;background:#12351f;overflow:hidden;height:100%;touc
 </style>
 </head><body>
 <div id="game"></div>
-<div id="top"><span>🏝️ V81 FIX</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span></span></div>
+<div id="top"><span>🏝️ V82 newmap</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span></span></div>
 <div id="ownedTab"><b>OWNED</b><div id="ownedList"></div><button id="minBtn" onclick="toggleTab()">◀</button></div>
 <div id="questWin"><button id="qMinBtn" onclick="toggleQuest()">▶</button><div style="margin-bottom:6px"><b style="font-size:10px;color:#fbbf24">📜 QUESTS</b></div><div id="questList"></div><div style="display:flex;gap:4px;margin-top:6px"><button onclick="saveGame()" style="flex:1;background:#4ade80;border:none;border-radius:6px;padding:6px;font-size:8px;font-weight:900">💾 SAVE</button><button onclick="clearSave()" style="flex:1;background:#fb7185;border:none;border-radius:6px;padding:6px;font-size:8px;font-weight:900">🗑️ RESET</button></div></div>
 <div id="msg"></div>
@@ -99,14 +99,19 @@ function renderQuests(){
 class WorldV81 extends Phaser.Scene{
  constructor(){super('WorldV81'); this.ents=[]}
  preload(){
-  this.load.image('map','new/map-triangle-4k.png');
+  this.load.image('map','new/newmap.webp');
   ANIMALS.forEach(n=>{ this.load.image('a-'+n,'new/animal-'+n+'.png'); });
   HUMANS.forEach(n=>{ this.load.image('h-'+n,'new/character-'+n+'.png'); });
  }
  create(){
   const W=3500,H=3500;
-  this.add.rectangle(W/2,H/2,W,H,0x12351f).setDepth(0);
-  if(this.textures.exists('map')){ try{ this.island=this.add.image(W/2,H/2,'map').setDepth(1); this.island.setDisplaySize(2100,2100);}catch(e){ this.createFallback(W,H);} }else{ this.createFallback(W,H); }
+  this.add.rectangle(W/2,H/2,W,H,0x0a2e5c).setDepth(0);
+  if(this.textures.exists('map')){
+    try{
+      this.island=this.add.image(W/2,H/2,'map').setDepth(1);
+      this.island.setDisplaySize(2600,2600);
+    }catch(e){ this.createFallback(W,H);}
+  }else{ this.createFallback(W,H); }
   this.bounds={x:W/2-1000,y:H/2-700,w:2000,h:1400};
   this.cameras.main.setBounds(0,0,W,H); this.cameras.main.centerOn(W/2,H/2); this.cameras.main.setZoom(0.40);
   this.isDragging=false;
@@ -121,7 +126,7 @@ class WorldV81 extends Phaser.Scene{
   if(saved){ coins=saved.coins||500; totalFriends=saved.totalFriends||0; document.getElementById('coins').innerText=coins; document.getElementById('fCount').innerText=totalFriends; if(saved.quests) quests=saved.quests; renderQuests(); if(saved.ents){ saved.ents.forEach(ed=>{ this.spawn(ed.x,ed.y,ed.id,false,true,ed.stats); }); } }
   this.time.addEvent({delay:15000,callback:()=>saveGame(true),loop:true});
  }
- createFallback(W,H){ let g=this.add.graphics().setDepth(1); g.fillStyle(0x2d6a4f,1); g.fillTriangle(W/2,H/2-900,W/2-1000,H/2+700,W/2+1000,H/2+700); }
+ createFallback(W,H){ let g=this.add.graphics().setDepth(1); g.fillStyle(0x1a4d2e,1); g.fillCircle(W/2,H/2,1200); }
  buildShop(){
   const shop=document.getElementById('shop'); shop.innerHTML='';
   [...HUMANS.map(n=>({id:'h-'+n,name:n,price:20,t:'human'})),...ANIMALS.map(n=>({id:'a-'+n,name:n,price:10,t:'animal'}))].forEach(it=>{
@@ -169,7 +174,7 @@ class WorldV81 extends Phaser.Scene{
    a.stats.friendsList.push(b.stats.name); b.stats.friendsList.push(a.stats.name); a.stats.friends++; b.stats.friends++; totalFriends++; document.getElementById('fCount').innerText=totalFriends; updateQuest('friends3',1); a.lastMeet=Date.now(); b.lastMeet=Date.now(); this.checkLevelUp(a); this.checkLovers(a,b); saveGame(true);
   }
  }
-  checkLovers(a,b){
+ checkLovers(a,b){
   if(!a.stats.isHuman||!b.stats.isHuman||a.stats.lover||b.stats.lover||a.stats.gender==b.stats.gender) return;
   if(a.stats.lvl<2||b.stats.lvl<2) return; if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)>85) return;
   if(Math.random()<0.02){ a.stats.lover=b; a.stats.loverName=b.stats.name; b.stats.lover=a; b.stats.loverName=a.stats.name; this.showMsg('💕 '+a.stats.name+' + '+b.stats.name); updateQuest('lover',1); saveGame(true); }
@@ -204,6 +209,6 @@ class WorldV81 extends Phaser.Scene{
 function closeStat(){document.getElementById('statWin').classList.remove('open');}
 function closeFamily(){document.getElementById('familyWin').classList.remove('open');}
 function playAnim(a){ if(selectedEnt) window.game.scene.scenes[0].playAnimOn(selectedEnt,a); }
-let game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#12351f',scene:WorldV81,scale:{mode:Phaser.Scale.RESIZE}});
+let game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#0a2e5c',scene:WorldV81,scale:{mode:Phaser.Scale.RESIZE}});
 window.game=game;
 </script></body></html>
