@@ -1,12 +1,14 @@
 <!DOCTYPE html><html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>V82 newmap</title>
+<title>V83 - Zoom + Quest Fix</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <style>
 html,body{margin:0;padding:0;background:#0a2e5c;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
 #game{position:fixed;inset:0}
 #top{position:fixed;top:0;left:0;right:0;background:#000;color:#fff;padding:8px 10px;font-size:11px;font-weight:900;z-index:40;display:flex;justify-content:space-between}
 #toggle{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:#4ade80;color:#000;border:none;border-radius:22px;padding:14px 28px;font-weight:900;font-size:14px;z-index:80}
+#zoomCtrl{position:fixed;bottom:90px;right:10px;z-index:70;display:flex;flex-direction:column;gap:6px}
+#zoomCtrl button{width:42px;height:42px;background:rgba(0,0,0,.85);color:#fff;border:2px solid #4ade80;border-radius:10px;font-size:18px;font-weight:900}
 #shopWrap{position:fixed;bottom:0;left:0;right:0;height:155px;background:#111;border-top:3px solid #333;z-index:60;transition:transform.3s}
 #shopWrap.closed{transform:translateY(100%)}
 #shop{height:100%;display:flex;gap:8px;padding:10px;overflow-x:auto}
@@ -17,12 +19,12 @@ html,body{margin:0;padding:0;background:#0a2e5c;overflow:hidden;height:100%;touc
 #ownedTab{position:fixed;top:42px;left:0;bottom:165px;width:62px;background:rgba(0,0,0,.92);border-right:2px solid #333;z-index:55;display:flex;flex-direction:column;align-items:center;padding:6px 0;transition:transform.3s}
 #ownedTab.minimized{transform:translateX(-52px)}
 #ownedList{flex:1;width:100%;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:0 5px;align-items:center}
-.ownedItem{width:46px;height:46px;background:#222;border:2px solid #555;border-radius:10px;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer}
+.ownedItem{width:46px;height:46px;background:#222;border:2px solid #555;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .ownedItem img{width:34px;height:34px;object-fit:contain}
 #minBtn{position:absolute;top:50%;right:-16px;width:16px;height:50px;background:#4ade80;border:none;border-radius:0 10px 10px 0;font-weight:900}
-#questWin{position:fixed;top:42px;right:0;width:190px;background:rgba(0,0,0,.92);border-left:2px solid #fbbf24;border-bottom:2px solid #fbbf24;border-radius:0 0 0 12px;z-index:55;padding:8px 8px 8px 12px;max-height:50vh;overflow-y:auto;transition:transform.3s ease}
+#questWin{position:fixed;top:42px;right:0;width:190px;background:rgba(0,0,0,.95);border-left:3px solid #fbbf24;border-bottom:3px solid #fbbf24;border-radius:0 0 0 14px;z-index:55;padding:8px 8px 8px 14px;max-height:50vh;overflow-y:auto;transition:transform.3s ease;overflow:visible}
 #questWin.minQ{transform:translateX(174px)}
-#qMinBtn{position:absolute;top:50%;left:-16px;width:16px;height:50px;background:#fbbf24;border:none;border-radius:10px 0 0 10px;font-weight:900;z-index:56}
+#qMinBtn{position:absolute;top:20px;left:-32px;width:32px;height:60px;background:#fbbf24;color:#000;border:none;border-radius:12px 0 0 12px;font-weight:900;font-size:14px;z-index:100;box-shadow:-2px 2px 8px rgba(0,0,0,.5)}
 #statWin{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:#1e1e1e;border:3px solid #4ade80;border-radius:16px;padding:12px;width:310px;z-index:90;transition:transform.2s;max-height:85vh;overflow-y:auto}
 #statWin.open{transform:translate(-50%,-50%) scale(1)}
 #familyWin{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:#1e1e1e;border:3px solid #f472b6;border-radius:16px;padding:12px;width:320px;z-index:95;transition:transform.2s;max-height:85vh;overflow-y:auto}
@@ -33,182 +35,60 @@ html,body{margin:0;padding:0;background:#0a2e5c;overflow:hidden;height:100%;touc
 .statRow b{color:#4ade80}
 .qRow{background:#2a2a2a;margin:4px 0;padding:6px;border-radius:6px;font-size:9px;color:#fff;border-left:3px solid #fbbf24}
 .qRow.done{border-left-color:#4ade80;opacity:0.6}
-#msg{position:fixed;top:50px;left:50%;transform:translateX(-50%) scale(0);background:linear-gradient(90deg,#f472b6,#a78bfa);color:#fff;padding:9px 18px;border-radius:20px;font-weight:900;font-size:11px;z-index:70;transition:transform.3s;pointer-events:none;max-width:90vw;text-align:center}
+#msg{position:fixed;top:50px;left:50%;transform:translateX(-50%) scale(0);background:linear-gradient(90deg,#f472b6,#a78bfa);color:#fff;padding:9px 18px;border-radius:20px;font-weight:900;font-size:11px;z-index:70;transition:transform.3s;pointer-events:none}
 #msg.show{transform:translateX(-50%) scale(1)}
 .editBtn{background:#fbbf24;color:#000;border:none;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:900;margin-left:6px}
 </style>
 </head><body>
 <div id="game"></div>
-<div id="top"><span>🏝️ V82 newmap</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span></span></div>
+<div id="top"><span>🏝️ V83 ZOOM</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span></span></div>
 <div id="ownedTab"><b>OWNED</b><div id="ownedList"></div><button id="minBtn" onclick="toggleTab()">◀</button></div>
-<div id="questWin"><button id="qMinBtn" onclick="toggleQuest()">▶</button><div style="margin-bottom:6px"><b style="font-size:10px;color:#fbbf24">📜 QUESTS</b></div><div id="questList"></div><div style="display:flex;gap:4px;margin-top:6px"><button onclick="saveGame()" style="flex:1;background:#4ade80;border:none;border-radius:6px;padding:6px;font-size:8px;font-weight:900">💾 SAVE</button><button onclick="clearSave()" style="flex:1;background:#fb7185;border:none;border-radius:6px;padding:6px;font-size:8px;font-weight:900">🗑️ RESET</button></div></div>
+<div id="questWin"><button id="qMinBtn" onclick="toggleQuest()">◀</button><div><b style="font-size:10px;color:#fbbf24">📜 QUESTS</b></div><div id="questList"></div><div style="display:flex;gap:4px;margin-top:6px"><button onclick="saveGame()" style="flex:1;background:#4ade80;border:none;border-radius:6px;padding:6px;font-size:8px;font-weight:900">💾 SAVE</button><button onclick="clearSave()" style="flex:1;background:#fb7185;border:none;border-radius:6px;padding:6px;font-size:8px;font-weight:900">🗑️ RESET</button></div></div>
+<div id="zoomCtrl"><button onclick="zoomIn()">+</button><button onclick="zoomOut()">−</button><button onclick="resetZoom()" style="font-size:10px">⌖</button></div>
 <div id="msg"></div>
 <div id="familyWin"><div id="familyContent"></div><button onclick="closeFamily()" style="width:100%;margin-top:8px;padding:8px;background:#333;color:#fff;border:none;border-radius:8px;font-weight:900">CLOSE</button></div>
-<div id="statWin">
-<div style="display:flex;gap:10px;align-items:center"><img id="sImg" style="width:52px;height:52px;background:#111;border-radius:10px;object-fit:contain"><div><h3 id="sName" style="margin:0;color:#fff;font-size:13px">Name</h3><div id="sType" style="color:#aaa;font-size:9px"></div><div id="sAnim" style="color:#4ade80;font-size:10px;font-weight:900"></div></div></div>
-<div class="animGrid">
-<button style="background:#60a5fa" onclick="playAnim('walk')">WALK</button><button style="background:#fb7185" onclick="playAnim('run')">RUN</button><button style="background:#a7f3d0" onclick="playAnim('idle')">IDLE</button><button style="background:#fde68a" onclick="playAnim('jump')">JUMP</button><button style="background:#fbbf24" onclick="playAnim('eat')">EAT</button><button style="background:#c4b5fd" onclick="playAnim('sleep')">SLEEP</button><button style="background:#f472b6" onclick="playAnim('dance')">DANCE</button><button style="background:#6ee7b7" onclick="playAnim('sit')">SIT</button><button style="background:#93c5fd" onclick="playAnim('wave')">WAVE</button><button style="background:#facc15" onclick="playAnim('cheer')">CHEER</button><button style="background:#a5b4fc" onclick="playAnim('spin')">SPIN</button><button style="background:#fdba74" onclick="playAnim('bounce')">BOUNCE</button>
-</div><div id="sStats"></div><button id="familyBtn" style="width:100%;margin-top:8px;padding:10px;background:linear-gradient(90deg,#f472b6,#a78bfa);color:#fff;border:none;border-radius:8px;font-weight:900;display:none">👨‍👩‍👧 FAMILY TREE</button><button onclick="closeStat()" style="width:100%;margin-top:8px;padding:8px;background:#333;color:#fff;border:none;border-radius:8px;font-weight:900">CLOSE</button>
-</div><div id="shopWrap" class="closed"><div id="shop"></div></div><button id="toggle">🛒 SHOP</button>
+<div id="statWin"><div style="display:flex;gap:10px;align-items:center"><img id="sImg" style="width:52px;height:52px;background:#111;border-radius:10px;object-fit:contain"><div><h3 id="sName" style="margin:0;color:#fff;font-size:13px">Name</h3><div id="sType" style="color:#aaa;font-size:9px"></div><div id="sAnim" style="color:#4ade80;font-size:10px;font-weight:900"></div></div></div><div class="animGrid"><button style="background:#60a5fa" onclick="playAnim('walk')">WALK</button><button style="background:#fb7185" onclick="playAnim('run')">RUN</button><button style="background:#a7f3d0" onclick="playAnim('idle')">IDLE</button><button style="background:#fde68a" onclick="playAnim('jump')">JUMP</button><button style="background:#fbbf24" onclick="playAnim('eat')">EAT</button><button style="background:#c4b5fd" onclick="playAnim('sleep')">SLEEP</button><button style="background:#f472b6" onclick="playAnim('dance')">DANCE</button><button style="background:#6ee7b7" onclick="playAnim('sit')">SIT</button><button style="background:#93c5fd" onclick="playAnim('wave')">WAVE</button><button style="background:#facc15" onclick="playAnim('cheer')">CHEER</button><button style="background:#a5b4fc" onclick="playAnim('spin')">SPIN</button><button style="background:#fdba74" onclick="playAnim('bounce')">BOUNCE</button></div><div id="sStats"></div><button id="familyBtn" style="width:100%;margin-top:8px;padding:10px;background:linear-gradient(90deg,#f472b6,#a78bfa);color:#fff;border:none;border-radius:8px;font-weight:900;display:none">👨‍👩‍👧 FAMILY</button><button onclick="closeStat()" style="width:100%;margin-top:8px;padding:8px;background:#333;color:#fff;border:none;border-radius:8px;font-weight:900">CLOSE</button></div><div id="shopWrap" class="closed"><div id="shop"></div></div><button id="toggle">🛒 SHOP</button>
 <script>
 const ANIMALS=['beaver','bee','bunny','cat','caterpillar','chick','cow','crab','deer','dog','elephant','fox','giraffe','hog','koala','lion','monkey','panda','parrot','penguin','pig','polar','tiger'];
 const HUMANS=['female-a','female-b','female-c','female-d','female-e','female-f','male-a','male-b','male-c','male-d','male-e','male-f'];
 const NAMES=['Luna','Milo','Kiko','Bilog','Kulit','Ganda','Bebe','Momo','Juan','Maria'];
 const DIALOGUES={walk:["Lakad muna!"],run:["Bilisan!"],idle:["Chill lang"],jump:["Wheee!"],eat:["Yum!"],sleep:["Zzz..."],dance:["Party!"],sit:["Pahinga"],wave:["Hi!"],cheer:["Yay!"],spin:["Woo!"],bounce:["Boing!"]};
 const EMOJIS={walk:"🚶",run:"🏃",idle:"💭",jump:"🤾",eat:"😋",sleep:"💤",dance:"🪩",sit:"😌",wave:"👋",cheer:"🎉",spin:"🌀",bounce:"⚽"};
-let coins=500, selected=null, isShopOpen=false, selectedEnt=null, totalFriends=0, isTabMin=false, isQuestMin=false;
-let quests=[
- {id:'spawn3',txt:'Mag spawn ng 3',target:3,prog:0,done:false,reward:30,icon:'🌱'},
- {id:'friends3',txt:'3 friends',target:3,prog:0,done:false,reward:50,icon:'🤝'},
- {id:'pet1',txt:'Magka pet',target:1,prog:0,done:false,reward:40,icon:'🐾'},
- {id:'lvl2',txt:'Mag LVL2',target:1,prog:0,done:false,reward:60,icon:'⬆️'},
- {id:'lover',txt:'Magka lover',target:1,prog:0,done:false,reward:100,icon:'💕'},
- {id:'baby',txt:'Magka baby',target:1,prog:0,done:false,reward:150,icon:'👶'}
-];
-function toggleTab(){ isTabMin=!isTabMin; document.getElementById('ownedTab').classList.toggle('minimized',isTabMin); document.getElementById('minBtn').innerHTML=isTabMin?'▶':'◀'; }
-function toggleQuest(){ isQuestMin=!isQuestMin; document.getElementById('questWin').classList.toggle('minQ',isQuestMin); document.getElementById('qMinBtn').innerHTML=isQuestMin?'◀':'▶'; }
-function getGender(id){ return id.includes('female')?'female':id.includes('male')?'male':'animal'; }
-function isHumanId(id){ return id.includes('female')||id.includes('male'); }
-function saveGame(silent=false){
- if(!window.game) return;
- let scene=window.game.scene.scenes[0];
- let data={coins:coins,totalFriends:totalFriends,ents:scene.ents.map(e=>({x:e.x,y:e.y,id:e.stats.id,stats:e.stats})),quests:quests};
- localStorage.setItem('triV81',JSON.stringify(data));
- if(!silent) scene.showMsg('💾 Saved!');
-}
-function clearSave(){ if(confirm('Reset?')){ localStorage.removeItem('triV81'); location.reload(); } }
-function loadGameData(){ try{ let d=localStorage.getItem('triV81'); if(d) return JSON.parse(d);}catch(e){} return null; }
-function editName(){
- if(!selectedEnt) return;
- let newName=prompt('Bagong name:',selectedEnt.stats.name);
- if(newName&&newName.trim()!=''){ selectedEnt.stats.name=newName.trim().substring(0,18); document.getElementById('sName').innerHTML=`${selectedEnt.stats.name} <button class="editBtn" onclick="editName()">✏️</button>`; if(window.game) window.game.scene.scenes[0].showMsg('✏️ '+selectedEnt.stats.name); saveGame(true); }
-}
-function updateQuest(id,add=1){
- let q=quests.find(x=>x.id==id); if(!q||q.done) return;
- q.prog+=add; if(q.prog>=q.target){ q.done=true; coins+=q.reward; document.getElementById('coins').innerText=coins; if(window.game) window.game.scene.scenes[0].showMsg('🎉 '+q.txt+' +'+q.reward+'!'); }
- renderQuests();
-}
-function renderQuests(){
- let list=document.getElementById('questList'); list.innerHTML='';
- quests.forEach(q=>{
-  let div=document.createElement('div'); div.className='qRow'+(q.done?' done':'');
-  div.innerHTML=`<div style="display:flex;justify-content:space-between"><span>${q.icon} ${q.txt}</span><b>${q.done?'✅':q.prog+'/'+q.target}</b></div><div style="font-size:7px;color:#aaa">+${q.reward} coins</div>`;
-  list.appendChild(div);
- });
-}
-class WorldV81 extends Phaser.Scene{
- constructor(){super('WorldV81'); this.ents=[]}
- preload(){
-  this.load.image('map','new/newmap.webp');
-  ANIMALS.forEach(n=>{ this.load.image('a-'+n,'new/animal-'+n+'.png'); });
-  HUMANS.forEach(n=>{ this.load.image('h-'+n,'new/character-'+n+'.png'); });
- }
- create(){
-  const W=3500,H=3500;
-  this.add.rectangle(W/2,H/2,W,H,0x0a2e5c).setDepth(0);
-  if(this.textures.exists('map')){
-    try{
-      this.island=this.add.image(W/2,H/2,'map').setDepth(1);
-      this.island.setDisplaySize(2600,2600);
-    }catch(e){ this.createFallback(W,H);}
-  }else{ this.createFallback(W,H); }
-  this.bounds={x:W/2-1000,y:H/2-700,w:2000,h:1400};
-  this.cameras.main.setBounds(0,0,W,H); this.cameras.main.centerOn(W/2,H/2); this.cameras.main.setZoom(0.40);
-  this.isDragging=false;
-  this.input.on('pointerdown',p=>{ if(isShopOpen&&p.y<innerHeight-155&&selected){ let wp=this.cameras.main.getWorldPoint(p.x,p.y); this.spawn(wp.x,wp.y,selected,false); selected=null; updateQuest('spawn3',1); return; } if(p.x<62&&p.y>42&&p.y<innerHeight-165) return; if(p.x>innerWidth-190&&p.y>42&&p.y<320) return; if(document.getElementById('statWin').classList.contains('open')||document.getElementById('familyWin').classList.contains('open')) return; if(!isShopOpen){ this.isDragging=true; this.dragStart={x:p.x,y:p.y,sx:this.cameras.main.scrollX,sy:this.cameras.main.scrollY}; } });
-  this.input.on('pointermove',p=>{ if(this.isDragging&&this.dragStart&&!isShopOpen){ this.cameras.main.scrollX=this.dragStart.sx-(p.x-this.dragStart.x)/0.40; this.cameras.main.scrollY=this.dragStart.sy-(p.y-this.dragStart.y)/0.40; } });
-  this.input.on('pointerup',()=>this.isDragging=false);
-  this.buildShop();
-  document.getElementById('toggle').onclick=()=>{ isShopOpen=!isShopOpen; document.getElementById('shopWrap').className=isShopOpen?'':'closed'; document.getElementById('toggle').innerHTML=isShopOpen?'❌ CLOSE':'🛒 SHOP'; };
-  document.getElementById('familyBtn').onclick=()=>{ this.showFamilyTree(); };
-  renderQuests();
-  let saved=loadGameData();
-  if(saved){ coins=saved.coins||500; totalFriends=saved.totalFriends||0; document.getElementById('coins').innerText=coins; document.getElementById('fCount').innerText=totalFriends; if(saved.quests) quests=saved.quests; renderQuests(); if(saved.ents){ saved.ents.forEach(ed=>{ this.spawn(ed.x,ed.y,ed.id,false,true,ed.stats); }); } }
-  this.time.addEvent({delay:15000,callback:()=>saveGame(true),loop:true});
- }
- createFallback(W,H){ let g=this.add.graphics().setDepth(1); g.fillStyle(0x1a4d2e,1); g.fillCircle(W/2,H/2,1200); }
- buildShop(){
-  const shop=document.getElementById('shop'); shop.innerHTML='';
-  [...HUMANS.map(n=>({id:'h-'+n,name:n,price:20,t:'human'})),...ANIMALS.map(n=>({id:'a-'+n,name:n,price:10,t:'animal'}))].forEach(it=>{
-   let key=it.id; let c=document.createElement('div'); c.className='card';
-   c.innerHTML=`<img src="new/${it.t=='human'?'character':'animal'}-${it.name}.png"><b>${it.name.toUpperCase()}</b><button>🪙${it.price}</button>`;
-   c.querySelector('button').onclick=()=>{ if(coins<it.price) return; if(!this.textures.exists(key)) return; coins-=it.price; document.getElementById('coins').innerText=coins; selected=key; document.querySelectorAll('.card').forEach(x=>x.style.borderColor='#444'); c.style.borderColor='#4ade80'; };
-   shop.appendChild(c);
-  });
- }
- spawn(x,y,id,isBaby=false,isLoad=false,loadStats=null){
-  if(!this.textures.exists(id)) return;
-  let human=isHumanId(id);
-  let spr=this.add.image(x,y,id).setDepth(10).setInteractive();
-  if(human){ spr.setDisplaySize(95,125); } else { spr.setDisplaySize(90,90); }
-  spr.baseW=spr.displayWidth; spr.baseH=spr.displayHeight;
-  if(isLoad&&loadStats){ spr.stats=loadStats; }else{ spr.stats={name:(isBaby?'Baby ':'')+NAMES[Math.floor(Math.random()*NAMES.length)]+' #'+Math.floor(Math.random()*99),type:id.replace('a-','').replace('h-','').toUpperCase(),gender:getGender(id),isHuman:human,lvl:1,happiness:60+Math.floor(Math.random()*15),friends:0,friendsList:[],lover:null,loverName:null,familyTime:0,togetherTime:0,children:[],isBaby:isBaby,owner:null,ownerRef:null,pet:null,petName:null,id:id}; }
-  spr.animState='idle'; spr.baseSpeed=human?0.9:1.1; spr.moveTimer=3000+Math.random()*2000; spr.lastMeet=0; spr.vx=0; spr.vy=0; spr.lastChat=0;
-  this.ents.push(spr); document.getElementById('cnt').innerText=this.ents.length; this.addOwned(spr); this.playAnimOn(spr,'idle');
-  spr.on('pointerdown',()=>this.showStats(spr));
-  if(!isLoad) saveGame(true);
- }
- addOwned(spr){ const list=document.getElementById('ownedList'); let div=document.createElement('div'); div.className='ownedItem'; div.innerHTML=`<img src="new/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png">`; div.onclick=()=>{ selectedEnt=spr; this.focusOn(spr); this.showStats(spr); }; list.appendChild(div); }
- focusOn(spr){ this.cameras.main.pan(spr.x,spr.y,400,'Power2'); }
- showStats(spr){
-  selectedEnt=spr;
-  document.getElementById('sImg').src='new/'+(spr.stats.isHuman?'character':'animal')+'-'+spr.stats.type.toLowerCase()+'.png';
-  document.getElementById('sName').innerHTML=`${spr.stats.name} <button class="editBtn" onclick="editName()">✏️</button>`;
-  document.getElementById('sType').innerText=spr.stats.type+' • '+spr.stats.gender.toUpperCase();
-  document.getElementById('sAnim').innerText='LVL'+spr.stats.lvl+' | '+spr.animState.toUpperCase();
-  let loverTxt=spr.stats.lover?'💕 '+spr.stats.loverName:'Single';
-  let petTxt=spr.stats.pet? '🐾 '+spr.stats.petName : 'Wala pa';
-  let ownerTxt=spr.stats.owner?'🐾 '+spr.stats.owner:'Wild';
-  document.getElementById('sStats').innerHTML=`<div class="statRow"><span>LEVEL</span><b>${spr.stats.lvl}</b></div><div class="statRow"><span>FRIENDS</span><b>${spr.stats.friends}</b></div>${spr.stats.isHuman?`<div class="statRow"><span>LOVER</span><b>${loverTxt}</b></div><div class="statRow"><span>PET</span><b>${petTxt}</b></div>`: `<div class="statRow"><span>OWNER</span><b>${ownerTxt}</b></div>`}`;
-  document.getElementById('familyBtn').style.display=(spr.stats.isHuman&&(spr.stats.lover||spr.stats.children.length>0))?'block':'none';
-  document.getElementById('statWin').classList.add('open');
- }
- showFamilyTree(){ if(!selectedEnt) return; let s=selectedEnt.stats; let html=`<h3 style="color:#fff;margin:0">${s.name} Family</h3>`; if(s.lover) html+=`<div class="statRow"><span>PARTNER</span><b>${s.loverName}</b></div>`; if(s.children.length>0) s.children.forEach(ch=>{ html+=`<div class="statRow"><span>KID</span><b>${ch}</b></div>`; }); document.getElementById('familyContent').innerHTML=html; document.getElementById('familyWin').classList.add('open'); }
- checkLevelUp(spr){ if(spr.stats.lvl>=5) return; let f=spr.stats.friends; if(spr.stats.lvl==1&&f>=3){ spr.stats.lvl++; if(spr.stats.lvl==2) updateQuest('lvl2',1); this.showMsg('⬆️ LVL2 '+spr.stats.name); saveGame(true); } }
- makeFriends(a,b){
-  if(a==b||Date.now()-a.lastMeet<4000) return;
-  if(!a.stats.isHuman && b.stats.isHuman){ if(b.stats.pet) return; if(!a.stats.owner){ a.stats.owner=b.stats.name; a.stats.ownerRef=b; b.stats.pet=a; b.stats.petName=a.stats.name; updateQuest('pet1',1); } }
-  if(!b.stats.isHuman && a.stats.isHuman){ if(a.stats.pet) return; if(!b.stats.owner){ b.stats.owner=a.stats.name; b.stats.ownerRef=a; a.stats.pet=b; a.stats.petName=b.stats.name; updateQuest('pet1',1); } }
-  if(a.stats.isHuman&&b.stats.isHuman){
-   if(a.stats.friendsList.includes(b.stats.name)){ if(a.stats.lover==b){ let dist=Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y); if(dist<110){ a.stats.familyTime+=200; b.stats.familyTime+=200; if(a.stats.familyTime>60000){ this.makeBaby(a,b); a.stats.familyTime=0; b.stats.familyTime=0; } } } return; }
-   a.stats.friendsList.push(b.stats.name); b.stats.friendsList.push(a.stats.name); a.stats.friends++; b.stats.friends++; totalFriends++; document.getElementById('fCount').innerText=totalFriends; updateQuest('friends3',1); a.lastMeet=Date.now(); b.lastMeet=Date.now(); this.checkLevelUp(a); this.checkLovers(a,b); saveGame(true);
-  }
- }
- checkLovers(a,b){
-  if(!a.stats.isHuman||!b.stats.isHuman||a.stats.lover||b.stats.lover||a.stats.gender==b.stats.gender) return;
-  if(a.stats.lvl<2||b.stats.lvl<2) return; if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)>85) return;
-  if(Math.random()<0.02){ a.stats.lover=b; a.stats.loverName=b.stats.name; b.stats.lover=a; b.stats.loverName=a.stats.name; this.showMsg('💕 '+a.stats.name+' + '+b.stats.name); updateQuest('lover',1); saveGame(true); }
- }
- makeBaby(a,b){ let babyId=Math.random()<0.5?a.stats.id:b.stats.id; this.spawn((a.x+b.x)/2,(a.y+b.y)/2+30,babyId,true); let last=this.ents[this.ents.length-1]; if(last){ last.stats.name='Baby '+NAMES[Math.floor(Math.random()*NAMES.length)]; } a.stats.children.push(last.stats.name); b.stats.children.push(last.stats.name); this.showMsg('👶 Baby!'); updateQuest('baby',1); saveGame(true); }
- showMsg(t){ let el=document.getElementById('msg'); el.innerText=t; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2500); }
- showBubble(spr,anim){
-  if(Math.random()>0.5) return; if(Date.now()-spr.lastChat<5000) return; spr.lastChat=Date.now();
-  if(spr._bubble) spr._bubble.destroy(); if(spr._bubbleBg) spr._bubbleBg.destroy();
-  let emoji=EMOJIS[anim]||"💬"; let list=DIALOGUES[anim]||["..."]; let txt=list[Math.floor(Math.random()*list.length)];
-  let full=`${emoji} ${txt}`;
-  let bubble=this.add.text(spr.x,spr.y-100,full,{fontSize:'22px',color:'#000',fontFamily:'Arial Black',stroke:'#fff',strokeThickness:5}).setOrigin(0.5).setDepth(61);
-  let bg=this.add.rectangle(spr.x,spr.y-100,bubble.width+16,bubble.height+10,0xffffff,1).setDepth(60).setStrokeStyle(2,0x000000);
-  spr._bubble=bubble; spr._bubbleBg=bg; this.tweens.add({targets:[bubble,bg],y:bubble.y-20,alpha:0,duration:2500,delay:1000,onComplete:()=>{ bubble.destroy(); bg.destroy(); }});
- }
- playAnimOn(spr,anim){
-  if(!spr.active) return; spr.animState=anim; if(selectedEnt==spr) document.getElementById('sAnim').innerText='LVL'+spr.stats.lvl+' | '+anim.toUpperCase(); this.showBubble(spr,anim);
-  if(spr.currentTween) spr.currentTween.stop(); this.tweens.killTweensOf(spr); spr.setAngle(0); spr.setAlpha(1); spr.setDisplaySize(spr.baseW,spr.baseH);
-  if(anim=='walk'||anim=='run'){ spr.currentTween=this.tweens.add({targets:spr,y:spr.y-2,duration:300,yoyo:true,repeat:-1}); }
- }
- update(t,d){
-  if(isShopOpen) return;
-  for(let i=0;i<this.ents.length;i++) for(let j=i+1;j<this.ents.length;j++){ let a=this.ents[i],b=this.ents[j]; if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)<75) this.makeFriends(a,b); }
-  this.ents.forEach(e=>{
-   if(e._bubble&&e._bubble.active){ e._bubble.x=e.x; e._bubbleBg.x=e.x; }
-   if(e.stats.ownerRef&&e.stats.ownerRef.active){ let dist=Phaser.Math.Distance.Between(e.x,e.y,e.stats.ownerRef.x,e.stats.ownerRef.y); if(dist>130){ let ang=Math.atan2(e.stats.ownerRef.y-e.y,e.stats.ownerRef.x-e.x); e.vx=Math.cos(ang)*e.baseSpeed*1.4; e.vy=Math.sin(ang)*e.baseSpeed*1.4; e.x+=e.vx; e.y+=e.vy; return; } }
-   e.moveTimer-=d; if(e.moveTimer<=0){ let r=Math.random(); if(r<0.5){ this.playAnimOn(e,'walk'); e.moveTimer=3000+Math.random()*2000; e.targetX=this.bounds.x+Math.random()*this.bounds.w; e.targetY=this.bounds.y+Math.random()*this.bounds.h; let ang=Math.atan2(e.targetY-e.y,e.targetX-e.x); e.vx=Math.cos(ang)*e.baseSpeed; e.vy=Math.sin(ang)*e.baseSpeed; }else{ this.playAnimOn(e,'idle'); e.moveTimer=3000; e.vx=0; e.vy=0; } }
-   if(e.animState=='walk'||e.animState=='run'){ e.x+=e.vx; e.y+=e.vy; }
-  });
- }
+let coins=500,selected=null,isShopOpen=false,selectedEnt=null,totalFriends=0,isTabMin=false,isQuestMin=false,curZoom=0.40;
+let quests=[{id:'spawn3',txt:'Mag spawn ng 3',target:3,prog:0,done:false,reward:30,icon:'🌱'},{id:'friends3',txt:'3 friends',target:3,prog:0,done:false,reward:50,icon:'🤝'},{id:'pet1',txt:'Magka pet',target:1,prog:0,done:false,reward:40,icon:'🐾'},{id:'lvl2',txt:'Mag LVL2',target:1,prog:0,done:false,reward:60,icon:'⬆️'},{id:'lover',txt:'Magka lover',target:1,prog:0,done:false,reward:100,icon:'💕'},{id:'baby',txt:'Magka baby',target:1,prog:0,done:false,reward:150,icon:'👶'}];
+function toggleTab(){isTabMin=!isTabMin;document.getElementById('ownedTab').classList.toggle('minimized',isTabMin);document.getElementById('minBtn').innerHTML=isTabMin?'▶':'◀';}
+function toggleQuest(){isQuestMin=!isQuestMin;document.getElementById('questWin').classList.toggle('minQ',isQuestMin);document.getElementById('qMinBtn').innerHTML=isQuestMin?'▶':'◀';}
+function zoomIn(){curZoom=Math.min(1.2,curZoom+0.1);if(window.game) window.game.scene.scenes[0].cameras.main.setZoom(curZoom);}
+function zoomOut(){curZoom=Math.max(0.20,curZoom-0.1);if(window.game) window.game.scene.scenes[0].cameras.main.setZoom(curZoom);}
+function resetZoom(){curZoom=0.40;if(window.game){let s=window.game.scene.scenes[0];s.cameras.main.setZoom(curZoom);s.cameras.main.centerOn(1750,1750);}}
+function getGender(id){return id.includes('female')?'female':id.includes('male')?'male':'animal';}
+function isHumanId(id){return id.includes('female')||id.includes('male');}
+function saveGame(silent=false){if(!window.game) return;let scene=window.game.scene.scenes[0];let data={coins:coins,totalFriends:totalFriends,ents:scene.ents.map(e=>({x:e.x,y:e.y,id:e.stats.id,stats:e.stats})),quests:quests};localStorage.setItem('triV81',JSON.stringify(data));if(!silent) scene.showMsg('💾 Saved!');}
+function clearSave(){if(confirm('Reset?')){localStorage.removeItem('triV81');location.reload();}}
+function loadGameData(){try{let d=localStorage.getItem('triV81');if(d) return JSON.parse(d);}catch(e){}return null;}
+function editName(){if(!selectedEnt) return;let newName=prompt('Bagong name:',selectedEnt.stats.name);if(newName&&newName.trim()!=''){selectedEnt.stats.name=newName.trim().substring(0,18);document.getElementById('sName').innerHTML=`${selectedEnt.stats.name} <button class="editBtn" onclick="editName()">✏️</button>`;if(window.game) window.game.scene.scenes[0].showMsg('✏️ '+selectedEnt.stats.name);saveGame(true);}}
+function updateQuest(id,add=1){let q=quests.find(x=>x.id==id);if(!q||q.done) return;q.prog+=add;if(q.prog>=q.target){q.done=true;coins+=q.reward;document.getElementById('coins').innerText=coins;if(window.game) window.game.scene.scenes[0].showMsg('🎉 '+q.txt+' +'+q.reward+'!');}renderQuests();}
+function renderQuests(){let list=document.getElementById('questList');list.innerHTML='';quests.forEach(q=>{let div=document.createElement('div');div.className='qRow'+(q.done?' done':'');div.innerHTML=`<div style="display:flex;justify-content:space-between"><span>${q.icon} ${q.txt}</span><b>${q.done?'✅':q.prog+'/'+q.target}</b></div><div style="font-size:7px;color:#aaa">+${q.reward} coins</div>`;list.appendChild(div);});}
+class WorldV81 extends Phaser.Scene{constructor(){super('WorldV81');this.ents=[]}preload(){this.load.image('map','new/newmap.webp');ANIMALS.forEach(n=>{this.load.image('a-'+n,'new/animal-'+n+'.png');});HUMANS.forEach(n=>{this.load.image('h-'+n,'new/character-'+n+'.png');});}create(){const W=3500,H=3500;this.add.rectangle(W/2,H/2,W,H,0x0a2e5c).setDepth(0);if(this.textures.exists('map')){try{this.island=this.add.image(W/2,H/2,'map').setDepth(1);this.island.setDisplaySize(2600,2600);}catch(e){this.createFallback(W,H);}}else{this.createFallback(W,H);}this.bounds={x:W/2-1000,y:H/2-700,w:2000,h:1400};this.cameras.main.setBounds(0,0,W,H);this.cameras.main.centerOn(W/2,H/2);this.cameras.main.setZoom(curZoom);this.isDragging=false;this.input.on('pointerdown',p=>{if(isShopOpen&&p.y<innerHeight-155&&selected){let wp=this.cameras.main.getWorldPoint(p.x,p.y);this.spawn(wp.x,wp.y,selected,false);selected=null;updateQuest('spawn3',1);return;}if(p.x<62&&p.y>42&&p.y<innerHeight-165) return;if(p.x>innerWidth-190&&p.y>42&&p.y<320) return;if(document.getElementById('statWin').classList.contains('open')||document.getElementById('familyWin').classList.contains('open')) return;if(!isShopOpen){this.isDragging=true;this.dragStart={x:p.x,y:p.y,sx:this.cameras.main.scrollX,sy:this.cameras.main.scrollY};}});this.input.on('pointermove',p=>{if(this.isDragging&&this.dragStart&&!isShopOpen){this.cameras.main.scrollX=this.dragStart.sx-(p.x-this.dragStart.x)/curZoom;this.cameras.main.scrollY=this.dragStart.sy-(p.y-this.dragStart.y)/curZoom;}});this.input.on('pointerup',()=>this.isDragging=false);this.input.on('wheel',(p,dx,dy)=>{if(dy>0) zoomOut(); else zoomIn();});this.buildShop();document.getElementById('toggle').onclick=()=>{isShopOpen=!isShopOpen;document.getElementById('shopWrap').className=isShopOpen?'':'closed';document.getElementById('toggle').innerHTML=isShopOpen?'❌ CLOSE':'🛒 SHOP';};document.getElementById('familyBtn').onclick=()=>{this.showFamilyTree();};renderQuests();let saved=loadGameData();if(saved){coins=saved.coins||500;totalFriends=saved.totalFriends||0;document.getElementById('coins').innerText=coins;document.getElementById('fCount').innerText=totalFriends;if(saved.quests) quests=saved.quests;renderQuests();if(saved.ents){saved.ents.forEach(ed=>{this.spawn(ed.x,ed.y,ed.id,false,true,ed.stats);});}}this.time.addEvent({delay:15000,callback:()=>saveGame(true),loop:true});}
+createFallback(W,H){let g=this.add.graphics().setDepth(1);g.fillStyle(0x1a4d2e,1);g.fillCircle(W/2,H/2,1200);}
+buildShop(){const shop=document.getElementById('shop');shop.innerHTML='';[...HUMANS.map(n=>({id:'h-'+n,name:n,price:20,t:'human'})),...ANIMALS.map(n=>({id:'a-'+n,name:n,price:10,t:'animal'}))].forEach(it=>{let key=it.id;let c=document.createElement('div');c.className='card';c.innerHTML=`<img src="new/${it.t=='human'?'character':'animal'}-${it.name}.png"><b>${it.name.toUpperCase()}</b><button>🪙${it.price}</button>`;c.querySelector('button').onclick=()=>{if(coins<it.price) return;if(!this.textures.exists(key)) return;coins-=it.price;document.getElementById('coins').innerText=coins;selected=key;document.querySelectorAll('.card').forEach(x=>x.style.borderColor='#444');c.style.borderColor='#4ade80';};shop.appendChild(c);});}
+spawn(x,y,id,isBaby=false,isLoad=false,loadStats=null){if(!this.textures.exists(id)) return;let human=isHumanId(id);let spr=this.add.image(x,y,id).setDepth(10).setInteractive();if(human){spr.setDisplaySize(95,125);}else{spr.setDisplaySize(90,90);}spr.baseW=spr.displayWidth;spr.baseH=spr.displayHeight;if(isLoad&&loadStats){spr.stats=loadStats;}else{spr.stats={name:(isBaby?'Baby ':'')+NAMES[Math.floor(Math.random()*NAMES.length)]+' #'+Math.floor(Math.random()*99),type:id.replace('a-','').replace('h-','').toUpperCase(),gender:getGender(id),isHuman:human,lvl:1,happiness:60+Math.floor(Math.random()*15),friends:0,friendsList:[],lover:null,loverName:null,familyTime:0,togetherTime:0,children:[],isBaby:isBaby,owner:null,ownerRef:null,pet:null,petName:null,id:id};}spr.animState='idle';spr.baseSpeed=human?0.9:1.1;spr.moveTimer=3000+Math.random()*2000;spr.lastMeet=0;spr.vx=0;spr.vy=0;spr.lastChat=0;this.ents.push(spr);document.getElementById('cnt').innerText=this.ents.length;this.addOwned(spr);this.playAnimOn(spr,'idle');spr.on('pointerdown',()=>this.showStats(spr));if(!isLoad) saveGame(true);}
+addOwned(spr){const list=document.getElementById('ownedList');let div=document.createElement('div');div.className='ownedItem';div.innerHTML=`<img src="new/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png">`;div.onclick=()=>{selectedEnt=spr;this.focusOn(spr);this.showStats(spr);};list.appendChild(div);}
+focusOn(spr){this.cameras.main.pan(spr.x,spr.y,400,'Power2');}
+showStats(spr){selectedEnt=spr;document.getElementById('sImg').src='new/'+(spr.stats.isHuman?'character':'animal')+'-'+spr.stats.type.toLowerCase()+'.png';document.getElementById('sName').innerHTML=`${spr.stats.name} <button class="editBtn" onclick="editName()">✏️</button>`;document.getElementById('sType').innerText=spr.stats.type+' • '+spr.stats.gender.toUpperCase();document.getElementById('sAnim').innerText='LVL'+spr.stats.lvl+' | '+spr.animState.toUpperCase();let loverTxt=spr.stats.lover?'💕 '+spr.stats.loverName:'Single';let petTxt=spr.stats.pet?'🐾 '+spr.stats.petName:'Wala pa';let ownerTxt=spr.stats.owner?'🐾 '+spr.stats.owner:'Wild';document.getElementById('sStats').innerHTML=`<div class="statRow"><span>LEVEL</span><b>${spr.stats.lvl}</b></div><div class="statRow"><span>FRIENDS</span><b>${spr.stats.friends}</b></div>${spr.stats.isHuman?`<div class="statRow"><span>LOVER</span><b>${loverTxt}</b></div><div class="statRow"><span>PET</span><b>${petTxt}</b></div>`: `<div class="statRow"><span>OWNER</span><b>${ownerTxt}</b></div>`}`;document.getElementById('familyBtn').style.display=(spr.stats.isHuman&&(spr.stats.lover||spr.stats.children.length>0))?'block':'none';document.getElementById('statWin').classList.add('open');}
+showFamilyTree(){if(!selectedEnt) return;let s=selectedEnt.stats;let html=`<h3 style="color:#fff;margin:0">${s.name} Family</h3>`;if(s.lover) html+=`<div class="statRow"><span>PARTNER</span><b>${s.loverName}</b></div>`;if(s.children.length>0) s.children.forEach(ch=>{html+=`<div class="statRow"><span>KID</span><b>${ch}</b></div>`;});document.getElementById('familyContent').innerHTML=html;document.getElementById('familyWin').classList.add('open');}
+checkLevelUp(spr){if(spr.stats.lvl>=5) return;let f=spr.stats.friends;if(spr.stats.lvl==1&&f>=3){spr.stats.lvl++;if(spr.stats.lvl==2) updateQuest('lvl2',1);this.showMsg('⬆️ LVL2 '+spr.stats.name);saveGame(true);}}
+makeFriends(a,b){if(a==b||Date.now()-a.lastMeet<4000) return;if(!a.stats.isHuman && b.stats.isHuman){if(b.stats.pet) return;if(!a.stats.owner){a.stats.owner=b.stats.name;a.stats.ownerRef=b;b.stats.pet=a;b.stats.petName=a.stats.name;updateQuest('pet1',1);}}if(!b.stats.isHuman && a.stats.isHuman){if(a.stats.pet) return;if(!b.stats.owner){b.stats.owner=a.stats.name;b.stats.ownerRef=a;a.stats.pet=b;a.stats.petName=b.stats.name;updateQuest('pet1',1);}}if(a.stats.isHuman&&b.stats.isHuman){if(a.stats.friendsList.includes(b.stats.name)){if(a.stats.lover==b){let dist=Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y);if(dist<110){a.stats.familyTime+=200;b.stats.familyTime+=200;if(a.stats.familyTime>60000){this.makeBaby(a,b);a.stats.familyTime=0;b.stats.familyTime=0;}}}return;}a.stats.friendsList.push(b.stats.name);b.stats.friendsList.push(a.stats.name);a.stats.friends++;b.stats.friends++;totalFriends++;document.getElementById('fCount').innerText=totalFriends;updateQuest('friends3',1);a.lastMeet=Date.now();b.lastMeet=Date.now();this.checkLevelUp(a);this.checkLovers(a,b);saveGame(true);}}
+checkLovers(a,b){if(!a.stats.isHuman||!b.stats.isHuman||a.stats.lover||b.stats.lover||a.stats.gender==b.stats.gender) return;if(a.stats.lvl<2||b.stats.lvl<2) return;if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)>85) return;if(Math.random()<0.02){a.stats.lover=b;a.stats.loverName=b.stats.name;b.stats.lover=a;b.stats.loverName=a.stats.name;this.showMsg('💕 '+a.stats.name+' + '+b.stats.name);updateQuest('lover',1);saveGame(true);}}
+makeBaby(a,b){let babyId=Math.random()<0.5?a.stats.id:b.stats.id;this.spawn((a.x+b.x)/2,(a.y+b.y)/2+30,babyId,true);let last=this.ents[this.ents.length-1];if(last){last.stats.name='Baby '+NAMES[Math.floor(Math.random()*NAMES.length)];}a.stats.children.push(last.stats.name);b.stats.children.push(last.stats.name);this.showMsg('👶 Baby!');updateQuest('baby',1);saveGame(true);}
+showMsg(t){let el=document.getElementById('msg');el.innerText=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
+showBubble(spr,anim){if(Math.random()>0.5) return;if(Date.now()-spr.lastChat<5000) return;spr.lastChat=Date.now();if(spr._bubble) spr._bubble.destroy();if(spr._bubbleBg) spr._bubbleBg.destroy();let emoji=EMOJIS[anim]||"💬";let list=DIALOGUES[anim]||["..."];let txt=list[Math.floor(Math.random()*list.length)];let full=`${emoji} ${txt}`;let bubble=this.add.text(spr.x,spr.y-100,full,{fontSize:'22px',color:'#000',fontFamily:'Arial Black',stroke:'#fff',strokeThickness:5}).setOrigin(0.5).setDepth(61);let bg=this.add.rectangle(spr.x,spr.y-100,bubble.width+16,bubble.height+10,0xffffff,1).setDepth(60).setStrokeStyle(2,0x000000);spr._bubble=bubble;spr._bubbleBg=bg;this.tweens.add({targets:[bubble,bg],y:bubble.y-20,alpha:0,duration:2500,delay:1000,onComplete:()=>{bubble.destroy();bg.destroy();}});}
+playAnimOn(spr,anim){if(!spr.active) return;spr.animState=anim;if(selectedEnt==spr) document.getElementById('sAnim').innerText='LVL'+spr.stats.lvl+' | '+anim.toUpperCase();this.showBubble(spr,anim);if(spr.currentTween) spr.currentTween.stop();this.tweens.killTweensOf(spr);spr.setAngle(0);spr.setAlpha(1);spr.setDisplaySize(spr.baseW,spr.baseH);if(anim=='walk'||anim=='run'){spr.currentTween=this.tweens.add({targets:spr,y:spr.y-2,duration:300,yoyo:true,repeat:-1});}}
+update(t,d){if(isShopOpen) return;for(let i=0;i<this.ents.length;i++) for(let j=i+1;j<this.ents.length;j++){let a=this.ents[i],b=this.ents[j];if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)<75) this.makeFriends(a,b);}this.ents.forEach(e=>{if(e._bubble&&e._bubble.active){e._bubble.x=e.x;e._bubbleBg.x=e.x;}if(e.stats.ownerRef&&e.stats.ownerRef.active){let dist=Phaser.Math.Distance.Between(e.x,e.y,e.stats.ownerRef.x,e.stats.ownerRef.y);if(dist>130){let ang=Math.atan2(e.stats.ownerRef.y-e.y,e.stats.ownerRef.x-e.x);e.vx=Math.cos(ang)*e.baseSpeed*1.4;e.vy=Math.sin(ang)*e.baseSpeed*1.4;e.x+=e.vx;e.y+=e.vy;return;}}e.moveTimer-=d;if(e.moveTimer<=0){let r=Math.random();if(r<0.5){this.playAnimOn(e,'walk');e.moveTimer=3000+Math.random()*2000;e.targetX=this.bounds.x+Math.random()*this.bounds.w;e.targetY=this.bounds.y+Math.random()*this.bounds.h;let ang=Math.atan2(e.targetY-e.y,e.targetX-e.x);e.vx=Math.cos(ang)*e.baseSpeed;e.vy=Math.sin(ang)*e.baseSpeed;}else{this.playAnimOn(e,'idle');e.moveTimer=3000;e.vx=0;e.vy=0;}}if(e.animState=='walk'||e.animState=='run'){e.x+=e.vx;e.y+=e.vy;}});}
 }
 function closeStat(){document.getElementById('statWin').classList.remove('open');}
 function closeFamily(){document.getElementById('familyWin').classList.remove('open');}
-function playAnim(a){ if(selectedEnt) window.game.scene.scenes[0].playAnimOn(selectedEnt,a); }
+function playAnim(a){if(selectedEnt) window.game.scene.scenes[0].playAnimOn(selectedEnt,a);}
 let game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#0a2e5c',scene:WorldV81,scale:{mode:Phaser.Scale.RESIZE}});
 window.game=game;
 </script></body></html>
