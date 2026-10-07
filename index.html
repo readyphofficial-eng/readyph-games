@@ -1,6 +1,6 @@
 <!DOCTYPE html><html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>V88 Highlight + Default Min</title>
+<title>V91 CLEAN GLOW FIX SPLIT</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <style>
 html,body{margin:0;padding:0;background:#0a2e5c;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
@@ -46,7 +46,7 @@ html,body{margin:0;padding:0;background:#0a2e5c;overflow:hidden;height:100%;touc
 </style>
 </head><body>
 <div id="game"></div>
-<div id="top"><span>🏝️ V88 HIGHLIGHT</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span></span></div>
+<div id="top"><span>🏝️ V91 CLEAN GLOW</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span></span></div>
 <div id="iconBar">
 <div id="icoOwned" class="iconPlain show" onclick="toggleOwned()">👥</div>
 <div id="icoQuest" class="iconPlain show" onclick="toggleQuest()">📜</div>
@@ -101,13 +101,25 @@ function getNearestWalkable(x,y){
  for(let r=20;r<300;r+=20){ for(let a=0;a<Math.PI*2;a+=Math.PI/6){ let nx=x+Math.cos(a)*r, ny=y+Math.sin(a)*r; if(isWalkable(nx,ny)) return {x:nx,y:ny}; } }
  return {x:MAP_CX,y:MAP_CY};
 }
-class WorldV81 extends Phaser.Scene{
+ class WorldV81 extends Phaser.Scene{
 constructor(){super('WorldV81');this.ents=[]}
-preload(){this.load.image('map','new/newmap.webp');ANIMALS.forEach(n=>{this.load.image('a-'+n,'new/animal-'+n+'.png');});HUMANS.forEach(n=>{this.load.image('h-'+n,'new/character-'+n+'.png');});}
+preload(){
+this.load.image('map','new/newmap.webp');
+ANIMALS.forEach(n=>{this.load.image('a-'+n,'new/animal-'+n+'.png');});
+HUMANS.forEach(n=>{this.load.image('h-'+n,'new/character-'+n+'.png');});
+}
 create(){
 const W=4096,H=4096;
 this.add.rectangle(W/2,H/2,W,H,0x0a2e5c).setDepth(0);
-if(this.textures.exists('map')){try{let tex=this.textures.get('map');if(tex&&tex.setFilter){tex.setFilter(Phaser.Textures.FilterMode.LINEAR);}this.island=this.add.image(W/2,H/2,'map').setDepth(1);this.island.setDisplaySize(3400,3400);this.island.setOrigin(0.5);}catch(e){this.createFallback(W,H);}}else{this.createFallback(W,H);}
+if(this.textures.exists('map')){
+try{
+let tex=this.textures.get('map');
+if(tex&&tex.setFilter){tex.setFilter(Phaser.Textures.FilterMode.LINEAR);}
+this.island=this.add.image(W/2,H/2,'map').setDepth(1);
+this.island.setDisplaySize(3400,3400);
+this.island.setOrigin(0.5);
+}catch(e){this.createFallback(W,H);}
+}else{this.createFallback(W,H);}
 this.bounds={x:MAP_CX-1300,y:MAP_CY-1100,w:2600,h:2200};
 this.cameras.main.setBounds(0,0,W,H);this.cameras.main.centerOn(W/2,H/2);this.cameras.main.setZoom(curZoom);this.cameras.main.setRoundPixels(false);
 this.isDragging=false;
@@ -131,31 +143,25 @@ spawn(x,y,id,isBaby=false,isLoad=false,loadStats=null){
 if(!this.textures.exists(id)) return;
 if(!isLoad &&!isWalkable(x,y)){ let near=getNearestWalkable(x,y); x=near.x; y=near.y; }
 let human=isHumanId(id);
-let container=this.add.container(x,y).setDepth(10);
-container.setSize(60,60);
-let shadow=this.add.ellipse(0,22, human?38:30, human?14:10, 0x000000, 0.35).setDepth(0);
-let glow=this.add.ellipse(0,2, human?56:46, human?56:46, 0xffffff, 0.92).setDepth(1);
-glow.setStrokeStyle(2, human?0x4ade80:0xfbbf24);
-let inner=this.add.ellipse(0,2, human?48:38, human?48:38, human?0xe0f2ff:0xfff7e0, 0.85).setDepth(2);
-let spr=this.add.image(0,-2,id).setDepth(3);
+let spr=this.add.image(x,y,id).setDepth(10).setInteractive();
 if(human){ spr.setDisplaySize(42,56); } else { spr.setDisplaySize(36,36); }
 spr.baseW=spr.displayWidth; spr.baseH=spr.displayHeight;
-this.tweens.add({targets:glow,scaleX:1.08,scaleY:1.08,alpha:0.7,duration:900,yoyo:true,repeat:-1});
-container.add([shadow,glow,inner,spr]);
-container.spr=spr; container.glow=glow; container.shadow=shadow; container.inner=inner;
-if(isLoad&&loadStats){container.stats=loadStats;}else{container.stats={name:(isBaby?'Baby ':'')+NAMES[Math.floor(Math.random()*NAMES.length)]+' #'+Math.floor(Math.random()*99),type:id.replace('a-','').replace('h-','').toUpperCase(),gender:getGender(id),isHuman:human,lvl:1,happiness:60+Math.floor(Math.random()*15),friends:0,friendsList:[],lover:null,loverName:null,familyTime:0,togetherTime:0,children:[],isBaby:isBaby,owner:null,ownerRef:null,pet:null,petName:null,id:id};}
-container.animState='idle'; container.baseSpeed=human?0.55:0.65; container.moveTimer=2500+Math.random()*1500; container.lastMeet=0; container.vx=0; container.vy=0; container.lastChat=0;
-container.x=x; container.y=y;
-container.setSize(60,60);
-container.setInteractive(new Phaser.Geom.Rectangle(-28,-28,56,56), Phaser.Geom.Rectangle.Contains);
-this.ents.push(container);
+if(spr.preFX){
+let glowColor = human? 0x4ade80 : 0xfbbf24;
+let fx = spr.preFX.addGlow(glowColor, 3, 0, false, 0.12, 10);
+spr.glowFX = fx;
+}
+let shadow=this.add.ellipse(x,y+20, human?26:20, 8, 0x000000, 0.28).setDepth(9);
+if(isLoad&&loadStats){spr.stats=loadStats;}else{spr.stats={name:(isBaby?'Baby ':'')+NAMES[Math.floor(Math.random()*NAMES.length)]+' #'+Math.floor(Math.random()*99),type:id.replace('a-','').replace('h-','').toUpperCase(),gender:getGender(id),isHuman:human,lvl:1,happiness:60+Math.floor(Math.random()*15),friends:0,friendsList:[],lover:null,loverName:null,familyTime:0,togetherTime:0,children:[],isBaby:isBaby,owner:null,ownerRef:null,pet:null,petName:null,id:id};}
+spr.animState='idle'; spr.baseSpeed=human?0.55:0.65; spr.moveTimer=2500+Math.random()*1500; spr.lastMeet=0; spr.vx=0; spr.vy=0; spr.lastChat=0;
+spr.shadowRef = shadow;
+this.ents.push(spr);
 document.getElementById('cnt').innerText=this.ents.length;
-this.addOwned(container);
-this.playAnimOn(container,'idle');
-spr.setInteractive(); spr.on('pointerdown',()=>this.showStats(container));
-container.on('pointerdown',()=>this.showStats(container));
+this.addOwned(spr);
+this.playAnimOn(spr,'idle');
+spr.on('pointerdown',()=>this.showStats(spr));
 if(!isLoad) saveGame(true);
-return container;
+return spr;
 }
 addOwned(ent){const list=document.getElementById('ownedList');let div=document.createElement('div');div.className='ownedItem';div.innerHTML=`<img src="new/${ent.stats.isHuman?'character':'animal'}-${ent.stats.type.toLowerCase()}.png">`;div.onclick=()=>{selectedEnt=ent;this.focusOn(ent);this.showStats(ent);};list.appendChild(div);}
 focusOn(ent){this.cameras.main.pan(ent.x,ent.y,400,'Power2');}
@@ -166,9 +172,60 @@ makeFriends(a,b){if(a==b||Date.now()-a.lastMeet<4000) return;if(!a.stats.isHuman
 checkLovers(a,b){if(!a.stats.isHuman||!b.stats.isHuman||a.stats.lover||b.stats.lover||a.stats.gender==b.stats.gender) return;if(a.stats.lvl<2||b.stats.lvl<2) return;if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)>85) return;if(Math.random()<0.02){a.stats.lover=b;a.stats.loverName=b.stats.name;b.stats.lover=a;b.stats.loverName=a.stats.name;this.showMsg('💕 '+a.stats.name+' + '+b.stats.name);updateQuest('lover',1);saveGame(true);}}
 makeBaby(a,b){let babyId=Math.random()<0.5?a.stats.id:b.stats.id;let pos=getNearestWalkable((a.x+b.x)/2,(a.y+b.y)/2);this.spawn(pos.x,pos.y+20,babyId,true);let last=this.ents[this.ents.length-1];if(last){last.stats.name='Baby '+NAMES[Math.floor(Math.random()*NAMES.length)];}a.stats.children.push(last.stats.name);b.stats.children.push(last.stats.name);this.showMsg('👶 Baby!');updateQuest('baby',1);saveGame(true);}
 showMsg(t){let el=document.getElementById('msg');el.innerText=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
-showBubble(ent,anim){if(Math.random()>0.5) return;if(Date.now()-ent.lastChat<5000) return;ent.lastChat=Date.now();if(ent._bubble) ent._bubble.destroy();if(ent._bubbleBg) ent._bubbleBg.destroy();let emoji=EMOJIS[anim]||"💬";let list=DIALOGUES[anim]||["..."];let txt=list[Math.floor(Math.random()*list.length)];let full=`${emoji} ${txt}`;let bubble=this.add.text(ent.x,ent.y-55,full,{fontSize:'14px',color:'#000',fontFamily:'Arial Black',stroke:'#fff',strokeThickness:4}).setOrigin(0.5).setDepth(61);let bg=this.add.rectangle(ent.x,ent.y-55,bubble.width+12,bubble.height+8,0xffffff,1).setDepth(60).setStrokeStyle(2,0x000000);ent._bubble=bubble;ent._bubbleBg=bg;this.tweens.add({targets:[bubble,bg],y:bubble.y-12,alpha:0,duration:2500,delay:1000,onComplete:()=>{bubble.destroy();bg.destroy();}});}
-playAnimOn(ent,anim){if(!ent.active) return;ent.animState=anim;if(selectedEnt==ent) document.getElementById('sAnim').innerText='LVL'+ent.stats.lvl+' | '+anim.toUpperCase();this.showBubble(ent,anim);if(ent.currentTween) ent.currentTween.stop();this.tweens.killTweensOf(ent.spr);ent.spr.setAngle(0);ent.spr.setAlpha(1);ent.spr.setDisplaySize(ent.spr.baseW,ent.spr.baseH);if(anim=='walk'||anim=='run'){ent.currentTween=this.tweens.add({targets:ent.spr,y:-4,duration:250,yoyo:true,repeat:-1});}}
-update(t,d){if(isShopOpen) return;for(let i=0;i<this.ents.length;i++) for(let j=i+1;j<this.ents.length;j++){let a=this.ents[i],b=this.ents[j];if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)<55) this.makeFriends(a,b);}this.ents.forEach(e=>{if(e._bubble&&e._bubble.active){e._bubble.x=e.x;e._bubbleBg.x=e.x;e._bubble.y=e.y-55;e._bubbleBg.y=e.y-55;}if(e.stats.ownerRef&&e.stats.ownerRef.active){let dist=Phaser.Math.Distance.Between(e.x,e.y,e.stats.ownerRef.x,e.stats.ownerRef.y);if(dist>100){let ang=Math.atan2(e.stats.ownerRef.y-e.y,e.stats.ownerRef.x-e.x);let nx=e.x+Math.cos(ang)*e.baseSpeed*1.2, ny=e.y+Math.sin(ang)*e.baseSpeed*1.2;if(isWalkable(nx,ny)){ e.x=nx; e.y=ny; }return;}}e.moveTimer-=d;if(e.moveTimer<=0){let tries=0, found=false;while(tries<12 &&!found){let ang=Math.random()*Math.PI*2;let dist=120+Math.random()*180;let tx=e.x+Math.cos(ang)*dist, ty=e.y+Math.sin(ang)*dist;if(isWalkable(tx,ty)){this.playAnimOn(e,'walk');e.moveTimer=2500+Math.random()*1500;e.targetX=tx; e.targetY=ty;let a2=Math.atan2(e.targetY-e.y,e.targetX-e.x);e.vx=Math.cos(a2)*e.baseSpeed; e.vy=Math.sin(a2)*e.baseSpeed;found=true;}tries++;}if(!found){ this.playAnimOn(e,'idle'); e.moveTimer=1500; e.vx=0; e.vy=0; }}if(e.animState=='walk'||e.animState=='run'){let nx=e.x+e.vx, ny=e.y+e.vy;if(isWalkable(nx,ny)){ e.x=nx; e.y=ny; } else { e.moveTimer=0; }}});}
+showBubble(ent,anim){if(Math.random()>0.5) return;if(Date.now()-ent.lastChat<5000) return;ent.lastChat=Date.now();if(ent._bubble) ent._bubble.destroy();if(ent._bubbleBg) ent._bubbleBg.destroy();let emoji=EMOJIS[anim]||"💬";let list=DIALOGUES[anim]||["..."];let txt=list[Math.floor(Math.random()*list.length)];let full=`${emoji} ${txt}`;let bubble=this.add.text(ent.x,ent.y-50,full,{fontSize:'14px',color:'#000',fontFamily:'Arial Black',stroke:'#fff',strokeThickness:4}).setOrigin(0.5).setDepth(61);let bg=this.add.rectangle(ent.x,ent.y-50,bubble.width+12,bubble.height+8,0xffffff,1).setDepth(60).setStrokeStyle(2,0x000000);ent._bubble=bubble;ent._bubbleBg=bg;this.tweens.add({targets:[bubble,bg],y:bubble.y-12,alpha:0,duration:2500,delay:1000,onComplete:()=>{bubble.destroy();bg.destroy();}});}
+playAnimOn(ent,anim){
+if(!ent.active) return;
+ent.animState=anim;
+if(selectedEnt==ent) document.getElementById('sAnim').innerText='LVL'+ent.stats.lvl+' | '+anim.toUpperCase();
+this.showBubble(ent,anim);
+if(ent.currentTween) ent.currentTween.stop();
+this.tweens.killTweensOf(ent);
+ent.setAngle(0); ent.setAlpha(1);
+ent.setDisplaySize(ent.baseW,ent.baseH);
+if(anim=='walk'||anim=='run'){
+ent.currentTween=this.tweens.add({targets:ent,y:ent.y-1.5,duration:250,yoyo:true,repeat:-1});
+}
+ }
+  update(t,d){
+if(isShopOpen) return;
+for(let i=0;i<this.ents.length;i++) for(let j=i+1;j<this.ents.length;j++){let a=this.ents[i],b=this.ents[j];if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)<55) this.makeFriends(a,b);}
+this.ents.forEach(e=>{
+if(e.shadowRef) { e.shadowRef.x=e.x; e.shadowRef.y=e.y+20; }
+if(e._bubble&&e._bubble.active){e._bubble.x=e.x;e._bubbleBg.x=e.x;e._bubble.y=e.y-50;e._bubbleBg.y=e.y-50;}
+if(e.stats.ownerRef&&e.stats.ownerRef.active){
+let dist=Phaser.Math.Distance.Between(e.x,e.y,e.stats.ownerRef.x,e.stats.ownerRef.y);
+if(dist>100){
+let ang=Math.atan2(e.stats.ownerRef.y-e.y,e.stats.ownerRef.x-e.x);
+let nx=e.x+Math.cos(ang)*e.baseSpeed*1.2, ny=e.y+Math.sin(ang)*e.baseSpeed*1.2;
+if(isWalkable(nx,ny)){ e.x=nx; e.y=ny; }
+return;
+}
+}
+e.moveTimer-=d;
+if(e.moveTimer<=0){
+let tries=0, found=false;
+while(tries<12 &&!found){
+let ang=Math.random()*Math.PI*2;
+let dist=120+Math.random()*180;
+let tx=e.x+Math.cos(ang)*dist, ty=e.y+Math.sin(ang)*dist;
+if(isWalkable(tx,ty)){
+this.playAnimOn(e,'walk');
+e.moveTimer=2500+Math.random()*1500;
+e.targetX=tx; e.targetY=ty;
+let a2=Math.atan2(e.targetY-e.y,e.targetX-e.x);
+e.vx=Math.cos(a2)*e.baseSpeed; e.vy=Math.sin(a2)*e.baseSpeed;
+found=true;
+}
+tries++;
+}
+if(!found){ this.playAnimOn(e,'idle'); e.moveTimer=1500; e.vx=0; e.vy=0; }
+}
+if(e.animState=='walk'||e.animState=='run'){
+let nx=e.x+e.vx, ny=e.y+e.vy;
+if(isWalkable(nx,ny)){ e.x=nx; e.y=ny; } else { e.moveTimer=0; }
+}
+});
+}
 }
 function closeStat(){document.getElementById('statWin').classList.remove('open');}
 function closeFamily(){document.getElementById('familyWin').classList.remove('open');}
