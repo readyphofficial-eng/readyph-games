@@ -1,6 +1,6 @@
 <!DOCTYPE html><html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>V91 CLEAN GLOW FIX SPLIT</title>
+<title>V92 - V91 + 72 Plots Perfect</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <style>
 html,body{margin:0;padding:0;background:#0a2e5c;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
@@ -18,6 +18,13 @@ html,body{margin:0;padding:0;background:#0a2e5c;overflow:hidden;height:100%;touc
 .card img{width:48px;height:48px;object-fit:contain;background:#1a1a1a;border-radius:8px}
 .card b{font-size:7px;color:#fff;margin:4px 0;text-align:center}
 .card button{background:#4ade80;color:#000;border:none;border-radius:6px;padding:5px;font-size:8px;font-weight:900;width:100%}
+#buildShop{position:fixed;bottom:0;left:0;right:0;height:220px;background:#0f172a;border-top:3px solid #22c55e;border-radius:20px 20px 0 0;z-index:80;transition:transform.35s ease;transform:translateY(110%);padding:14px}
+#buildShop.open{transform:translateY(0)}
+.buildGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.buildCard{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:10px;text-align:center;cursor:pointer}
+.buildCard:hover{background:rgba(34,197,94,0.25);border-color:#22c55e}
+.buildCard b{color:white;font-size:11px;display:block}
+.buildCard span{color:#86efac;font-size:10px}
 #ownedTab{position:fixed;top:92px;left:0;bottom:175px;width:70px;background:rgba(0,0,0,.92);border-right:2px solid #4ade80;border-top:2px solid #4ade80;border-radius:0 12px 0 0;z-index:55;display:flex;flex-direction:column;align-items:center;padding:6px 0;transition:transform.35s ease}
 #ownedTab.minimized{transform:translateX(-100%)}
 #ownedList{flex:1;width:100%;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:0 5px;align-items:center}
@@ -30,7 +37,7 @@ html,body{margin:0;padding:0;background:#0a2e5c;overflow:hidden;height:100%;touc
 .minBtnInside{position:absolute;top:6px;width:26px;height:26px;border:none;border-radius:8px;font-size:12px;font-weight:900;background:rgba(255,255,255,.15);color:#fff}
 #ownedMin{right:6px}
 #questMin{left:6px}
-#zoomCtrl{position:fixed;bottom:185px;right:10px;z-index:70;display:flex;flex-direction:column;gap:8px}
+#zoomCtrl{position:fixed;bottom:235px;right:10px;z-index:70;display:flex;flex-direction:column;gap:8px}
 #zoomCtrl button{width:44px;height:44px;background:rgba(0,0,0,.9);color:#fff;border:2px solid #4ade80;border-radius:12px;font-size:20px;font-weight:900;box-shadow:0 2px 8px rgba(0,0,0,.6)}
 #statWin{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:#1e1e1e;border:3px solid #4ade80;border-radius:16px;padding:12px;width:310px;z-index:90;transition:transform.2s;max-height:85vh;overflow-y:auto}
 #statWin.open{transform:translate(-50%,-50%) scale(1)}
@@ -40,13 +47,13 @@ html,body{margin:0;padding:0;background:#0a2e5c;overflow:hidden;height:100%;touc
 .animGrid button{padding:7px 2px;border:none;border-radius:8px;font-size:9px;font-weight:900;color:#000}
 .statRow{display:flex;justify-content:space-between;background:#2a2a2a;margin:3px 0;padding:5px 8px;border-radius:6px;font-size:10px;color:#ddd}
 .statRow b{color:#4ade80}
-#msg{position:fixed;top:50px;left:50%;transform:translateX(-50%) scale(0);background:linear-gradient(90deg,#f472b6,#a78bfa);color:#fff;padding:9px 18px;border-radius:20px;font-weight:900;font-size:11px;z-index:70;transition:transform.3s;pointer-events:none}
+#msg{position:fixed;top:50px;left:50%;transform:translateX(-50%) scale(0);background:linear-gradient(90deg,#22c55e,#16a34a);color:#fff;padding:9px 18px;border-radius:20px;font-weight:900;font-size:11px;z-index:70;transition:transform.3s;pointer-events:none}
 #msg.show{transform:translateX(-50%) scale(1)}
 .editBtn{background:#fbbf24;color:#000;border:none;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:900;margin-left:6px}
 </style>
 </head><body>
 <div id="game"></div>
-<div id="top"><span>🏝️ V91 CLEAN GLOW</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span></span></div>
+<div id="top"><span>🏝️ V92 - 72 Plots Perfect</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span></span></div>
 <div id="iconBar">
 <div id="icoOwned" class="iconPlain show" onclick="toggleOwned()">👥</div>
 <div id="icoQuest" class="iconPlain show" onclick="toggleQuest()">📜</div>
@@ -58,25 +65,32 @@ html,body{margin:0;padding:0;background:#0a2e5c;overflow:hidden;height:100%;touc
 <div id="msg"></div>
 <div id="familyWin"><div id="familyContent"></div><button onclick="closeFamily()" style="width:100%;margin-top:8px;padding:8px;background:#333;color:#fff;border:none;border-radius:8px;font-weight:900">CLOSE</button></div>
 <div id="statWin"><div style="display:flex;gap:10px;align-items:center"><img id="sImg" style="width:52px;height:52px;background:#111;border-radius:10px;object-fit:contain"><div><h3 id="sName" style="margin:0;color:#fff;font-size:13px">Name</h3><div id="sType" style="color:#aaa;font-size:9px"></div><div id="sAnim" style="color:#4ade80;font-size:10px;font-weight:900"></div></div></div><div class="animGrid"><button style="background:#60a5fa" onclick="playAnim('walk')">WALK</button><button style="background:#fb7185" onclick="playAnim('run')">RUN</button><button style="background:#a7f3d0" onclick="playAnim('idle')">IDLE</button><button style="background:#fde68a" onclick="playAnim('jump')">JUMP</button><button style="background:#fbbf24" onclick="playAnim('eat')">EAT</button><button style="background:#c4b5fd" onclick="playAnim('sleep')">SLEEP</button><button style="background:#f472b6" onclick="playAnim('dance')">DANCE</button><button style="background:#6ee7b7" onclick="playAnim('sit')">SIT</button><button style="background:#93c5fd" onclick="playAnim('wave')">WAVE</button><button style="background:#facc15" onclick="playAnim('cheer')">CHEER</button><button style="background:#a5b4fc" onclick="playAnim('spin')">SPIN</button><button style="background:#fdba74" onclick="playAnim('bounce')">BOUNCE</button></div><div id="sStats"></div><button id="familyBtn" style="width:100%;margin-top:8px;padding:10px;background:linear-gradient(90deg,#f472b6,#a78bfa);color:#fff;border:none;border-radius:8px;font-weight:900;display:none">👨‍👩‍👧 FAMILY</button><button onclick="closeStat()" style="width:100%;margin-top:8px;padding:8px;background:#333;color:#fff;border:none;border-radius:8px;font-weight:900">CLOSE</button></div><div id="shopWrap" class="closed"><button id="shopHandle" onclick="toggleShop()">▼</button><button id="shopClose" onclick="toggleShop()">✖</button><div id="shop"></div></div>
+<div id="buildShop"><div style="display:flex;justify-content:space-between;color:white"><b>🏗️ Build - Plot <span id="plotId">-</span> - 72 Plots Perfect Open Space</b><button onclick="closeBuildShop()" style="width:32px;height:32px;background:rgba(255,255,255,.15);border:none;border-radius:8px;color:#fff;font-weight:900">✕</button></div><div class="buildGrid" id="buildGrid"></div></div>
 <script>
 const ANIMALS=['beaver','bee','bunny','cat','caterpillar','chick','cow','crab','deer','dog','elephant','fox','giraffe','hog','koala','lion','monkey','panda','parrot','penguin','pig','polar','tiger'];
 const HUMANS=['female-a','female-b','female-c','female-d','female-e','female-f','male-a','male-b','male-c','male-d','male-e','male-f'];
 const NAMES=['Luna','Milo','Kiko','Bilog','Kulit','Ganda','Bebe','Momo','Juan','Maria'];
 const DIALOGUES={walk:["Lakad muna!"],run:["Bilisan!"],idle:["Chill lang"],jump:["Wheee!"],eat:["Yum!"],sleep:["Zzz..."],dance:["Party!"],sit:["Pahinga"],wave:["Hi!"],cheer:["Yay!"],spin:["Woo!"],bounce:["Boing!"]};
 const EMOJIS={walk:"🚶",run:"🏃",idle:"💭",jump:"🤾",eat:"😋",sleep:"💤",dance:"🪩",sit:"😌",wave:"👋",cheer:"🎉",spin:"🌀",bounce:"⚽"};
+const BUILDINGS=[{icon:'🏥',name:'Hospital',price:120,income:8},{icon:'🏫',name:'School',price:90,income:6},{icon:'🏪',name:'Market',price:60,income:4},{icon:'🏠',name:'House',price:40,income:2},{icon:'🌳',name:'Park',price:30,income:1},{icon:'🏭',name:'Factory',price:150,income:12},];
 let coins=500,selected=null,isShopOpen=false,selectedEnt=null,totalFriends=0,isOwnedMin=true,isQuestMin=true,curZoom=0.40;
-let quests=[{id:'spawn3',txt:'Mag spawn ng 3',target:3,prog:0,done:false,reward:30,icon:'🌱'},{id:'friends3',txt:'3 friends',target:3,prog:0,done:false,reward:50,icon:'🤝'},{id:'pet1',txt:'Magka pet',target:1,prog:0,done:false,reward:40,icon:'🐾'},{id:'lvl2',txt:'Mag LVL2',target:1,prog:0,done:false,reward:60,icon:'⬆️'},{id:'lover',txt:'Magka lover',target:1,prog:0,done:false,reward:100,icon:'💕'},{id:'baby',txt:'Magka baby',target:1,prog:0,done:false,reward:150,icon:'👶'}];
+let selectedPlot=null;
+let quests=[{id:'spawn3',txt:'Mag spawn ng 3',target:3,prog:0,done:false,reward:30,icon:'🌱'},{id:'friends3',txt:'3 friends',target:3,prog:0,done:false,reward:50,icon:'🤝'},{id:'pet1',txt:'Magka pet',target:1,prog:0,done:false,reward:40,icon:'🐾'},{id:'lvl2',txt:'Mag LVL2',target:1,prog:0,done:false,reward:60,icon:'⬆️'},{id:'lover',txt:'Magka lover',target:1,prog:0,done:false,reward:100,icon:'💕'},{id:'baby',txt:'Magka baby',target:1,prog:0,done:false,reward:150,icon:'👶'},{id:'build3',txt:'Mag build ng 3 plots',target:3,prog:0,done:false,reward:80,icon:'🏗️'}];
 function toggleOwned(){isOwnedMin=!isOwnedMin;document.getElementById('ownedTab').classList.toggle('minimized',isOwnedMin);document.getElementById('icoOwned').classList.toggle('show',isOwnedMin);}
 function toggleQuest(){isQuestMin=!isQuestMin;document.getElementById('questWin').classList.toggle('minQ',isQuestMin);document.getElementById('icoQuest').classList.toggle('show',isQuestMin);}
 function toggleShop(){isShopOpen=!isShopOpen;document.getElementById('shopWrap').className=isShopOpen?'':'closed';let ico=document.getElementById('icoShop');ico.classList.toggle('show',!isShopOpen);}
+function openBuildShop(plot){selectedPlot=plot;document.getElementById('plotId').textContent=plot.plotId;document.getElementById('buildShop').classList.add('open');renderBuildShop();}
+function closeBuildShop(){document.getElementById('buildShop').classList.remove('open');}
+function renderBuildShop(){const grid=document.getElementById('buildGrid');grid.innerHTML='';BUILDINGS.forEach(b=>{const can=coins>=b.price;const el=document.createElement('div');el.className='buildCard';el.style.opacity=can?'1':'0.4';el.innerHTML=`<div style="font-size:26px">${b.icon}</div><b>${b.name}</b><span>${b.price}🪙 +${b.income}/s</span>`;el.onclick=()=>{if(!can) return; buyBuilding(b);};grid.appendChild(el);});}
+function buyBuilding(b){if(coins<b.price||!selectedPlot) return;coins-=b.price;document.getElementById('coins').innerText=coins;selectedPlot.building=b;selectedPlot.plotBox.setVisible(false);let scene=window.game.scene.scenes[0];let icon=scene.add.text(selectedPlot.x, selectedPlot.y-10, b.icon, {fontSize:'32px'}).setOrigin(0.5).setDepth(15);scene.tweens.add({targets:icon, scale:{from:0,to:1}, duration:300, ease:'Back'});selectedPlot.buildingIcon=icon;closeBuildShop();updateQuest('build3',1);saveGame(true);setInterval(()=>{coins+=b.income;document.getElementById('coins').innerText=coins;},1000);}
 function zoomIn(){curZoom=Math.min(1.5,curZoom+0.12);if(window.game) window.game.scene.scenes[0].cameras.main.setZoom(curZoom);}
 function zoomOut(){curZoom=Math.max(0.18,curZoom-0.12);if(window.game) window.game.scene.scenes[0].cameras.main.setZoom(curZoom);}
 function resetZoom(){curZoom=0.40;if(window.game){let s=window.game.scene.scenes[0];s.cameras.main.setZoom(curZoom);s.cameras.main.centerOn(2048,2048);}}
 function getGender(id){return id.includes('female')?'female':id.includes('male')?'male':'animal';}
 function isHumanId(id){return id.includes('female')||id.includes('male');}
-function saveGame(silent=false){if(!window.game) return;let scene=window.game.scene.scenes[0];let data={coins:coins,totalFriends:totalFriends,ents:scene.ents.map(e=>({x:e.x,y:e.y,id:e.stats.id,stats:e.stats})),quests:quests};localStorage.setItem('triV81',JSON.stringify(data));if(!silent) scene.showMsg('💾 Saved!');}
-function clearSave(){if(confirm('Reset?')){localStorage.removeItem('triV81');location.reload();}}
-function loadGameData(){try{let d=localStorage.getItem('triV81');if(d) return JSON.parse(d);}catch(e){}return null;}
+function saveGame(silent=false){if(!window.game) return;let scene=window.game.scene.scenes[0];let data={coins:coins,totalFriends:totalFriends,ents:scene.ents.map(e=>({x:e.x,y:e.y,id:e.stats.id,stats:e.stats})),quests:quests,buildings:scene.plots.filter(p=>p.building).map(p=>({plotId:p.plotId,b:p.building}))};localStorage.setItem('triV92',JSON.stringify(data));if(!silent) scene.showMsg('💾 Saved!');}
+function clearSave(){if(confirm('Reset?')){localStorage.removeItem('triV92');location.reload();}}
+function loadGameData(){try{let d=localStorage.getItem('triV92');if(d) return JSON.parse(d);}catch(e){}return null;}
 function editName(){if(!selectedEnt) return;let newName=prompt('Bagong name:',selectedEnt.stats.name);if(newName&&newName.trim()!=''){selectedEnt.stats.name=newName.trim().substring(0,18);document.getElementById('sName').innerHTML=`${selectedEnt.stats.name} <button class="editBtn" onclick="editName()">✏️</button>`;if(window.game) window.game.scene.scenes[0].showMsg('✏️ '+selectedEnt.stats.name);saveGame(true);}}
 function updateQuest(id,add=1){let q=quests.find(x=>x.id==id);if(!q||q.done) return;q.prog+=add;if(q.prog>=q.target){q.done=true;coins+=q.reward;document.getElementById('coins').innerText=coins;if(window.game) window.game.scene.scenes[0].showMsg('🎉 '+q.txt+' +'+q.reward+'!');}renderQuests();}
 function renderQuests(){let list=document.getElementById('questList');list.innerHTML='';quests.forEach(q=>{let div=document.createElement('div');div.className='qRow'+(q.done?' done':'');div.innerHTML=`<div style="display:flex;justify-content:space-between"><span>${q.icon} ${q.txt}</span><b>${q.done?'✅':q.prog+'/'+q.target}</b></div><div style="font-size:7px;color:#aaa">+${q.reward} coins</div>`;list.appendChild(div);});}
@@ -101,8 +115,10 @@ function getNearestWalkable(x,y){
  for(let r=20;r<300;r+=20){ for(let a=0;a<Math.PI*2;a+=Math.PI/6){ let nx=x+Math.cos(a)*r, ny=y+Math.sin(a)*r; if(isWalkable(nx,ny)) return {x:nx,y:ny}; } }
  return {x:MAP_CX,y:MAP_CY};
 }
- class WorldV81 extends Phaser.Scene{
-constructor(){super('WorldV81');this.ents=[]}
+</script>
+<script>
+class WorldV92 extends Phaser.Scene{
+constructor(){super('WorldV92');this.ents=[];this.plots=[]}
 preload(){
 this.load.image('map','new/newmap.webp');
 ANIMALS.forEach(n=>{this.load.image('a-'+n,'new/animal-'+n+'.png');});
@@ -120,10 +136,48 @@ this.island.setDisplaySize(3400,3400);
 this.island.setOrigin(0.5);
 }catch(e){this.createFallback(W,H);}
 }else{this.createFallback(W,H);}
+
+// --- BAGONG CONCEPT: 72 PLOTS PERFECT OPEN SPACE - 9 PER FIELD x 8 FIELDS ---
+// Lahat nasa gitna ng open grass, curved, hindi apaw sa tubig/castle!
+// NW upper = 9, NW lower = 9, NE upper = 9, NE lower = 9, SW upper = 9, SW lower = 9, SE upper = 9, SE lower = 9
+const plotFields=[
+{cx:1690,cy:1310,bw:520,bh:350,rows:3,cols:3}, // NW upper - top-left mining - 9 plots perfect open space
+{cx:1160,cy:1940,bw:620,bh:480,rows:3,cols:3}, // NW lower - west white forest - 9 plots perfect open space
+{cx:2800,cy:1310,bw:520,bh:350,rows:3,cols:3}, // NE upper - top-right pink forest - 9 plots perfect open space
+{cx:3000,cy:1980,bw:520,bh:400,rows:3,cols:3}, // NE lower - east colosseum - 9 plots perfect open space
+{cx:1160,cy:2700,bw:520,bh:400,rows:3,cols:3}, // SW upper - bottom-left colosseum - 9 plots perfect open space
+{cx:1480,cy:3380,bw:600,bh:480,rows:3,cols:3}, // SW lower - southwest orange forest - 9 plots perfect open space
+{cx:2900,cy:2700,bw:600,bh:480,rows:3,cols:3}, // SE upper - southeast green forest - 9 plots perfect open space
+{cx:2620,cy:3380,bw:600,bh:480,rows:3,cols:3}, // SE lower - south mountain - 9 plots perfect open space
+];
+let plotId=0;
+plotFields.forEach(f=>{
+ const boxW=f.bw/f.cols; const boxH=f.bh/f.rows;
+ for(let r=0;r<f.rows;r++){
+  for(let c=0;c<f.cols;c++){
+   plotId++;
+   const x=f.cx - f.bw/2 + boxW*c + boxW*0.5;
+   const y=f.cy - f.bh/2 + boxH*r + boxH*0.5;
+   const box=this.add.rectangle(x,y,38,24,0xffffff,0.92).setDepth(5).setStrokeStyle(3,0x22c55e);
+   box.setInteractive();
+   box.plotId=plotId;
+   box.on('pointerdown',()=>{
+    selectedPlot=box.parentPlot;
+    openBuildShop(box.parentPlot);
+   });
+   if(box.preFX){ box.preFX.addGlow(0x22c55e,4,0,false,0.15,12); }
+   const plot={x,y,plotId,plotBox:box,building:null,buildingIcon:null};
+   box.parentPlot=plot;
+   this.plots.push(plot);
+  }
+ }
+});
+
 this.bounds={x:MAP_CX-1300,y:MAP_CY-1100,w:2600,h:2200};
 this.cameras.main.setBounds(0,0,W,H);this.cameras.main.centerOn(W/2,H/2);this.cameras.main.setZoom(curZoom);this.cameras.main.setRoundPixels(false);
 this.isDragging=false;
 this.input.on('pointerdown',p=>{
+if(document.getElementById('buildShop').classList.contains('open')){if(p.y>innerHeight-220) return; closeBuildShop();}
 if(isShopOpen){if(p.y < innerHeight-165){if(selected){let wp=this.cameras.main.getWorldPoint(p.x,p.y);if(!isWalkable(wp.x,wp.y)){ this.showMsg('🚫 Bawal sa tubig!'); return; }this.spawn(wp.x,wp.y,selected,false);selected=null;updateQuest('spawn3',1);return;}if(p.y < innerHeight-200) toggleShop();return;}}
 if(p.x<70&&!isOwnedMin&&p.y>92&&p.y<innerHeight-165) return;
 if(p.x>innerWidth-195&&!isQuestMin&&p.y>92&&p.y<320) return;
@@ -134,7 +188,7 @@ this.input.on('pointermove',p=>{if(this.isDragging&&this.dragStart&&!isShopOpen)
 this.input.on('pointerup',()=>this.isDragging=false);
 this.input.on('wheel',(p,dx,dy)=>{if(dy>0) zoomOut(); else zoomIn();});
 this.buildShop();document.getElementById('familyBtn').onclick=()=>{this.showFamilyTree();};renderQuests();
-let saved=loadGameData();if(saved){coins=saved.coins||500;totalFriends=saved.totalFriends||0;document.getElementById('coins').innerText=coins;document.getElementById('fCount').innerText=totalFriends;if(saved.quests) quests=saved.quests;renderQuests();if(saved.ents){saved.ents.forEach(ed=>{this.spawn(ed.x,ed.y,ed.id,false,true,ed.stats);});}}
+let saved=loadGameData();if(saved){coins=saved.coins||500;totalFriends=saved.totalFriends||0;document.getElementById('coins').innerText=coins;document.getElementById('fCount').innerText=totalFriends;if(saved.quests) quests=saved.quests;renderQuests();if(saved.ents){saved.ents.forEach(ed=>{this.spawn(ed.x,ed.y,ed.id,false,true,ed.stats);});}if(saved.buildings){saved.buildings.forEach(bd=>{let plot=this.plots.find(p=>p.plotId==bd.plotId);if(plot){plot.building=bd.b;plot.plotBox.setVisible(false);let icon=this.add.text(plot.x,plot.y-10,bd.b.icon,{fontSize:'32px'}).setOrigin(0.5).setDepth(15);plot.buildingIcon=icon;}});}}
 this.time.addEvent({delay:15000,callback:()=>saveGame(true),loop:true});
 }
 createFallback(W,H){let g=this.add.graphics().setDepth(1);g.fillStyle(0x1a4d2e,1);g.fillCircle(W/2,H/2,1200);}
@@ -148,7 +202,7 @@ if(human){ spr.setDisplaySize(42,56); } else { spr.setDisplaySize(36,36); }
 spr.baseW=spr.displayWidth; spr.baseH=spr.displayHeight;
 if(spr.preFX){
 let glowColor = human? 0x4ade80 : 0xfbbf24;
-let fx = spr.preFX.addGlow(glowColor, 3, 0, false, 0.12, 10);
+let fx = spr.preFX.addGlow(glowColor, 4, 0, false, 0.15, 12);
 spr.glowFX = fx;
 }
 let shadow=this.add.ellipse(x,y+20, human?26:20, 8, 0x000000, 0.28).setDepth(9);
@@ -185,8 +239,8 @@ ent.setDisplaySize(ent.baseW,ent.baseH);
 if(anim=='walk'||anim=='run'){
 ent.currentTween=this.tweens.add({targets:ent,y:ent.y-1.5,duration:250,yoyo:true,repeat:-1});
 }
- }
-  update(t,d){
+}
+update(t,d){
 if(isShopOpen) return;
 for(let i=0;i<this.ents.length;i++) for(let j=i+1;j<this.ents.length;j++){let a=this.ents[i],b=this.ents[j];if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)<55) this.makeFriends(a,b);}
 this.ents.forEach(e=>{
@@ -230,6 +284,6 @@ if(isWalkable(nx,ny)){ e.x=nx; e.y=ny; } else { e.moveTimer=0; }
 function closeStat(){document.getElementById('statWin').classList.remove('open');}
 function closeFamily(){document.getElementById('familyWin').classList.remove('open');}
 function playAnim(a){if(selectedEnt) window.game.scene.scenes[0].playAnimOn(selectedEnt,a);}
-let game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#0a2e5c',scene:WorldV81,scale:{mode:Phaser.Scale.RESIZE},render:{antialias:true,roundPixels:false,powerPreference:'high-performance',mipmapFilter:'LINEAR_MIPMAP_LINEAR'}});
+let game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#0a2e5c',scene:WorldV92,scale:{mode:Phaser.Scale.RESIZE},render:{antialias:true,roundPixels:false,powerPreference:'high-performance',mipmapFilter:'LINEAR_MIPMAP_LINEAR'}});
 window.game=game;
 </script></body></html>
