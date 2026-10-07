@@ -1,6 +1,6 @@
 <!DOCTYPE html><html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>V87 No Water Walk</title>
+<title>V88 Highlight + Default Min</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <style>
 html,body{margin:0;padding:0;background:#0a2e5c;overflow:hidden;height:100%;touch-action:none;font-family:Arial}
@@ -9,7 +9,6 @@ html,body{margin:0;padding:0;background:#0a2e5c;overflow:hidden;height:100%;touc
 #iconBar{position:fixed;top:42px;left:6px;z-index:70;display:flex;gap:12px;align-items:center}
 .iconPlain{width:44px;height:44px;display:none;align-items:center;justify-content:center;font-size:26px;cursor:pointer;filter:drop-shadow(0 2px 4px rgba(0,0,0,.8));user-select:none}
 .iconPlain.show{display:flex}
-.iconPlain:active{transform:scale(0.9)}
 #shopWrap{position:fixed;bottom:0;left:0;right:0;height:165px;background:#0f0f0f;border-top:3px solid #4ade80;z-index:60;transition:transform.35s ease}
 #shopWrap.closed{transform:translateY(100%)}
 #shop{height:100%;display:flex;gap:8px;padding:38px 10px 10px 10px;overflow-x:auto}
@@ -47,14 +46,14 @@ html,body{margin:0;padding:0;background:#0a2e5c;overflow:hidden;height:100%;touc
 </style>
 </head><body>
 <div id="game"></div>
-<div id="top"><span>🏝️ V87 NO WATER</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span></span></div>
+<div id="top"><span>🏝️ V88 HIGHLIGHT</span><span>🪙 <span id="coins">500</span> | <span id="cnt">0</span> | ❤️ <span id="fCount">0</span></span></div>
 <div id="iconBar">
-<div id="icoOwned" class="iconPlain" onclick="toggleOwned()">👥</div>
-<div id="icoQuest" class="iconPlain" onclick="toggleQuest()">📜</div>
+<div id="icoOwned" class="iconPlain show" onclick="toggleOwned()">👥</div>
+<div id="icoQuest" class="iconPlain show" onclick="toggleQuest()">📜</div>
 <div id="icoShop" class="iconPlain show" onclick="toggleShop()">🛒</div>
 </div>
-<div id="ownedTab"><button id="ownedMin" class="minBtnInside" onclick="toggleOwned()">✖</button><b style="font-size:9px;margin-top:28px">OWNED</b><div id="ownedList"></div></div>
-<div id="questWin"><button id="questMin" class="minBtnInside" onclick="toggleQuest()">✖</button><div style="margin-left:24px"><b style="font-size:10px;color:#fbbf24">📜 QUESTS</b></div><div id="questList"></div><div style="display:flex;gap:4px;margin-top:6px"><button onclick="saveGame()" style="flex:1;background:#4ade80;border:none;border-radius:6px;padding:6px;font-size:8px;font-weight:900">💾 SAVE</button><button onclick="clearSave()" style="flex:1;background:#fb7185;border:none;border-radius:6px;padding:6px;font-size:8px;font-weight:900">🗑️ RESET</button></div></div>
+<div id="ownedTab" class="minimized"><button id="ownedMin" class="minBtnInside" onclick="toggleOwned()">✖</button><b style="font-size:9px;margin-top:28px">OWNED</b><div id="ownedList"></div></div>
+<div id="questWin" class="minQ"><button id="questMin" class="minBtnInside" onclick="toggleQuest()">✖</button><div style="margin-left:24px"><b style="font-size:10px;color:#fbbf24">📜 QUESTS</b></div><div id="questList"></div><div style="display:flex;gap:4px;margin-top:6px"><button onclick="saveGame()" style="flex:1;background:#4ade80;border:none;border-radius:6px;padding:6px;font-size:8px;font-weight:900">💾 SAVE</button><button onclick="clearSave()" style="flex:1;background:#fb7185;border:none;border-radius:6px;padding:6px;font-size:8px;font-weight:900">🗑️ RESET</button></div></div>
 <div id="zoomCtrl"><button onclick="zoomIn()">+</button><button onclick="zoomOut()">−</button><button onclick="resetZoom()" style="font-size:12px">⌖</button></div>
 <div id="msg"></div>
 <div id="familyWin"><div id="familyContent"></div><button onclick="closeFamily()" style="width:100%;margin-top:8px;padding:8px;background:#333;color:#fff;border:none;border-radius:8px;font-weight:900">CLOSE</button></div>
@@ -65,7 +64,7 @@ const HUMANS=['female-a','female-b','female-c','female-d','female-e','female-f',
 const NAMES=['Luna','Milo','Kiko','Bilog','Kulit','Ganda','Bebe','Momo','Juan','Maria'];
 const DIALOGUES={walk:["Lakad muna!"],run:["Bilisan!"],idle:["Chill lang"],jump:["Wheee!"],eat:["Yum!"],sleep:["Zzz..."],dance:["Party!"],sit:["Pahinga"],wave:["Hi!"],cheer:["Yay!"],spin:["Woo!"],bounce:["Boing!"]};
 const EMOJIS={walk:"🚶",run:"🏃",idle:"💭",jump:"🤾",eat:"😋",sleep:"💤",dance:"🪩",sit:"😌",wave:"👋",cheer:"🎉",spin:"🌀",bounce:"⚽"};
-let coins=500,selected=null,isShopOpen=false,selectedEnt=null,totalFriends=0,isOwnedMin=false,isQuestMin=false,curZoom=0.40;
+let coins=500,selected=null,isShopOpen=false,selectedEnt=null,totalFriends=0,isOwnedMin=true,isQuestMin=true,curZoom=0.40;
 let quests=[{id:'spawn3',txt:'Mag spawn ng 3',target:3,prog:0,done:false,reward:30,icon:'🌱'},{id:'friends3',txt:'3 friends',target:3,prog:0,done:false,reward:50,icon:'🤝'},{id:'pet1',txt:'Magka pet',target:1,prog:0,done:false,reward:40,icon:'🐾'},{id:'lvl2',txt:'Mag LVL2',target:1,prog:0,done:false,reward:60,icon:'⬆️'},{id:'lover',txt:'Magka lover',target:1,prog:0,done:false,reward:100,icon:'💕'},{id:'baby',txt:'Magka baby',target:1,prog:0,done:false,reward:150,icon:'👶'}];
 function toggleOwned(){isOwnedMin=!isOwnedMin;document.getElementById('ownedTab').classList.toggle('minimized',isOwnedMin);document.getElementById('icoOwned').classList.toggle('show',isOwnedMin);}
 function toggleQuest(){isQuestMin=!isQuestMin;document.getElementById('questWin').classList.toggle('minQ',isQuestMin);document.getElementById('icoQuest').classList.toggle('show',isQuestMin);}
@@ -81,30 +80,15 @@ function loadGameData(){try{let d=localStorage.getItem('triV81');if(d) return JS
 function editName(){if(!selectedEnt) return;let newName=prompt('Bagong name:',selectedEnt.stats.name);if(newName&&newName.trim()!=''){selectedEnt.stats.name=newName.trim().substring(0,18);document.getElementById('sName').innerHTML=`${selectedEnt.stats.name} <button class="editBtn" onclick="editName()">✏️</button>`;if(window.game) window.game.scene.scenes[0].showMsg('✏️ '+selectedEnt.stats.name);saveGame(true);}}
 function updateQuest(id,add=1){let q=quests.find(x=>x.id==id);if(!q||q.done) return;q.prog+=add;if(q.prog>=q.target){q.done=true;coins+=q.reward;document.getElementById('coins').innerText=coins;if(window.game) window.game.scene.scenes[0].showMsg('🎉 '+q.txt+' +'+q.reward+'!');}renderQuests();}
 function renderQuests(){let list=document.getElementById('questList');list.innerHTML='';quests.forEach(q=>{let div=document.createElement('div');div.className='qRow'+(q.done?' done':'');div.innerHTML=`<div style="display:flex;justify-content:space-between"><span>${q.icon} ${q.txt}</span><b>${q.done?'✅':q.prog+'/'+q.target}</b></div><div style="font-size:7px;color:#aaa">+${q.reward} coins</div>`;list.appendChild(div);});}
-
-// ===== WATER COLLISION LOGIC PARA SA MAP MO SA SCREENSHOT =====
 const MAP_CX=2048, MAP_CY=2048;
 function isWater(x,y){
- let dx=x-MAP_CX, dy=y-MAP_CY;
- let dist=Math.sqrt(dx*dx+dy*dy);
- // 1. LABAS NG ISLAND = OCEAN (tubig)
+ let dx=x-MAP_CX, dy=y-MAP_CY; let dist=Math.sqrt(dx*dx+dy*dy);
  if(dist>1480) return true;
- // 2. CIRCULAR MOAT SA PALIGID NG CASTLE - radius 580 to 820
- // Pero may 4 bridges sa N,S,E,W
- if(dist>580 && dist<820){
-   let isBridgeH = Math.abs(dy)<70; // East-West bridge
-   let isBridgeV = Math.abs(dx)<70; // North-South bridge
-   if(isBridgeH || isBridgeV) return false; // bridge = walkable
-   return true; // moat water
- }
- // 3. CROSS WATER CHANNELS (yung 4 na ilog papuntang labas)
- // North channel
+ if(dist>580 && dist<820){ let isBridgeH=Math.abs(dy)<70; let isBridgeV=Math.abs(dx)<70; if(isBridgeH||isBridgeV) return false; return true; }
  if(Math.abs(dx)<110 && y>MAP_CY+800 && y<MAP_CY+1450) return true;
  if(Math.abs(dx)<110 && y<MAP_CY-800 && y>MAP_CY-1450) return true;
- // East-West channels
  if(Math.abs(dy)<110 && x>MAP_CX+800 && x<MAP_CX+1450) return true;
  if(Math.abs(dy)<110 && x<MAP_CX-800 && x>MAP_CX-1450) return true;
- // Pero sa bridge area ng cross channels, walkable
  if(Math.abs(dx)<55 && y>MAP_CY+800 && y<MAP_CY+1450) return false;
  if(Math.abs(dx)<55 && y<MAP_CY-800 && y>MAP_CY-1450) return false;
  if(Math.abs(dy)<55 && x>MAP_CX+800 && x<MAP_CX+1450) return false;
@@ -114,54 +98,22 @@ function isWater(x,y){
 function isWalkable(x,y){ return!isWater(x,y); }
 function getNearestWalkable(x,y){
  if(isWalkable(x,y)) return {x,y};
- for(let r=20;r<300;r+=20){
-   for(let a=0;a<Math.PI*2;a+=Math.PI/6){
-     let nx=x+Math.cos(a)*r, ny=y+Math.sin(a)*r;
-     if(isWalkable(nx,ny)) return {x:nx,y:ny};
-   }
- }
+ for(let r=20;r<300;r+=20){ for(let a=0;a<Math.PI*2;a+=Math.PI/6){ let nx=x+Math.cos(a)*r, ny=y+Math.sin(a)*r; if(isWalkable(nx,ny)) return {x:nx,y:ny}; } }
  return {x:MAP_CX,y:MAP_CY};
 }
-
+ <script>
 class WorldV81 extends Phaser.Scene{
 constructor(){super('WorldV81');this.ents=[]}
-preload(){
-this.load.image('map','new/newmap.webp');
-ANIMALS.forEach(n=>{this.load.image('a-'+n,'new/animal-'+n+'.png');});
-HUMANS.forEach(n=>{this.load.image('h-'+n,'new/character-'+n+'.png');});
-}
+preload(){this.load.image('map','new/newmap.webp');ANIMALS.forEach(n=>{this.load.image('a-'+n,'new/animal-'+n+'.png');});HUMANS.forEach(n=>{this.load.image('h-'+n,'new/character-'+n+'.png');});}
 create(){
 const W=4096,H=4096;
 this.add.rectangle(W/2,H/2,W,H,0x0a2e5c).setDepth(0);
-if(this.textures.exists('map')){
-try{
-let tex=this.textures.get('map');
-if(tex&&tex.setFilter){tex.setFilter(Phaser.Textures.FilterMode.LINEAR);}
-this.island=this.add.image(W/2,H/2,'map').setDepth(1);
-this.island.setDisplaySize(3400,3400);
-this.island.setOrigin(0.5);
-}catch(e){this.createFallback(W,H);}
-}else{this.createFallback(W,H);}
+if(this.textures.exists('map')){try{let tex=this.textures.get('map');if(tex&&tex.setFilter){tex.setFilter(Phaser.Textures.FilterMode.LINEAR);}this.island=this.add.image(W/2,H/2,'map').setDepth(1);this.island.setDisplaySize(3400,3400);this.island.setOrigin(0.5);}catch(e){this.createFallback(W,H);}}else{this.createFallback(W,H);}
 this.bounds={x:MAP_CX-1300,y:MAP_CY-1100,w:2600,h:2200};
-this.cameras.main.setBounds(0,0,W,H);
-this.cameras.main.centerOn(W/2,H/2);
-this.cameras.main.setZoom(curZoom);
-this.cameras.main.setRoundPixels(false);
+this.cameras.main.setBounds(0,0,W,H);this.cameras.main.centerOn(W/2,H/2);this.cameras.main.setZoom(curZoom);this.cameras.main.setRoundPixels(false);
 this.isDragging=false;
 this.input.on('pointerdown',p=>{
-if(isShopOpen){
-if(p.y < innerHeight-165){
-if(selected){
-let wp=this.cameras.main.getWorldPoint(p.x,p.y);
-if(!isWalkable(wp.x,wp.y)){ this.showMsg('🚫 Bawal sa tubig!'); return; }
-this.spawn(wp.x,wp.y,selected,false);
-selected=null;updateQuest('spawn3',1);
-return;
-}
-if(p.y < innerHeight-200) toggleShop();
-return;
-}
-}
+if(isShopOpen){if(p.y < innerHeight-165){if(selected){let wp=this.cameras.main.getWorldPoint(p.x,p.y);if(!isWalkable(wp.x,wp.y)){ this.showMsg('🚫 Bawal sa tubig!'); return; }this.spawn(wp.x,wp.y,selected,false);selected=null;updateQuest('spawn3',1);return;}if(p.y < innerHeight-200) toggleShop();return;}}
 if(p.x<70&&!isOwnedMin&&p.y>92&&p.y<innerHeight-165) return;
 if(p.x>innerWidth-195&&!isQuestMin&&p.y>92&&p.y<320) return;
 if(document.getElementById('statWin').classList.contains('open')||document.getElementById('familyWin').classList.contains('open')) return;
@@ -170,11 +122,8 @@ if(!isShopOpen){this.isDragging=true;this.dragStart={x:p.x,y:p.y,sx:this.cameras
 this.input.on('pointermove',p=>{if(this.isDragging&&this.dragStart&&!isShopOpen){this.cameras.main.scrollX=this.dragStart.sx-(p.x-this.dragStart.x)/curZoom;this.cameras.main.scrollY=this.dragStart.sy-(p.y-this.dragStart.y)/curZoom;}});
 this.input.on('pointerup',()=>this.isDragging=false);
 this.input.on('wheel',(p,dx,dy)=>{if(dy>0) zoomOut(); else zoomIn();});
-this.buildShop();
-document.getElementById('familyBtn').onclick=()=>{this.showFamilyTree();};
-renderQuests();
-let saved=loadGameData();
-if(saved){coins=saved.coins||500;totalFriends=saved.totalFriends||0;document.getElementById('coins').innerText=coins;document.getElementById('fCount').innerText=totalFriends;if(saved.quests) quests=saved.quests;renderQuests();if(saved.ents){saved.ents.forEach(ed=>{this.spawn(ed.x,ed.y,ed.id,false,true,ed.stats);});}}
+this.buildShop();document.getElementById('familyBtn').onclick=()=>{this.showFamilyTree();};renderQuests();
+let saved=loadGameData();if(saved){coins=saved.coins||500;totalFriends=saved.totalFriends||0;document.getElementById('coins').innerText=coins;document.getElementById('fCount').innerText=totalFriends;if(saved.quests) quests=saved.quests;renderQuests();if(saved.ents){saved.ents.forEach(ed=>{this.spawn(ed.x,ed.y,ed.id,false,true,ed.stats);});}}
 this.time.addEvent({delay:15000,callback:()=>saveGame(true),loop:true});
 }
 createFallback(W,H){let g=this.add.graphics().setDepth(1);g.fillStyle(0x1a4d2e,1);g.fillCircle(W/2,H/2,1200);}
@@ -183,77 +132,48 @@ spawn(x,y,id,isBaby=false,isLoad=false,loadStats=null){
 if(!this.textures.exists(id)) return;
 if(!isLoad &&!isWalkable(x,y)){ let near=getNearestWalkable(x,y); x=near.x; y=near.y; }
 let human=isHumanId(id);
-let spr=this.add.image(x,y,id).setDepth(10).setInteractive();
-// === SMALLER SIZE PARA KASYA SA BRIDGE! ===
-if(human){ spr.setDisplaySize(42,58); } else { spr.setDisplaySize(38,38); }
-spr.baseW=spr.displayWidth;spr.baseH=spr.displayHeight;
-if(isLoad&&loadStats){spr.stats=loadStats;}else{spr.stats={name:(isBaby?'Baby ':'')+NAMES[Math.floor(Math.random()*NAMES.length)]+' #'+Math.floor(Math.random()*99),type:id.replace('a-','').replace('h-','').toUpperCase(),gender:getGender(id),isHuman:human,lvl:1,happiness:60+Math.floor(Math.random()*15),friends:0,friendsList:[],lover:null,loverName:null,familyTime:0,togetherTime:0,children:[],isBaby:isBaby,owner:null,ownerRef:null,pet:null,petName:null,id:id};}
-spr.animState='idle';spr.baseSpeed=human?0.55:0.65;spr.moveTimer=2500+Math.random()*1500;spr.lastMeet=0;spr.vx=0;spr.vy=0;spr.lastChat=0;
-this.ents.push(spr);document.getElementById('cnt').innerText=this.ents.length;this.addOwned(spr);this.playAnimOn(spr,'idle');spr.on('pointerdown',()=>this.showStats(spr));if(!isLoad) saveGame(true);
+let container=this.add.container(x,y).setDepth(10);
+container.setSize(60,60);
+let shadow=this.add.ellipse(0,22, human?38:30, human?14:10, 0x000000, 0.35).setDepth(0);
+let glow=this.add.ellipse(0,2, human?56:46, human?56:46, 0xffffff, 0.92).setDepth(1);
+glow.setStrokeStyle(2, human?0x4ade80:0xfbbf24);
+let inner=this.add.ellipse(0,2, human?48:38, human?48:38, human?0xe0f2ff:0xfff7e0, 0.85).setDepth(2);
+let spr=this.add.image(0,-2,id).setDepth(3);
+if(human){ spr.setDisplaySize(42,56); } else { spr.setDisplaySize(36,36); }
+spr.baseW=spr.displayWidth; spr.baseH=spr.displayHeight;
+this.tweens.add({targets:glow,scaleX:1.08,scaleY:1.08,alpha:0.7,duration:900,yoyo:true,repeat:-1});
+container.add([shadow,glow,inner,spr]);
+container.spr=spr; container.glow=glow; container.shadow=shadow; container.inner=inner;
+if(isLoad&&loadStats){container.stats=loadStats;}else{container.stats={name:(isBaby?'Baby ':'')+NAMES[Math.floor(Math.random()*NAMES.length)]+' #'+Math.floor(Math.random()*99),type:id.replace('a-','').replace('h-','').toUpperCase(),gender:getGender(id),isHuman:human,lvl:1,happiness:60+Math.floor(Math.random()*15),friends:0,friendsList:[],lover:null,loverName:null,familyTime:0,togetherTime:0,children:[],isBaby:isBaby,owner:null,ownerRef:null,pet:null,petName:null,id:id};}
+container.animState='idle'; container.baseSpeed=human?0.55:0.65; container.moveTimer=2500+Math.random()*1500; container.lastMeet=0; container.vx=0; container.vy=0; container.lastChat=0;
+container.x=x; container.y=y;
+container.setSize(60,60);
+container.setInteractive(new Phaser.Geom.Rectangle(-28,-28,56,56), Phaser.Geom.Rectangle.Contains);
+this.ents.push(container);
+document.getElementById('cnt').innerText=this.ents.length;
+this.addOwned(container);
+this.playAnimOn(container,'idle');
+spr.setInteractive(); spr.on('pointerdown',()=>this.showStats(container));
+container.on('pointerdown',()=>this.showStats(container));
+if(!isLoad) saveGame(true);
+return container;
 }
-addOwned(spr){const list=document.getElementById('ownedList');let div=document.createElement('div');div.className='ownedItem';div.innerHTML=`<img src="new/${spr.stats.isHuman?'character':'animal'}-${spr.stats.type.toLowerCase()}.png">`;div.onclick=()=>{selectedEnt=spr;this.focusOn(spr);this.showStats(spr);};list.appendChild(div);}
-focusOn(spr){this.cameras.main.pan(spr.x,spr.y,400,'Power2');}
-showStats(spr){selectedEnt=spr;document.getElementById('sImg').src='new/'+(spr.stats.isHuman?'character':'animal')+'-'+spr.stats.type.toLowerCase()+'.png';document.getElementById('sName').innerHTML=`${spr.stats.name} <button class="editBtn" onclick="editName()">✏️</button>`;document.getElementById('sType').innerText=spr.stats.type+' • '+spr.stats.gender.toUpperCase();document.getElementById('sAnim').innerText='LVL'+spr.stats.lvl+' | '+spr.animState.toUpperCase();let loverTxt=spr.stats.lover?'💕 '+spr.stats.loverName:'Single';let petTxt=spr.stats.pet?'🐾 '+spr.stats.petName:'Wala pa';let ownerTxt=spr.stats.owner?'🐾 '+spr.stats.owner:'Wild';document.getElementById('sStats').innerHTML=`<div class="statRow"><span>LEVEL</span><b>${spr.stats.lvl}</b></div><div class="statRow"><span>FRIENDS</span><b>${spr.stats.friends}</b></div>${spr.stats.isHuman?`<div class="statRow"><span>LOVER</span><b>${loverTxt}</b></div><div class="statRow"><span>PET</span><b>${petTxt}</b></div>`: `<div class="statRow"><span>OWNER</span><b>${ownerTxt}</b></div>`}`;document.getElementById('familyBtn').style.display=(spr.stats.isHuman&&(spr.stats.lover||spr.stats.children.length>0))?'block':'none';document.getElementById('statWin').classList.add('open');}
+addOwned(ent){const list=document.getElementById('ownedList');let div=document.createElement('div');div.className='ownedItem';div.innerHTML=`<img src="new/${ent.stats.isHuman?'character':'animal'}-${ent.stats.type.toLowerCase()}.png">`;div.onclick=()=>{selectedEnt=ent;this.focusOn(ent);this.showStats(ent);};list.appendChild(div);}
+focusOn(ent){this.cameras.main.pan(ent.x,ent.y,400,'Power2');}
+showStats(ent){selectedEnt=ent;document.getElementById('sImg').src='new/'+(ent.stats.isHuman?'character':'animal')+'-'+ent.stats.type.toLowerCase()+'.png';document.getElementById('sName').innerHTML=`${ent.stats.name} <button class="editBtn" onclick="editName()">✏️</button>`;document.getElementById('sType').innerText=ent.stats.type+' • '+ent.stats.gender.toUpperCase();document.getElementById('sAnim').innerText='LVL'+ent.stats.lvl+' | '+ent.animState.toUpperCase();let loverTxt=ent.stats.lover?'💕 '+ent.stats.loverName:'Single';let petTxt=ent.stats.pet?'🐾 '+ent.stats.petName:'Wala pa';let ownerTxt=ent.stats.owner?'🐾 '+ent.stats.owner:'Wild';document.getElementById('sStats').innerHTML=`<div class="statRow"><span>LEVEL</span><b>${ent.stats.lvl}</b></div><div class="statRow"><span>FRIENDS</span><b>${ent.stats.friends}</b></div>${ent.stats.isHuman?`<div class="statRow"><span>LOVER</span><b>${loverTxt}</b></div><div class="statRow"><span>PET</span><b>${petTxt}</b></div>`: `<div class="statRow"><span>OWNER</span><b>${ownerTxt}</b></div>`}`;document.getElementById('familyBtn').style.display=(ent.stats.isHuman&&(ent.stats.lover||ent.stats.children.length>0))?'block':'none';document.getElementById('statWin').classList.add('open');}
 showFamilyTree(){if(!selectedEnt) return;let s=selectedEnt.stats;let html=`<h3 style="color:#fff;margin:0">${s.name} Family</h3>`;if(s.lover) html+=`<div class="statRow"><span>PARTNER</span><b>${s.loverName}</b></div>`;if(s.children.length>0) s.children.forEach(ch=>{html+=`<div class="statRow"><span>KID</span><b>${ch}</b></div>`;});document.getElementById('familyContent').innerHTML=html;document.getElementById('familyWin').classList.add('open');}
-checkLevelUp(spr){if(spr.stats.lvl>=5) return;let f=spr.stats.friends;if(spr.stats.lvl==1&&f>=3){spr.stats.lvl++;if(spr.stats.lvl==2) updateQuest('lvl2',1);this.showMsg('⬆️ LVL2 '+spr.stats.name);saveGame(true);}}
+checkLevelUp(ent){if(ent.stats.lvl>=5) return;let f=ent.stats.friends;if(ent.stats.lvl==1&&f>=3){ent.stats.lvl++;if(ent.stats.lvl==2) updateQuest('lvl2',1);this.showMsg('⬆️ LVL2 '+ent.stats.name);saveGame(true);}}
 makeFriends(a,b){if(a==b||Date.now()-a.lastMeet<4000) return;if(!a.stats.isHuman && b.stats.isHuman){if(b.stats.pet) return;if(!a.stats.owner){a.stats.owner=b.stats.name;a.stats.ownerRef=b;b.stats.pet=a;b.stats.petName=a.stats.name;updateQuest('pet1',1);}}if(!b.stats.isHuman && a.stats.isHuman){if(a.stats.pet) return;if(!b.stats.owner){b.stats.owner=a.stats.name;b.stats.ownerRef=a;a.stats.pet=b;a.stats.petName=b.stats.name;updateQuest('pet1',1);}}if(a.stats.isHuman&&b.stats.isHuman){if(a.stats.friendsList.includes(b.stats.name)){if(a.stats.lover==b){let dist=Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y);if(dist<110){a.stats.familyTime+=200;b.stats.familyTime+=200;if(a.stats.familyTime>60000){this.makeBaby(a,b);a.stats.familyTime=0;b.stats.familyTime=0;}}}return;}a.stats.friendsList.push(b.stats.name);b.stats.friendsList.push(a.stats.name);a.stats.friends++;b.stats.friends++;totalFriends++;document.getElementById('fCount').innerText=totalFriends;updateQuest('friends3',1);a.lastMeet=Date.now();b.lastMeet=Date.now();this.checkLevelUp(a);this.checkLovers(a,b);saveGame(true);}}
 checkLovers(a,b){if(!a.stats.isHuman||!b.stats.isHuman||a.stats.lover||b.stats.lover||a.stats.gender==b.stats.gender) return;if(a.stats.lvl<2||b.stats.lvl<2) return;if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)>85) return;if(Math.random()<0.02){a.stats.lover=b;a.stats.loverName=b.stats.name;b.stats.lover=a;b.stats.loverName=a.stats.name;this.showMsg('💕 '+a.stats.name+' + '+b.stats.name);updateQuest('lover',1);saveGame(true);}}
 makeBaby(a,b){let babyId=Math.random()<0.5?a.stats.id:b.stats.id;let pos=getNearestWalkable((a.x+b.x)/2,(a.y+b.y)/2);this.spawn(pos.x,pos.y+20,babyId,true);let last=this.ents[this.ents.length-1];if(last){last.stats.name='Baby '+NAMES[Math.floor(Math.random()*NAMES.length)];}a.stats.children.push(last.stats.name);b.stats.children.push(last.stats.name);this.showMsg('👶 Baby!');updateQuest('baby',1);saveGame(true);}
 showMsg(t){let el=document.getElementById('msg');el.innerText=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
-showBubble(spr,anim){if(Math.random()>0.5) return;if(Date.now()-spr.lastChat<5000) return;spr.lastChat=Date.now();if(spr._bubble) spr._bubble.destroy();if(spr._bubbleBg) spr._bubbleBg.destroy();let emoji=EMOJIS[anim]||"💬";let list=DIALOGUES[anim]||["..."];let txt=list[Math.floor(Math.random()*list.length)];let full=`${emoji} ${txt}`;let bubble=this.add.text(spr.x,spr.y-60,full,{fontSize:'16px',color:'#000',fontFamily:'Arial Black',stroke:'#fff',strokeThickness:4}).setOrigin(0.5).setDepth(61);let bg=this.add.rectangle(spr.x,spr.y-60,bubble.width+12,bubble.height+8,0xffffff,1).setDepth(60).setStrokeStyle(2,0x000000);spr._bubble=bubble;spr._bubbleBg=bg;this.tweens.add({targets:[bubble,bg],y:bubble.y-15,alpha:0,duration:2500,delay:1000,onComplete:()=>{bubble.destroy();bg.destroy();}});}
-playAnimOn(spr,anim){if(!spr.active) return;spr.animState=anim;if(selectedEnt==spr) document.getElementById('sAnim').innerText='LVL'+spr.stats.lvl+' | '+anim.toUpperCase();this.showBubble(spr,anim);if(spr.currentTween) spr.currentTween.stop();this.tweens.killTweensOf(spr);spr.setAngle(0);spr.setAlpha(1);spr.setDisplaySize(spr.baseW,spr.baseH);if(anim=='walk'||anim=='run'){spr.currentTween=this.tweens.add({targets:spr,y:spr.y-1.5,duration:300,yoyo:true,repeat:-1});}}
-update(t,d){
-if(isShopOpen) return;
-for(let i=0;i<this.ents.length;i++) for(let j=i+1;j<this.ents.length;j++){let a=this.ents[i],b=this.ents[j];if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)<55) this.makeFriends(a,b);}
-this.ents.forEach(e=>{
-if(e._bubble&&e._bubble.active){e._bubble.x=e.x;e._bubbleBg.x=e.x;e._bubble.y=e.y-60;e._bubbleBg.y=e.y-60;}
-if(e.stats.ownerRef&&e.stats.ownerRef.active){
-let dist=Phaser.Math.Distance.Between(e.x,e.y,e.stats.ownerRef.x,e.stats.ownerRef.y);
-if(dist>100){
-let ang=Math.atan2(e.stats.ownerRef.y-e.y,e.stats.ownerRef.x-e.x);
-let nx=e.x+Math.cos(ang)*e.baseSpeed*1.2, ny=e.y+Math.sin(ang)*e.baseSpeed*1.2;
-if(isWalkable(nx,ny)){ e.x=nx; e.y=ny; }
-return;
-}
-}
-e.moveTimer-=d;
-if(e.moveTimer<=0){
-let tries=0, found=false;
-while(tries<12 &&!found){
-let ang=Math.random()*Math.PI*2;
-let dist=120+Math.random()*180;
-let tx=e.x+Math.cos(ang)*dist, ty=e.y+Math.sin(ang)*dist;
-if(isWalkable(tx,ty)){
-this.playAnimOn(e,'walk');
-e.moveTimer=2500+Math.random()*1500;
-e.targetX=tx; e.targetY=ty;
-let a2=Math.atan2(e.targetY-e.y,e.targetX-e.x);
-e.vx=Math.cos(a2)*e.baseSpeed; e.vy=Math.sin(a2)*e.baseSpeed;
-found=true;
-}
-tries++;
-}
-if(!found){ this.playAnimOn(e,'idle'); e.moveTimer=1500; e.vx=0; e.vy=0; }
-}
-if(e.animState=='walk'||e.animState=='run'){
-let nx=e.x+e.vx, ny=e.y+e.vy;
-if(isWalkable(nx,ny)){ e.x=nx; e.y=ny; } else { e.moveTimer=0; }
-}
-});
-}
+showBubble(ent,anim){if(Math.random()>0.5) return;if(Date.now()-ent.lastChat<5000) return;ent.lastChat=Date.now();if(ent._bubble) ent._bubble.destroy();if(ent._bubbleBg) ent._bubbleBg.destroy();let emoji=EMOJIS[anim]||"💬";let list=DIALOGUES[anim]||["..."];let txt=list[Math.floor(Math.random()*list.length)];let full=`${emoji} ${txt}`;let bubble=this.add.text(ent.x,ent.y-55,full,{fontSize:'14px',color:'#000',fontFamily:'Arial Black',stroke:'#fff',strokeThickness:4}).setOrigin(0.5).setDepth(61);let bg=this.add.rectangle(ent.x,ent.y-55,bubble.width+12,bubble.height+8,0xffffff,1).setDepth(60).setStrokeStyle(2,0x000000);ent._bubble=bubble;ent._bubbleBg=bg;this.tweens.add({targets:[bubble,bg],y:bubble.y-12,alpha:0,duration:2500,delay:1000,onComplete:()=>{bubble.destroy();bg.destroy();}});}
+playAnimOn(ent,anim){if(!ent.active) return;ent.animState=anim;if(selectedEnt==ent) document.getElementById('sAnim').innerText='LVL'+ent.stats.lvl+' | '+anim.toUpperCase();this.showBubble(ent,anim);if(ent.currentTween) ent.currentTween.stop();this.tweens.killTweensOf(ent.spr);ent.spr.setAngle(0);ent.spr.setAlpha(1);ent.spr.setDisplaySize(ent.spr.baseW,ent.spr.baseH);if(anim=='walk'||anim=='run'){ent.currentTween=this.tweens.add({targets:ent.spr,y:-4,duration:250,yoyo:true,repeat:-1});}}
+update(t,d){if(isShopOpen) return;for(let i=0;i<this.ents.length;i++) for(let j=i+1;j<this.ents.length;j++){let a=this.ents[i],b=this.ents[j];if(Phaser.Math.Distance.Between(a.x,a.y,b.x,b.y)<55) this.makeFriends(a,b);}this.ents.forEach(e=>{if(e._bubble&&e._bubble.active){e._bubble.x=e.x;e._bubbleBg.x=e.x;e._bubble.y=e.y-55;e._bubbleBg.y=e.y-55;}if(e.stats.ownerRef&&e.stats.ownerRef.active){let dist=Phaser.Math.Distance.Between(e.x,e.y,e.stats.ownerRef.x,e.stats.ownerRef.y);if(dist>100){let ang=Math.atan2(e.stats.ownerRef.y-e.y,e.stats.ownerRef.x-e.x);let nx=e.x+Math.cos(ang)*e.baseSpeed*1.2, ny=e.y+Math.sin(ang)*e.baseSpeed*1.2;if(isWalkable(nx,ny)){ e.x=nx; e.y=ny; }return;}}e.moveTimer-=d;if(e.moveTimer<=0){let tries=0, found=false;while(tries<12 &&!found){let ang=Math.random()*Math.PI*2;let dist=120+Math.random()*180;let tx=e.x+Math.cos(ang)*dist, ty=e.y+Math.sin(ang)*dist;if(isWalkable(tx,ty)){this.playAnimOn(e,'walk');e.moveTimer=2500+Math.random()*1500;e.targetX=tx; e.targetY=ty;let a2=Math.atan2(e.targetY-e.y,e.targetX-e.x);e.vx=Math.cos(a2)*e.baseSpeed; e.vy=Math.sin(a2)*e.baseSpeed;found=true;}tries++;}if(!found){ this.playAnimOn(e,'idle'); e.moveTimer=1500; e.vx=0; e.vy=0; }}if(e.animState=='walk'||e.animState=='run'){let nx=e.x+e.vx, ny=e.y+e.vy;if(isWalkable(nx,ny)){ e.x=nx; e.y=ny; } else { e.moveTimer=0; }}});}
 }
 function closeStat(){document.getElementById('statWin').classList.remove('open');}
 function closeFamily(){document.getElementById('familyWin').classList.remove('open');}
 function playAnim(a){if(selectedEnt) window.game.scene.scenes[0].playAnimOn(selectedEnt,a);}
-let game=new Phaser.Game({
-type:Phaser.AUTO,
-parent:'game',
-width:innerWidth,
-height:innerHeight,
-backgroundColor:'#0a2e5c',
-scene:WorldV81,
-scale:{mode:Phaser.Scale.RESIZE},
-render:{antialias:true,roundPixels:false,powerPreference:'high-performance',mipmapFilter:'LINEAR_MIPMAP_LINEAR'}
-});
+let game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#0a2e5c',scene:WorldV81,scale:{mode:Phaser.Scale.RESIZE},render:{antialias:true,roundPixels:false,powerPreference:'high-performance',mipmapFilter:'LINEAR_MIPMAP_LINEAR'}});
 window.game=game;
 </script></body></html>
