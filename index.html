@@ -101,7 +101,6 @@ function getNearestWalkable(x,y){
  for(let r=20;r<300;r+=20){ for(let a=0;a<Math.PI*2;a+=Math.PI/6){ let nx=x+Math.cos(a)*r, ny=y+Math.sin(a)*r; if(isWalkable(nx,ny)) return {x:nx,y:ny}; } }
  return {x:MAP_CX,y:MAP_CY};
 }
- <script>
 class WorldV81 extends Phaser.Scene{
 constructor(){super('WorldV81');this.ents=[]}
 preload(){this.load.image('map','new/newmap.webp');ANIMALS.forEach(n=>{this.load.image('a-'+n,'new/animal-'+n+'.png');});HUMANS.forEach(n=>{this.load.image('h-'+n,'new/character-'+n+'.png');});}
