@@ -120,77 +120,83 @@ function getNearestWalkable(x,y){
 class WorldV92 extends Phaser.Scene{
 constructor(){super('WorldV92');this.ents=[];this.plots=[]}
 preload(){
-this.load.image('map','new/newmap.webp'); // MAP MO PA RIN 3840*2560
+this.load.image('map','new/newmap.webp'); // 3840*2560 MO
 ANIMALS.forEach(n=>{this.load.image('a-'+n,'new/animal-'+n+'.png');});
 HUMANS.forEach(n=>{this.load.image('h-'+n,'new/character-'+n+'.png');});
 }
 create(){
-const W=4096,H=4096;
-this.add.rectangle(W/2,H/2,W,H,0x0a2e5c).setDepth(0); // BLUE BACKGROUND - labas ng image mo
-
-// --- FINAL FIX: CONSIDER BLUE + MAP SIZE 3840*2560 ---
-let displayW=3600, displayH=2400; // para sa 3840*2560 = 1.5 aspect
+let W=3840, H=2560;
 if(this.textures.exists('map')){
 try{
 let img=this.textures.get('map').getSourceImage();
-let aspect=img.width/img.height; // 3840/2560 = 1.5
-displayW=3600;
-displayH=displayW / aspect; // 3600/1.5 = 2400 - TAMA PARA SA MAP MO!
+W=img.width; H=img.height;
+}catch(e){}
+}
+const islandCX=W/2, islandCY=H/2;
+
+if(this.textures.exists('map')){
+try{
 this.island=this.add.image(W/2,H/2,'map').setDepth(1);
-this.island.setDisplaySize(displayW, displayH); // MAP MO HINDI NA STRETCH!
+this.island.setDisplaySize(W, H);
 this.island.setOrigin(0.5);
-console.log('MAP MO:', img.width+'x'+img.height, 'DISPLAY:', displayW+'x'+displayH, 'BLUE WORLD:', W+'x'+H);
 }catch(e){this.createFallback(W,H);}
 }else{this.createFallback(W,H);}
 
-// --- TAMA NA PLACEMENT: RELATIVE SA ISLAND CENTER, HINDI SA BLUE WORLD! ---
-// Island center = W/2,H/2 = 2048,2048
-// Yung open grass ng map mo nasa loob lang ng displayW x displayH, hindi buong 4096!
-// Kaya gumamit tayo ng % offset from center para tama kahit may blue sa labas
-const islandCX=W/2, islandCY=H/2;
-const halfW=displayW/2, halfH=displayH/2;
+// --- BOXES ADJUSTED SA BAGONG 3840*2560 SCREEN! ---
+// Ngayon W=3840, H=2560 na basehan - mas malaki open area kaya mas malaki boxes!
+// Full occupy open grass, curved, border only, glow grow, hindi umaapaw!
 
-// Grass fields ng MAP MO 3840*2560 - measured from image
-// NW = top-left white forest side, NE = top-right pink, SW = bottom-left orange, SE = bottom-right green
-// Lahat nasa GITNA ng open grass, hindi sa tubig/bundok/castle!
 const plotFields=[
- // NW - white snow side - 2 groups x 9 = 18 plots
- {ox:-0.28, oy:-0.32, bw:0.16, bh:0.14}, // NW upper - relative to island
- {ox:-0.38, oy:-0.12, bw:0.16, bh:0.14}, // NW lower west
+// NW - white side - TOP
+{ox:-0.29, oy:-0.31, bw:0.19, bh:0.16, curve:0.02}, // mas malaki bw/bh para full occupy!
+{ox:-0.40, oy:-0.09, bw:0.18, bh:0.16, curve:-0.01},
 
- // NE - pink side
- {ox:0.28, oy:-0.32, bw:0.16, bh:0.14}, // NE upper
- {ox:0.38, oy:-0.10, bw:0.16, bh:0.15}, // NE lower east
+// NE - pink side - TOP
+{ox:0.29, oy:-0.31, bw:0.19, bh:0.16, curve:-0.02},
+{ox:0.40, oy:-0.07, bw:0.18, bh:0.17, curve:0.01},
 
- // SW - orange side
- {ox:-0.38, oy:0.12, bw:0.16, bh:0.14}, // SW upper
- {ox:-0.28, oy:0.35, bw:0.18, bh:0.16}, // SW lower southwest
+// SW - orange side - BOTTOM
+{ox:-0.40, oy:0.13, bw:0.18, bh:0.16, curve:0.01},
+{ox:-0.29, oy:0.36, bw:0.20, bh:0.18, curve:0.03}, // mas malaki para puno southwest!
 
- // SE - green side
- {ox:0.38, oy:0.14, bw:0.16, bh:0.15}, // SE upper southeast
- {ox:0.28, oy:0.36, bw:0.18, bh:0.16}, // SE lower south
+// SE - green side - BOTTOM
+{ox:0.40, oy:0.15, bw:0.18, bh:0.17, curve:-0.01},
+{ox:0.29, oy:0.37, bw:0.20, bh:0.18, curve:-0.03}, // mas malaki para puno southeast!
 ];
 
 let plotId=0;
 plotFields.forEach(f=>{
- const fieldCX=islandCX + f.ox * displayW;
- const fieldCY=islandCY + f.oy * displayH;
- const fieldBW=f.bw * displayW;
- const fieldBH=f.bh * displayH;
+ const fieldCX=islandCX + f.ox * W;
+ const fieldCY=islandCY + f.oy * H;
+ const fieldBW=f.bw * W;
+ const fieldBH=f.bh * H;
  const boxW=fieldBW/3, boxH=fieldBH/3;
  for(let r=0;r<3;r++){
   for(let c=0;c<3;c++){
    plotId++;
-   const x=fieldCX - fieldBW/2 + boxW*c + boxW*0.5;
+   // CURVED EFFECT - konting offset per row para curved tingnan!
+   let curveOffset = (r-1) * f.curve * W * 0.08;
+   const x=fieldCX - fieldBW/2 + boxW*c + boxW*0.5 + curveOffset;
    const y=fieldCY - fieldBH/2 + boxH*r + boxH*0.5;
-   // BORDER ONLY, WALANG PUTI, GLOW GROW LANG, FULL OCCUPY OPEN AREA
-   const w=boxW*0.90, h=boxH*0.88;
-   const box=this.add.rectangle(x,y,w,h,0x000000,0).setDepth(5).setStrokeStyle(2.8,0x22ff66,1);
+   // MAS MALAKI NA BOXES - FULL OCCUPY OPEN AREA!
+   const w=boxW*0.92, h=boxH*0.90; // dati 0.90/0.88, ngayon 0.92/0.90 - mas puno!
+   const box=this.add.rectangle(x,y,w,h,0x000000,0).setDepth(5).setStrokeStyle(3.2,0x22ff66,1);
    box.setInteractive({useHandCursor:true});
    box.plotId=plotId;
-   if(box.preFX){ let fx=box.preFX.addGlow(0x22ff66,6,0,false,0.24,14); box.glowFX=fx; }
-   box.on('pointerover',()=>{ if(!box.parentPlot.building) this.tweens.add({targets:box, scale:1.20, duration:150, ease:'Back.Out'}); });
-   box.on('pointerout',()=>{ if(!box.parentPlot.building) this.tweens.add({targets:box, scale:1, duration:150}); });
+   if(box.preFX){ let fx=box.preFX.addGlow(0x22ff66,7,0,false,0.26,16); box.glowFX=fx; }
+   // BORDER LANG NAG-GROW!
+   box.on('pointerover',()=>{
+    if(!box.parentPlot.building) {
+     this.tweens.add({targets:box, scale:1.25, duration:160, ease:'Back.Out'});
+     if(box.glowFX) box.glowFX.outerStrength=10;
+    }
+   });
+   box.on('pointerout',()=>{
+    if(!box.parentPlot.building) {
+     this.tweens.add({targets:box, scale:1, duration:160, ease:'Back.In'});
+     if(box.glowFX) box.glowFX.outerStrength=6;
+    }
+   });
    box.on('pointerdown',()=>{ selectedPlot=box.parentPlot; openBuildShop(box.parentPlot); });
    const plot={x,y,plotId,plotBox:box,building:null,buildingIcon:null};
    box.parentPlot=plot;
@@ -199,8 +205,15 @@ plotFields.forEach(f=>{
  }
 });
 
-this.bounds={x:MAP_CX-1300,y:MAP_CY-1100,w:2600,h:2200};
-this.cameras.main.setBounds(0,0,W,H);this.cameras.main.centerOn(W/2,H/2);this.cameras.main.setZoom(curZoom);this.cameras.main.setRoundPixels(false);
+this.cameras.main.setBounds(0,0,W,H);
+this.cameras.main.centerOn(W/2,H/2);
+let screenW=window.innerWidth, screenH=window.innerHeight;
+let zoomX=screenW / W, zoomY=screenH / H;
+curZoom=Math.min(zoomX, zoomY) * 1.15;
+if(curZoom>0.65) curZoom=0.65;
+if(curZoom<0.20) curZoom=0.20;
+this.cameras.main.setZoom(curZoom);
+
 this.isDragging=false;
 this.input.on('pointerdown',p=>{
 if(document.getElementById('buildShop').classList.contains('open')){if(p.y>innerHeight-220) return; closeBuildShop();}
@@ -217,7 +230,7 @@ this.buildShop();document.getElementById('familyBtn').onclick=()=>{this.showFami
 let saved=loadGameData();if(saved){coins=saved.coins||500;totalFriends=saved.totalFriends||0;document.getElementById('coins').innerText=coins;document.getElementById('fCount').innerText=totalFriends;if(saved.quests) quests=saved.quests;renderQuests();if(saved.ents){saved.ents.forEach(ed=>{this.spawn(ed.x,ed.y,ed.id,false,true,ed.stats);});}if(saved.buildings){saved.buildings.forEach(bd=>{let plot=this.plots.find(p=>p.plotId==bd.plotId);if(plot){plot.building=bd.b;plot.plotBox.setVisible(false);let icon=this.add.text(plot.x,plot.y-10,bd.b.icon,{fontSize:'32px'}).setOrigin(0.5).setDepth(15);plot.buildingIcon=icon;}});}}
 this.time.addEvent({delay:15000,callback:()=>saveGame(true),loop:true});
 }
-createFallback(W,H){let g=this.add.graphics().setDepth(1);g.fillStyle(0x1a4d2e,1);g.fillCircle(W/2,H/2,1200);}
+createFallback(W,H){let g=this.add.graphics().setDepth(1);g.fillStyle(0x1a4d2e,1);g.fillCircle(W/2,H/2,Math.min(W,H)/2.5);}
 buildShop(){const shop=document.getElementById('shop');shop.innerHTML='';[...HUMANS.map(n=>({id:'h-'+n,name:n,price:20,t:'human'})),...ANIMALS.map(n=>({id:'a-'+n,name:n,price:10,t:'animal'}))].forEach(it=>{let key=it.id;let c=document.createElement('div');c.className='card';c.innerHTML=`<img src="new/${it.t=='human'?'character':'animal'}-${it.name}.png"><b>${it.name.toUpperCase()}</b><button>🪙${it.price}</button>`;c.querySelector('button').onclick=()=>{if(coins<it.price) return;if(!this.textures.exists(key)) return;coins-=it.price;document.getElementById('coins').innerText=coins;selected=key;document.querySelectorAll('.card').forEach(x=>x.style.borderColor='#444');c.style.borderColor='#4ade80';this.showMsg('Tap sa land para mag spawn!');};shop.appendChild(c);});}
 spawn(x,y,id,isBaby=false,isLoad=false,loadStats=null){
 if(!this.textures.exists(id)) return;
@@ -226,7 +239,7 @@ let human=isHumanId(id);
 let spr=this.add.image(x,y,id).setDepth(10).setInteractive();
 if(human){ spr.setDisplaySize(42,56); } else { spr.setDisplaySize(36,36); }
 spr.baseW=spr.displayWidth; spr.baseH=spr.displayHeight;
-if(spr.preFX){let glowColor = human? 0x4ade80 : 0xfbbf24; let fx = spr.preFX.addGlow(glowColor, 4, 0, false, 0.15, 12); spr.glowFX = fx;}
+if(spr.preFX){let glowColor = human? 0x4ade80 : 0xfbbf24; let fx = spr.preFX.addGlow(glowColor, 4, 0, false, 0.15, 12);}
 let shadow=this.add.ellipse(x,y+20, human?26:20, 8, 0x000000, 0.28).setDepth(9);
 if(isLoad&&loadStats){spr.stats=loadStats;}else{spr.stats={name:(isBaby?'Baby ':'')+NAMES[Math.floor(Math.random()*NAMES.length)]+' #'+Math.floor(Math.random()*99),type:id.replace('a-','').replace('h-','').toUpperCase(),gender:getGender(id),isHuman:human,lvl:1,happiness:60+Math.floor(Math.random()*15),friends:0,friendsList:[],lover:null,loverName:null,familyTime:0,togetherTime:0,children:[],isBaby:isBaby,owner:null,ownerRef:null,pet:null,petName:null,id:id};}
 spr.animState='idle'; spr.baseSpeed=human?0.55:0.65; spr.moveTimer=2500+Math.random()*1500; spr.lastMeet=0; spr.vx=0; spr.vy=0; spr.lastChat=0;
@@ -294,6 +307,6 @@ if(isWalkable(nx,ny)){ e.x=nx; e.y=ny; } else { e.moveTimer=0; }
 function closeStat(){document.getElementById('statWin').classList.remove('open');}
 function closeFamily(){document.getElementById('familyWin').classList.remove('open');}
 function playAnim(a){if(selectedEnt) window.game.scene.scenes[0].playAnimOn(selectedEnt,a);}
-let game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#0a2e5c',scene:WorldV92,scale:{mode:Phaser.Scale.RESIZE},render:{antialias:true,roundPixels:false,powerPreference:'high-performance',mipmapFilter:'LINEAR_MIPMAP_LINEAR'}});
+let game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:innerWidth,height:innerHeight,backgroundColor:'#0a2e5c',scene:WorldV92,scale:{mode:Phaser.Scale.RESIZE},render:{antialias:true,roundPixels:false,powerPreference:'high-performance'}});
 window.game=game;
 </script></body></html>
