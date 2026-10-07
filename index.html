@@ -137,18 +137,17 @@ this.island.setOrigin(0.5);
 }catch(e){this.createFallback(W,H);}
 }else{this.createFallback(W,H);}
 
-// --- BAGONG CONCEPT: 72 PLOTS PERFECT OPEN SPACE - 9 PER FIELD x 8 FIELDS ---
-// Lahat nasa gitna ng open grass, curved, hindi apaw sa tubig/castle!
-// NW upper = 9, NW lower = 9, NE upper = 9, NE lower = 9, SW upper = 9, SW lower = 9, SE upper = 9, SE lower = 9
+// --- V93 FIX: BORDER ONLY + FULL OCCUPY + CURVED + NO WHITE FILL ---
+// 72 plots = 9 per field x 8 fields, saktong sakto sa open area, hindi umaapaw
 const plotFields=[
-{cx:1690,cy:1310,bw:520,bh:350,rows:3,cols:3}, // NW upper - top-left mining - 9 plots perfect open space
-{cx:1160,cy:1940,bw:620,bh:480,rows:3,cols:3}, // NW lower - west white forest - 9 plots perfect open space
-{cx:2800,cy:1310,bw:520,bh:350,rows:3,cols:3}, // NE upper - top-right pink forest - 9 plots perfect open space
-{cx:3000,cy:1980,bw:520,bh:400,rows:3,cols:3}, // NE lower - east colosseum - 9 plots perfect open space
-{cx:1160,cy:2700,bw:520,bh:400,rows:3,cols:3}, // SW upper - bottom-left colosseum - 9 plots perfect open space
-{cx:1480,cy:3380,bw:600,bh:480,rows:3,cols:3}, // SW lower - southwest orange forest - 9 plots perfect open space
-{cx:2900,cy:2700,bw:600,bh:480,rows:3,cols:3}, // SE upper - southeast green forest - 9 plots perfect open space
-{cx:2620,cy:3380,bw:600,bh:480,rows:3,cols:3}, // SE lower - south mountain - 9 plots perfect open space
+{cx:1710,cy:1320,bw:620,bh:460,rows:3,cols:3}, // NW upper - top-left - full occupy
+{cx:1240,cy:1960,bw:680,bh:520,rows:3,cols:3}, // NW lower - west - full occupy
+{cx:2780,cy:1320,bw:620,bh:460,rows:3,cols:3}, // NE upper - top-right pink - full occupy
+{cx:3040,cy:1990,bw:650,bh:540,rows:3,cols:3}, // NE lower - east colosseum - full occupy
+{cx:1240,cy:2700,bw:650,bh:480,rows:3,cols:3}, // SW upper - bottom-left - full occupy
+{cx:1520,cy:3370,bw:720,bh:560,rows:3,cols:3}, // SW lower - southwest orange - full occupy curved
+{cx:2890,cy:2700,bw:700,bh:520,rows:3,cols:3}, // SE upper - southeast green - full occupy
+{cx:2650,cy:3370,bw:720,bh:560,rows:3,cols:3}, // SE lower - south mountain - full occupy curved
 ];
 let plotId=0;
 plotFields.forEach(f=>{
@@ -158,15 +157,31 @@ plotFields.forEach(f=>{
    plotId++;
    const x=f.cx - f.bw/2 + boxW*c + boxW*0.5;
    const y=f.cy - f.bh/2 + boxH*r + boxH*0.5;
-   const box=this.add.rectangle(x,y,38,24,0xffffff,0.92).setDepth(5).setStrokeStyle(3,0x22c55e);
+   // V93: BORDER ONLY, NO WHITE FILL, GLOW GROW EFFECT
+   const w=boxW*0.88; // saktong sakto occupy open area
+   const h=boxH*0.85; // full occupy
+   const box=this.add.rectangle(x,y,w,h,0x000000,0).setDepth(5).setStrokeStyle(2.8,0x22ff66,1);
    box.setInteractive();
    box.plotId=plotId;
+   box.baseW=w; box.baseH=h;
+   // glow border only
+   if(box.preFX){ let fx=box.preFX.addGlow(0x22ff66,6,0,false,0.25,14); box.glowFX=fx; }
+   // grow effect on hover - box lang nag grow
+   box.on('pointerover',()=>{
+    if(box.parentPlot.building) return;
+    this.tweens.add({targets:box, scaleX:1.18, scaleY:1.18, duration:180, ease:'Back.Out'});
+    if(box.glowFX) box.glowFX.outerStrength=10;
+   });
+   box.on('pointerout',()=>{
+    if(box.parentPlot.building) return;
+    this.tweens.add({targets:box, scaleX:1, scaleY:1, duration:180, ease:'Back.In'});
+    if(box.glowFX) box.glowFX.outerStrength=6;
+   });
    box.on('pointerdown',()=>{
     selectedPlot=box.parentPlot;
     openBuildShop(box.parentPlot);
    });
-   if(box.preFX){ box.preFX.addGlow(0x22c55e,4,0,false,0.15,12); }
-   const plot={x,y,plotId,plotBox:box,building:null,buildingIcon:null};
+   const plot={x,y,plotId,plotBox:box,building:null,buildingIcon:null,baseW:w,baseH:h};
    box.parentPlot=plot;
    this.plots.push(plot);
   }
@@ -200,11 +215,7 @@ let human=isHumanId(id);
 let spr=this.add.image(x,y,id).setDepth(10).setInteractive();
 if(human){ spr.setDisplaySize(42,56); } else { spr.setDisplaySize(36,36); }
 spr.baseW=spr.displayWidth; spr.baseH=spr.displayHeight;
-if(spr.preFX){
-let glowColor = human? 0x4ade80 : 0xfbbf24;
-let fx = spr.preFX.addGlow(glowColor, 4, 0, false, 0.15, 12);
-spr.glowFX = fx;
-}
+if(spr.preFX){let glowColor = human? 0x4ade80 : 0xfbbf24; let fx = spr.preFX.addGlow(glowColor, 4, 0, false, 0.15, 12); spr.glowFX = fx;}
 let shadow=this.add.ellipse(x,y+20, human?26:20, 8, 0x000000, 0.28).setDepth(9);
 if(isLoad&&loadStats){spr.stats=loadStats;}else{spr.stats={name:(isBaby?'Baby ':'')+NAMES[Math.floor(Math.random()*NAMES.length)]+' #'+Math.floor(Math.random()*99),type:id.replace('a-','').replace('h-','').toUpperCase(),gender:getGender(id),isHuman:human,lvl:1,happiness:60+Math.floor(Math.random()*15),friends:0,friendsList:[],lover:null,loverName:null,familyTime:0,togetherTime:0,children:[],isBaby:isBaby,owner:null,ownerRef:null,pet:null,petName:null,id:id};}
 spr.animState='idle'; spr.baseSpeed=human?0.55:0.65; spr.moveTimer=2500+Math.random()*1500; spr.lastMeet=0; spr.vx=0; spr.vy=0; spr.lastChat=0;
