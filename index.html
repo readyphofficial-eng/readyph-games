@@ -120,65 +120,77 @@ function getNearestWalkable(x,y){
 class WorldV92 extends Phaser.Scene{
 constructor(){super('WorldV92');this.ents=[];this.plots=[]}
 preload(){
-this.load.image('map','new/newmap.webp'); // YUNG MAP MO PA RIN - 3840*2560
+this.load.image('map','new/newmap.webp'); // MAP MO PA RIN 3840*2560
 ANIMALS.forEach(n=>{this.load.image('a-'+n,'new/animal-'+n+'.png');});
 HUMANS.forEach(n=>{this.load.image('h-'+n,'new/character-'+n+'.png');});
 }
 create(){
 const W=4096,H=4096;
-this.add.rectangle(W/2,H/2,W,H,0x0a2e5c).setDepth(0);
+this.add.rectangle(W/2,H/2,W,H,0x0a2e5c).setDepth(0); // BLUE BACKGROUND - labas ng image mo
+
+// --- FINAL FIX: CONSIDER BLUE + MAP SIZE 3840*2560 ---
+let displayW=3600, displayH=2400; // para sa 3840*2560 = 1.5 aspect
 if(this.textures.exists('map')){
 try{
-// --- FINAL FIX PARA SA MAP MO 3840*2560 ---
 let img=this.textures.get('map').getSourceImage();
 let aspect=img.width/img.height; // 3840/2560 = 1.5
-// Wag i-square! Preserve original aspect mo!
-let baseW=3600; // base width para sa 3840 map mo
-let baseH=baseW / aspect; // 3600 / 1.5 = 2400 - tama!
+displayW=3600;
+displayH=displayW / aspect; // 3600/1.5 = 2400 - TAMA PARA SA MAP MO!
 this.island=this.add.image(W/2,H/2,'map').setDepth(1);
-this.island.setDisplaySize(baseW, baseH); // 3600x2400 - SAKTO SA 3840*2560 MO!
+this.island.setDisplaySize(displayW, displayH); // MAP MO HINDI NA STRETCH!
 this.island.setOrigin(0.5);
-console.log('Map mo:', img.width+'x'+img.height, 'Display:', baseW+'x'+baseH);
+console.log('MAP MO:', img.width+'x'+img.height, 'DISPLAY:', displayW+'x'+displayH, 'BLUE WORLD:', W+'x'+H);
 }catch(e){this.createFallback(W,H);}
 }else{this.createFallback(W,H);}
 
-// --- V94 FINAL PLACEMENT - PARA SA 3840*2560 MAP MO ---
-// Lahat ng coordinates inayos ko para nasa GITNA lang ng open grass, hindi sa tubig/bundok!
-// Base sa screenshot mo, ito yung tamang open area ng map mo
+// --- TAMA NA PLACEMENT: RELATIVE SA ISLAND CENTER, HINDI SA BLUE WORLD! ---
+// Island center = W/2,H/2 = 2048,2048
+// Yung open grass ng map mo nasa loob lang ng displayW x displayH, hindi buong 4096!
+// Kaya gumamit tayo ng % offset from center para tama kahit may blue sa labas
+const islandCX=W/2, islandCY=H/2;
+const halfW=displayW/2, halfH=displayH/2;
+
+// Grass fields ng MAP MO 3840*2560 - measured from image
+// NW = top-left white forest side, NE = top-right pink, SW = bottom-left orange, SE = bottom-right green
+// Lahat nasa GITNA ng open grass, hindi sa tubig/bundok/castle!
 const plotFields=[
-// NW - top left - white snow side - 2 subfields na 9 each
-{cx:1680,cy:1320,bw:540,bh:380,rows:3,cols:3}, // NW upper - gitna ng grass
-{cx:1210,cy:1930,bw:580,bh:420,rows:3,cols:3}, // NW lower - west side
+ // NW - white snow side - 2 groups x 9 = 18 plots
+ {ox:-0.28, oy:-0.32, bw:0.16, bh:0.14}, // NW upper - relative to island
+ {ox:-0.38, oy:-0.12, bw:0.16, bh:0.14}, // NW lower west
 
-// NE - top right - pink side
-{cx:2680,cy:1320,bw:540,bh:380,rows:3,cols:3}, // NE upper
-{cx:3040,cy:1950,bw:580,bh:420,rows:3,cols:3}, // NE lower - east colosseum side
+ // NE - pink side
+ {ox:0.28, oy:-0.32, bw:0.16, bh:0.14}, // NE upper
+ {ox:0.38, oy:-0.10, bw:0.16, bh:0.15}, // NE lower east
 
-// SW - bottom left - orange side
-{cx:1210,cy:2700,bw:580,bh:420,rows:3,cols:3}, // SW upper
-{cx:1500,cy:3320,bw:620,bh:480,rows:3,cols:3}, // SW lower
+ // SW - orange side
+ {ox:-0.38, oy:0.12, bw:0.16, bh:0.14}, // SW upper
+ {ox:-0.28, oy:0.35, bw:0.18, bh:0.16}, // SW lower southwest
 
-// SE - bottom right - green side
-{cx:2860,cy:2700,bw:580,bh:420,rows:3,cols:3}, // SE upper
-{cx:2620,cy:3320,bw:620,bh:480,rows:3,cols:3}, // SE lower
+ // SE - green side
+ {ox:0.38, oy:0.14, bw:0.16, bh:0.15}, // SE upper southeast
+ {ox:0.28, oy:0.36, bw:0.18, bh:0.16}, // SE lower south
 ];
+
 let plotId=0;
 plotFields.forEach(f=>{
- const boxW=f.bw/f.cols; const boxH=f.bh/f.rows;
- for(let r=0;r<f.rows;r++){
-  for(let c=0;c<f.cols;c++){
+ const fieldCX=islandCX + f.ox * displayW;
+ const fieldCY=islandCY + f.oy * displayH;
+ const fieldBW=f.bw * displayW;
+ const fieldBH=f.bh * displayH;
+ const boxW=fieldBW/3, boxH=fieldBH/3;
+ for(let r=0;r<3;r++){
+  for(let c=0;c<3;c++){
    plotId++;
-   const x=f.cx - f.bw/2 + boxW*c + boxW*0.5;
-   const y=f.cy - f.bh/2 + boxH*r + boxH*0.5;
-   // FINAL: BORDER ONLY, WALANG PUTI, GLOW GROW LANG
-   const w=boxW*0.88; // saktong sakto occupy open area
-   const h=boxH*0.85;
-   const box=this.add.rectangle(x,y,w,h,0x000000,0).setDepth(5).setStrokeStyle(2.6,0x22ff66,1);
+   const x=fieldCX - fieldBW/2 + boxW*c + boxW*0.5;
+   const y=fieldCY - fieldBH/2 + boxH*r + boxH*0.5;
+   // BORDER ONLY, WALANG PUTI, GLOW GROW LANG, FULL OCCUPY OPEN AREA
+   const w=boxW*0.90, h=boxH*0.88;
+   const box=this.add.rectangle(x,y,w,h,0x000000,0).setDepth(5).setStrokeStyle(2.8,0x22ff66,1);
    box.setInteractive({useHandCursor:true});
    box.plotId=plotId;
-   if(box.preFX){ let fx=box.preFX.addGlow(0x22ff66,6,0,false,0.22,14); box.glowFX=fx; }
-   box.on('pointerover',()=>{ if(!box.parentPlot.building) this.tweens.add({targets:box, scale:1.22, duration:160, ease:'Back.Out'}); });
-   box.on('pointerout',()=>{ if(!box.parentPlot.building) this.tweens.add({targets:box, scale:1, duration:160}); });
+   if(box.preFX){ let fx=box.preFX.addGlow(0x22ff66,6,0,false,0.24,14); box.glowFX=fx; }
+   box.on('pointerover',()=>{ if(!box.parentPlot.building) this.tweens.add({targets:box, scale:1.20, duration:150, ease:'Back.Out'}); });
+   box.on('pointerout',()=>{ if(!box.parentPlot.building) this.tweens.add({targets:box, scale:1, duration:150}); });
    box.on('pointerdown',()=>{ selectedPlot=box.parentPlot; openBuildShop(box.parentPlot); });
    const plot={x,y,plotId,plotBox:box,building:null,buildingIcon:null};
    box.parentPlot=plot;
